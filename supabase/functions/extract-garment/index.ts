@@ -249,72 +249,119 @@ function detectCategory(sourceType: string): string {
 }
 
 /**
+ * Check if a URL looks like a valid image URL (not JavaScript variable or placeholder)
+ */
+function isValidImageUrl(url: string): boolean {
+  if (!url || url.length < 5) return false;
+  
+  // Skip JavaScript-like patterns (variables, template literals)
+  if (url.includes('productData.') || url.includes('{{') || url.includes('${')) return false;
+  if (/^[a-zA-Z_$][a-zA-Z0-9_$]*\./.test(url)) return false; // JS variable pattern
+  
+  // Must start with http, https, //, or / for relative paths
+  if (!url.startsWith('http://') && !url.startsWith('https://') && 
+      !url.startsWith('//') && !url.startsWith('/') && !url.startsWith('data:')) {
+    // Could be a relative path like "images/product.jpg"
+    if (!url.match(/\.(jpg|jpeg|png|gif|webp|svg|avif)/i)) {
+      return false;
+    }
+  }
+  
+  // Skip data URIs that are too short (placeholders)
+  if (url.startsWith('data:') && url.length < 100) return false;
+  
+  return true;
+}
+
+/**
  * Extract product image URL from HTML page using meta tags and common patterns
  */
 function extractImageFromHtml(html: string, baseUrl: string): string | null {
   // 1. Try og:image (Open Graph - standard for e-commerce)
   const ogImageMatch = html.match(/<meta\s+(?:property|name)=["']og:image["']\s+content=["']([^"']+)["']/i) 
     || html.match(/<meta\s+content=["']([^"']+)["']\s+(?:property|name)=["']og:image["']/i);
-  if (ogImageMatch && ogImageMatch[1]) {
+  if (ogImageMatch && ogImageMatch[1] && isValidImageUrl(ogImageMatch[1])) {
     return resolveUrl(ogImageMatch[1], baseUrl);
   }
   
   // 2. Try twitter:image
   const twitterImageMatch = html.match(/<meta\s+(?:property|name)=["']twitter:image["']\s+content=["']([^"']+)["']/i)
     || html.match(/<meta\s+content=["']([^"']+)["']\s+(?:property|name)=["']twitter:image["']/i);
-  if (twitterImageMatch && twitterImageMatch[1]) {
+  if (twitterImageMatch && twitterImageMatch[1] && isValidImageUrl(twitterImageMatch[1])) {
     return resolveUrl(twitterImageMatch[1], baseUrl);
   }
   
   // 3. Try product:image (used by some e-commerce platforms)
   const productImageMatch = html.match(/<meta\s+(?:property|name)=["']product:image["']\s+content=["']([^"']+)["']/i)
     || html.match(/<meta\s+content=["']([^"']+)["']\s+(?:property|name)=["']product:image["']/i);
-  if (productImageMatch && productImageMatch[1]) {
+  if (productImageMatch && productImageMatch[1] && isValidImageUrl(productImageMatch[1])) {
     return resolveUrl(productImageMatch[1], baseUrl);
   }
   
-  // 4. Look for common product image patterns in img tags
-  const productPatterns = [
-    /class=["'][^"']*product[^"']*image[^"']*["'][^>]*src=["']([^"']+)["']/i,
-    /class=["'][^"']*main[^"']*image[^"']*["'][^>]*src=["']([^"']+)["']/i,
-    /id=["'][^"']*product[^"']*["'][^>]*src=["']([^"']+)["']/i,
-    /data-zoom-image=["']([^"']+)["']/i,
-    /data-large-image=["']([^"']+)["']/i,
-  ];
-  
-  for (const pattern of productPatterns) {
-    const match = html.match(pattern);
-    if (match && match[1]) {
-      return resolveUrl(match[1], baseUrl);
+  // 4. Look for JSON-LD structured data (common in modern e-commerce)
+  const jsonLdMatches = html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi);
+  for (const match of jsonLdMatches) {
+    try {
+      const jsonData = JSON.parse(match[1]);
+      // Handle array of JSON-LD objects
+      const items = Array.isArray(jsonData) ? jsonData : [jsonData];
+      for (const item of items) {
+        if (item.image) {
+          const imgUrl = Array.isArray(item.image) ? item.image[0] : 
+                        (typeof item.image === 'object' ? item.image.url : item.image);
+          if (imgUrl && isValidImageUrl(imgUrl)) {
+            return resolveUrl(imgUrl, baseUrl);
+          }
+        }
+      }
+    } catch {
+      // JSON parse error, continue
     }
   }
   
-  // 5. Find large images (likely product images have specific dimensions or keywords)
-  const imgMatches = [...html.matchAll(/<img[^>]+src=["']([^"']+)["'][^>]*>/gi)];
-  for (const match of imgMatches) {
-    const imgTag = match[0];
+  // 5. Look for common product image patterns in img tags with src containing http/https
+  const imgWithAbsoluteUrl = html.matchAll(/<img[^>]+src=["'](https?:\/\/[^"']+)["'][^>]*>/gi);
+  for (const match of imgWithAbsoluteUrl) {
     const src = match[1];
     
-    // Skip small images, icons, logos
+    // Skip small images, icons, logos, tracking pixels
     if (src.includes('icon') || src.includes('logo') || src.includes('sprite') || 
-        src.includes('avatar') || src.includes('thumb') || src.includes('1x1')) {
+        src.includes('avatar') || src.includes('thumb') || src.includes('1x1') ||
+        src.includes('pixel') || src.includes('tracking') || src.includes('analytics')) {
       continue;
     }
     
-    // Prioritize images with product-related keywords
-    if (src.includes('product') || src.includes('main') || src.includes('large') || 
-        src.includes('zoom') || src.includes('detail') || src.includes('hero')) {
-      return resolveUrl(src, baseUrl);
+    // Prioritize images with product-related keywords or image extensions
+    if (src.match(/\.(jpg|jpeg|png|webp)/i) && 
+        (src.includes('product') || src.includes('main') || src.includes('large') || 
+         src.includes('zoom') || src.includes('detail') || src.includes('hero') ||
+         src.includes('img') || src.includes('image') || src.includes('photo'))) {
+      return src;
     }
-    
-    // Check for large dimensions in attributes
-    const widthMatch = imgTag.match(/width=["']?(\d+)/i);
-    const heightMatch = imgTag.match(/height=["']?(\d+)/i);
-    if (widthMatch && parseInt(widthMatch[1]) >= 300) {
-      return resolveUrl(src, baseUrl);
+  }
+  
+  // 6. Look for data attributes that often contain product images
+  const dataImagePatterns = [
+    /data-(?:zoom|large|full|original|src|image)=["'](https?:\/\/[^"']+)["']/gi,
+    /data-lazy(?:-src)?=["'](https?:\/\/[^"']+)["']/gi,
+  ];
+  
+  for (const pattern of dataImagePatterns) {
+    const matches = html.matchAll(pattern);
+    for (const match of matches) {
+      if (match[1] && isValidImageUrl(match[1])) {
+        return match[1];
+      }
     }
-    if (heightMatch && parseInt(heightMatch[1]) >= 300) {
-      return resolveUrl(src, baseUrl);
+  }
+  
+  // 7. Find any large absolute URL image as fallback
+  const anyAbsoluteImg = html.matchAll(/["'](https?:\/\/[^"']+\.(?:jpg|jpeg|png|webp)[^"']*)["']/gi);
+  for (const match of anyAbsoluteImg) {
+    const src = match[1];
+    if (isValidImageUrl(src) && !src.includes('icon') && !src.includes('logo') && 
+        !src.includes('thumb') && src.length > 30) {
+      return src;
     }
   }
   
@@ -330,6 +377,9 @@ function resolveUrl(url: string, baseUrl: string): string {
   }
   if (url.startsWith('//')) {
     return 'https:' + url;
+  }
+  if (url.startsWith('data:')) {
+    return url;
   }
   try {
     return new URL(url, baseUrl).href;
