@@ -97,38 +97,53 @@ async function getWeatherData(
   console.log(`Fetching weather for ${lat}, ${lon} from ${startDate} to ${endDate}`);
   
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const start = new Date(startDate);
   const end = new Date(endDate);
-  const daysUntilStart = Math.ceil((start.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  
+  // Calculate days from today to end date
+  const daysUntilEnd = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   
   try {
     let weatherData;
     
-    if (daysUntilStart <= 16 && daysUntilStart >= 0) {
-      // Use forecast API for near future
+    // Open-Meteo forecast API supports up to 16 days from today
+    if (daysUntilEnd <= 16) {
+      // Use forecast API - dates are within range
+      console.log("Using forecast API (within 16 days)");
       const response = await fetch(
         `${OPEN_METEO_FORECAST}?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode&start_date=${startDate}&end_date=${endDate}&timezone=auto`
       );
       
       if (!response.ok) {
-        console.error("Forecast API failed:", response.status);
-        return null;
+        const errorText = await response.text();
+        console.error("Forecast API failed:", response.status, errorText);
+        // Fall through to try historical data
+      } else {
+        weatherData = await response.json();
       }
-      
-      weatherData = await response.json();
-    } else {
-      // Use historical data from previous year for same period
+    }
+    
+    // If forecast didn't work or dates are too far, use historical data from previous year
+    if (!weatherData) {
+      console.log("Using historical data (previous year same period)");
       const lastYearStart = new Date(start);
       lastYearStart.setFullYear(lastYearStart.getFullYear() - 1);
       const lastYearEnd = new Date(end);
       lastYearEnd.setFullYear(lastYearEnd.getFullYear() - 1);
       
+      const histStartStr = lastYearStart.toISOString().split('T')[0];
+      const histEndStr = lastYearEnd.toISOString().split('T')[0];
+      
+      console.log(`Historical period: ${histStartStr} to ${histEndStr}`);
+      
       const response = await fetch(
-        `${OPEN_METEO_HISTORICAL}?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&start_date=${lastYearStart.toISOString().split('T')[0]}&end_date=${lastYearEnd.toISOString().split('T')[0]}&timezone=auto`
+        `${OPEN_METEO_HISTORICAL}?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&start_date=${histStartStr}&end_date=${histEndStr}&timezone=auto`
       );
       
       if (!response.ok) {
-        console.error("Historical API failed:", response.status);
+        const errorText = await response.text();
+        console.error("Historical API failed:", response.status, errorText);
         return null;
       }
       
