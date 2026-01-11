@@ -7,6 +7,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const LOVABLE_AI_GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -165,6 +167,112 @@ serve(async (req) => {
       );
     };
 
+    // Nano Banana fallback (Lovable AI - no external API key needed)
+    const callNanoBanana = async (): Promise<string | null> => {
+      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+      if (!LOVABLE_API_KEY) {
+        console.log("LOVABLE_API_KEY not configured, skipping Nano Banana fallback");
+        return null;
+      }
+
+      console.log("Calling Nano Banana (Lovable AI) as fallback...");
+
+      try {
+        const response = await fetch(LOVABLE_AI_GATEWAY, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-image",
+            messages: [
+              {
+                role: "user",
+                content: [
+                  {
+                    type: "text",
+                    text: `You are a virtual try-on AI. Place the garment from the second image onto the person in the first image. 
+                    
+Rules:
+- Keep the person's face, body shape, skin tone, and pose exactly the same
+- The garment should fit naturally on the person's body
+- Maintain realistic lighting and shadows
+- The result should look like a real photograph
+- Output a single photorealistic image`,
+                  },
+                  {
+                    type: "image_url",
+                    image_url: { url: avatarImageUrl },
+                  },
+                  {
+                    type: "image_url",
+                    image_url: { url: garmentImageUrl },
+                  },
+                ],
+              },
+            ],
+            modalities: ["image", "text"],
+          }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Nano Banana error:", response.status, errorText);
+          
+          if (response.status === 429) {
+            throw new Error("Nano Banana rate limit");
+          }
+          if (response.status === 402) {
+            throw new Error("Lovable AI credits insuficientes");
+          }
+          throw new Error(`Nano Banana error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Nano Banana response:", JSON.stringify(data).slice(0, 500));
+
+        // Extract image from response - check multiple possible formats
+        const choice = data.choices?.[0];
+        const message = choice?.message;
+        
+        // Format 1: images array
+        const imageFromArray = message?.images?.[0]?.image_url?.url;
+        if (imageFromArray) {
+          console.log("Nano Banana returned image via images array");
+          return imageFromArray;
+        }
+
+        // Format 2: content array with image_url
+        if (Array.isArray(message?.content)) {
+          for (const part of message.content) {
+            if (part.type === "image_url" && part.image_url?.url) {
+              console.log("Nano Banana returned image via content array");
+              return part.image_url.url;
+            }
+          }
+        }
+
+        // Format 3: inline_data in content
+        if (Array.isArray(message?.content)) {
+          for (const part of message.content) {
+            if (part.type === "image" && part.inline_data?.data) {
+              const mimeType = part.inline_data.mime_type || "image/png";
+              const base64Url = `data:${mimeType};base64,${part.inline_data.data}`;
+              console.log("Nano Banana returned image via inline_data");
+              return base64Url;
+            }
+          }
+        }
+
+        console.log("Nano Banana did not return an image in expected format");
+        return null;
+      } catch (error) {
+        console.error("Nano Banana call failed:", error);
+        throw error;
+      }
+    };
+
     try {
       let output: unknown;
       let usedModel = "CatVTON-FLUX";
@@ -234,8 +342,26 @@ serve(async (req) => {
             output = await callIDMVTON(true, true, 1);
             usedModel = "IDM-VTON";
           } catch (idmError) {
-            throw idmError;
+            // IDM-VTON failed too, try Nano Banana as last resort
+            console.log("IDM-VTON failed, trying Nano Banana as final fallback...");
+            const nanoBananaResult = await callNanoBanana();
+            if (nanoBananaResult) {
+              output = nanoBananaResult;
+              usedModel = "Nano Banana (Lovable AI)";
+            } else {
+              throw idmError;
+            }
           }
+        }
+      }
+
+      // If we still don't have output after all attempts, try Nano Banana
+      if (!output) {
+        console.log("No output from Replicate models, trying Nano Banana...");
+        const nanoBananaResult = await callNanoBanana();
+        if (nanoBananaResult) {
+          output = nanoBananaResult;
+          usedModel = "Nano Banana (Lovable AI)";
         }
       }
 
@@ -278,12 +404,47 @@ serve(async (req) => {
       
       // Provide user-friendly error messages
       let userMessage = "Falha ao processar prova virtual.";
-      const isRateLimit = errorMsg.includes("429") || errorMsg.includes("Too Many Requests") || errorMsg.includes("throttled");
+      const isRateLimit = errorMsg.includes("429") || errorMsg.includes("Too Many Requests") || errorMsg.includes("throttled") || errorMsg.includes("rate limit");
       const retryAfterSeconds = isRateLimit ? (getRetryAfterSeconds(errorMsg) ?? 8) : null;
+
+      // Try Nano Banana as emergency fallback for rate limits
+      if (isRateLimit) {
+        console.log("Rate limit hit, attempting Nano Banana as emergency fallback...");
+        try {
+          const nanoBananaResult = await callNanoBanana();
+          if (nanoBananaResult) {
+            console.log("Nano Banana emergency fallback succeeded!");
+            
+            // Update the try_on_results record with success
+            if (tryOnResultId) {
+              await supabase
+                .from("try_on_results")
+                .update({
+                  status: "completed",
+                  result_image_url: nanoBananaResult,
+                  processing_time_ms: Date.now() - startTime,
+                })
+                .eq("id", tryOnResultId);
+            }
+
+            return new Response(
+              JSON.stringify({
+                success: true,
+                resultImageUrl: nanoBananaResult,
+                processingTimeMs: Date.now() - startTime,
+                model: "Nano Banana (Lovable AI - fallback)",
+              }),
+              { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+        } catch (nanoBananaError) {
+          console.error("Nano Banana emergency fallback failed:", nanoBananaError);
+        }
+      }
 
       if (errorMsg.includes("list index out of range") || errorMsg.includes("Failed to process")) {
         userMessage = "Não foi possível processar a imagem. Use uma foto de corpo inteiro com boa iluminação e fundo simples.";
-      } else if (errorMsg.includes("Payment Required") || errorMsg.includes("402")) {
+      } else if (errorMsg.includes("Payment Required") || errorMsg.includes("402") || errorMsg.includes("credits insuficientes")) {
         userMessage = "Créditos insuficientes no serviço de IA. Tente novamente em alguns minutos.";
       } else if (isRateLimit) {
         userMessage = retryAfterSeconds
