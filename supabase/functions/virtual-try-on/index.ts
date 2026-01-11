@@ -69,30 +69,37 @@ serve(async (req) => {
     });
 
     console.log("Calling IDM-VTON model...");
+    console.log("Avatar URL:", avatarImageUrl);
+    console.log("Garment URL:", garmentImageUrl);
 
-    // Use IDM-VTON model for virtual try-on
-    // Model: cuuupid/idm-vton
-    const output = await replicate.run(
-      "cuuupid/idm-vton:c871bb9b046607b680449ecbae55fd8c6d945e0a1948644bf2361b3d021d3ff4",
-      {
-        input: {
-          human_img: avatarImageUrl,
-          garm_img: garmentImageUrl,
-          garment_des: category || "clothing",
-          auto_mask: true,
-          auto_crop: true,
-          denoise_steps: 30,
-          seed: 42,
-        },
+    try {
+      // Use IDM-VTON model for virtual try-on
+      // Model: cuuupid/idm-vton
+      const output = await replicate.run(
+        "cuuupid/idm-vton:c871bb9b046607b680449ecbae55fd8c6d945e0a1948644bf2361b3d021d3ff4",
+        {
+          input: {
+            human_img: avatarImageUrl,
+            garm_img: garmentImageUrl,
+            garment_des: category || "clothing",
+            auto_mask: true,
+            auto_crop: true,
+            denoise_steps: 30,
+            seed: 42,
+          },
+        }
+      );
+
+      const processingTime = Date.now() - startTime;
+      console.log("IDM-VTON completed in", processingTime, "ms");
+      console.log("Output:", output);
+
+      // The output is the URL of the generated image
+      const resultImageUrl = Array.isArray(output) ? output[0] : output;
+      
+      if (!resultImageUrl) {
+        throw new Error("O modelo não retornou uma imagem. Verifique se a foto do avatar mostra uma pessoa de corpo inteiro.");
       }
-    );
-
-    const processingTime = Date.now() - startTime;
-    console.log("IDM-VTON completed in", processingTime, "ms");
-    console.log("Output:", output);
-
-    // The output is the URL of the generated image
-    const resultImageUrl = Array.isArray(output) ? output[0] : output;
 
     // Update the try_on_results record
     if (tryOnResultId) {
@@ -114,9 +121,39 @@ serve(async (req) => {
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
+    } catch (modelError) {
+      const processingTime = Date.now() - startTime;
+      const errorMsg = modelError instanceof Error ? modelError.message : String(modelError);
+      console.error("IDM-VTON model error:", errorMsg);
+      
+      // Provide user-friendly error messages
+      let userMessage = "Falha ao processar prova virtual.";
+      if (errorMsg.includes("list index out of range")) {
+        userMessage = "Não foi possível detectar uma pessoa na imagem do avatar. Use uma foto de corpo inteiro com boa iluminação.";
+      } else if (errorMsg.includes("Payment Required") || errorMsg.includes("402")) {
+        userMessage = "Créditos insuficientes no serviço de IA. Tente novamente em alguns minutos.";
+      }
+      
+      // Update status to failed
+      if (tryOnResultId) {
+        await supabase
+          .from("try_on_results")
+          .update({ 
+            status: "failed", 
+            error_message: userMessage,
+            processing_time_ms: processingTime 
+          })
+          .eq("id", tryOnResultId);
+      }
+      
+      return new Response(
+        JSON.stringify({ success: false, error: userMessage }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
   } catch (error) {
     console.error("Virtual try-on error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Failed to process virtual try-on";
+    const errorMessage = error instanceof Error ? error.message : "Falha ao processar prova virtual";
 
     return new Response(
       JSON.stringify({
