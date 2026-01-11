@@ -68,7 +68,7 @@ serve(async (req) => {
       auth: REPLICATE_API_KEY,
     });
 
-    console.log("Calling IDM-VTON model...");
+    console.log("Calling CatVTON-FLUX model...");
     console.log("Avatar URL:", avatarImageUrl);
     console.log("Garment URL:", garmentImageUrl);
 
@@ -108,9 +108,30 @@ serve(async (req) => {
       validateImageUrl(garmentImageUrl, 'peça'),
     ]);
 
-    // Helper function to call the model with specific parameters
-    const callModel = async (autoCrop: boolean, autoMask: boolean, attempt: number) => {
-      console.log(`Attempt ${attempt}: auto_crop=${autoCrop}, auto_mask=${autoMask}`);
+    // Helper to wait between retries (for rate limiting)
+    const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+    // Primary model: CatVTON-FLUX (more robust, faster)
+    const callCatVTON = async (attempt: number, seed: number = 42) => {
+      console.log(`CatVTON-FLUX attempt ${attempt}, seed=${seed}`);
+      
+      return await replicate.run(
+        "mmezhov/catvton-flux:2e0c727f61b53ca11c35e63f7e8cd1e6bb54d41f7c2eaae30fcb5cc68e7833e7",
+        {
+          input: {
+            image: avatarImageUrl,      // Person image
+            garment: garmentImageUrl,   // Garment image
+            num_inference_steps: 30,
+            seed: seed,
+            guidance_scale: 30,
+          },
+        }
+      );
+    };
+
+    // Fallback model: IDM-VTON (if CatVTON fails)
+    const callIDMVTON = async (autoCrop: boolean, autoMask: boolean, attempt: number) => {
+      console.log(`IDM-VTON fallback attempt ${attempt}: auto_crop=${autoCrop}, auto_mask=${autoMask}`);
       
       return await replicate.run(
         "cuuupid/idm-vton:c871bb9b046607b680449ecbae55fd8c6d945e0a1948644bf2361b3d021d3ff4",
@@ -128,61 +149,83 @@ serve(async (req) => {
       );
     };
 
-    // Helper to wait between retries (for rate limiting)
-    const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
     try {
       let output: unknown;
-      let usedFallback = false;
+      let usedModel = "CatVTON-FLUX";
 
-      // Attempt 1: Default parameters
+      // Attempt 1: CatVTON-FLUX (primary - more robust)
       try {
-        output = await callModel(true, true, 1);
+        output = await callCatVTON(1);
       } catch (firstError) {
         const firstErrorMsg = firstError instanceof Error ? firstError.message : String(firstError);
-        console.log("First attempt failed:", firstErrorMsg);
+        console.log("CatVTON-FLUX first attempt failed:", firstErrorMsg);
         
-        // Check for rate limiting - if so, wait and retry same config
+        // Check for rate limiting - wait and retry
         if (firstErrorMsg.includes("429") || firstErrorMsg.includes("Too Many Requests") || firstErrorMsg.includes("throttled")) {
           console.log("Rate limited, waiting 5 seconds before retry...");
           await sleep(5000);
-          output = await callModel(true, true, 1.5);
-        }
-        // If "list index out of range", try fallback with auto_crop=false
-        else if (firstErrorMsg.includes("list index out of range")) {
-          console.log("Trying fallback with auto_crop=false (waiting 5s for rate limit)...");
-          await sleep(5000); // Wait to avoid rate limit on fallback
           try {
-            output = await callModel(false, true, 2);
-            usedFallback = true;
+            output = await callCatVTON(2, 123);
+          } catch (retryError) {
+            const retryErrorMsg = retryError instanceof Error ? retryError.message : String(retryError);
+            console.log("CatVTON-FLUX retry failed:", retryErrorMsg);
+            throw retryError;
+          }
+        }
+        // Try with different seed if image processing issue
+        else if (firstErrorMsg.includes("index") || firstErrorMsg.includes("processing") || firstErrorMsg.includes("Failed")) {
+          console.log("CatVTON-FLUX processing issue, trying with different seed...");
+          await sleep(2000);
+          try {
+            output = await callCatVTON(2, 123);
           } catch (secondError) {
             const secondErrorMsg = secondError instanceof Error ? secondError.message : String(secondError);
-            console.log("Second attempt failed:", secondErrorMsg);
+            console.log("CatVTON-FLUX second attempt failed, falling back to IDM-VTON:", secondErrorMsg);
             
-            // Check for rate limiting again
-            if (secondErrorMsg.includes("429") || secondErrorMsg.includes("Too Many Requests") || secondErrorMsg.includes("throttled")) {
-              console.log("Rate limited on fallback, waiting 5 seconds...");
-              await sleep(5000);
-              output = await callModel(false, true, 2.5);
-              usedFallback = true;
-            }
-            // Try one more time with both disabled
-            else if (secondErrorMsg.includes("list index out of range")) {
-              console.log("Trying last fallback with auto_crop=false, auto_mask=false (waiting 5s)...");
-              await sleep(5000);
-              output = await callModel(false, false, 3);
-              usedFallback = true;
-            } else {
-              throw secondError;
+            // Fallback to IDM-VTON
+            await sleep(2000);
+            try {
+              output = await callIDMVTON(true, true, 1);
+              usedModel = "IDM-VTON";
+            } catch (idmError) {
+              const idmErrorMsg = idmError instanceof Error ? idmError.message : String(idmError);
+              console.log("IDM-VTON first attempt failed:", idmErrorMsg);
+              
+              if (idmErrorMsg.includes("list index out of range")) {
+                await sleep(2000);
+                try {
+                  output = await callIDMVTON(false, true, 2);
+                  usedModel = "IDM-VTON (fallback config)";
+                } catch (idmError2) {
+                  const idmErrorMsg2 = idmError2 instanceof Error ? idmError2.message : String(idmError2);
+                  if (idmErrorMsg2.includes("list index out of range")) {
+                    await sleep(2000);
+                    output = await callIDMVTON(false, false, 3);
+                    usedModel = "IDM-VTON (minimal config)";
+                  } else {
+                    throw idmError2;
+                  }
+                }
+              } else {
+                throw idmError;
+              }
             }
           }
         } else {
-          throw firstError;
+          // Unknown error, try IDM-VTON as fallback
+          console.log("Unknown CatVTON error, falling back to IDM-VTON...");
+          await sleep(2000);
+          try {
+            output = await callIDMVTON(true, true, 1);
+            usedModel = "IDM-VTON";
+          } catch (idmError) {
+            throw idmError;
+          }
         }
       }
 
       const processingTime = Date.now() - startTime;
-      console.log("IDM-VTON completed in", processingTime, "ms", usedFallback ? "(used fallback)" : "");
+      console.log(`${usedModel} completed in`, processingTime, "ms");
       console.log("Output:", output);
 
       // The output is the URL of the generated image
@@ -192,35 +235,36 @@ serve(async (req) => {
         throw new Error("O modelo não retornou uma imagem. Verifique se a foto do avatar mostra uma pessoa de corpo inteiro.");
       }
 
-    // Update the try_on_results record
-    if (tryOnResultId) {
-      await supabase
-        .from("try_on_results")
-        .update({
-          status: "completed",
-          result_image_url: resultImageUrl,
-          processing_time_ms: processingTime,
-        })
-        .eq("id", tryOnResultId);
-    }
+      // Update the try_on_results record
+      if (tryOnResultId) {
+        await supabase
+          .from("try_on_results")
+          .update({
+            status: "completed",
+            result_image_url: resultImageUrl,
+            processing_time_ms: processingTime,
+          })
+          .eq("id", tryOnResultId);
+      }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        resultImageUrl,
-        processingTimeMs: processingTime,
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+      return new Response(
+        JSON.stringify({
+          success: true,
+          resultImageUrl,
+          processingTimeMs: processingTime,
+          model: usedModel,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     } catch (modelError) {
       const processingTime = Date.now() - startTime;
       const errorMsg = modelError instanceof Error ? modelError.message : String(modelError);
-      console.error("IDM-VTON model error:", errorMsg);
+      console.error("Virtual try-on model error:", errorMsg);
       
       // Provide user-friendly error messages
       let userMessage = "Falha ao processar prova virtual.";
-      if (errorMsg.includes("list index out of range")) {
-        userMessage = "Não foi possível detectar uma pessoa na imagem do avatar. Use uma foto de corpo inteiro com boa iluminação, braços levemente afastados do corpo.";
+      if (errorMsg.includes("list index out of range") || errorMsg.includes("Failed to process")) {
+        userMessage = "Não foi possível processar a imagem. Use uma foto de corpo inteiro com boa iluminação e fundo simples.";
       } else if (errorMsg.includes("Payment Required") || errorMsg.includes("402")) {
         userMessage = "Créditos insuficientes no serviço de IA. Tente novamente em alguns minutos.";
       } else if (errorMsg.includes("429") || errorMsg.includes("Too Many Requests") || errorMsg.includes("throttled")) {
