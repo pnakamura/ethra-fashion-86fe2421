@@ -1,14 +1,10 @@
 import { motion } from 'framer-motion';
-import { Sparkles, Plus } from 'lucide-react';
+import { Sparkles, Plus, Info, Sun, Moon, UmbrellaOff, Utensils, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-
-interface SuggestedLook {
-  occasion: string;
-  items: string[];
-  description: string;
-}
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { SuggestedLook } from '@/hooks/useTripWeather';
 
 interface WardrobeItem {
   id: string;
@@ -21,6 +17,22 @@ interface SuggestedLooksProps {
   wardrobeItems: WardrobeItem[];
   onAddLook: (itemIds: string[]) => void;
   selectedItems: string[];
+}
+
+const occasionIcons: Record<string, typeof Sun> = {
+  dia: Sun,
+  passeio: Camera,
+  praia: UmbrellaOff,
+  noite: Moon,
+  jantar: Utensils,
+};
+
+function getOccasionIcon(occasion: string): typeof Sun {
+  const lowerOccasion = occasion.toLowerCase();
+  for (const [key, icon] of Object.entries(occasionIcons)) {
+    if (lowerOccasion.includes(key)) return icon;
+  }
+  return Camera;
 }
 
 export function SuggestedLooks({ looks, wardrobeItems, onAddLook, selectedItems }: SuggestedLooksProps) {
@@ -44,7 +56,7 @@ export function SuggestedLooks({ looks, wardrobeItems, onAddLook, selectedItems 
     >
       <div className="flex items-center gap-2">
         <Sparkles className="w-4 h-4 text-primary" />
-        <h4 className="text-sm font-medium">Looks Sugeridos</h4>
+        <h4 className="text-sm font-medium">Looks Sugeridos pela Aura</h4>
       </div>
 
       <ScrollArea className="w-full">
@@ -55,6 +67,7 @@ export function SuggestedLooks({ looks, wardrobeItems, onAddLook, selectedItems 
               .filter((img): img is string => img !== null)
               .slice(0, 4);
             const added = isLookAdded(look);
+            const OccasionIcon = getOccasionIcon(look.occasion);
 
             return (
               <motion.div
@@ -64,10 +77,25 @@ export function SuggestedLooks({ looks, wardrobeItems, onAddLook, selectedItems 
                 transition={{ delay: 0.1 * index }}
               >
                 <Card
-                  className={`flex-shrink-0 w-48 p-3 border-0 shadow-soft transition-all ${
+                  className={`flex-shrink-0 w-52 p-3 border-0 shadow-soft transition-all ${
                     added ? 'ring-2 ring-primary bg-primary/5' : ''
                   }`}
                 >
+                  {/* Look Name with Occasion Icon */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                      <OccasionIcon className="w-3.5 h-3.5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-foreground truncate">
+                        {look.name}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground capitalize">
+                        {look.occasion}
+                      </p>
+                    </div>
+                  </div>
+
                   {/* Look Images Grid */}
                   <div className="grid grid-cols-2 gap-1 mb-3">
                     {lookImages.map((img, imgIndex) => (
@@ -91,26 +119,38 @@ export function SuggestedLooks({ looks, wardrobeItems, onAddLook, selectedItems 
                       ))}
                   </div>
 
-                  {/* Look Info */}
-                  <div className="space-y-2">
-                    <p className="text-xs font-medium text-primary capitalize">
-                      {look.occasion}
-                    </p>
-                    <p className="text-xs text-muted-foreground line-clamp-2">
-                      {look.description}
-                    </p>
-                  </div>
+                  {/* Look Description */}
+                  <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                    {look.description}
+                  </p>
+
+                  {/* Style Tip */}
+                  {look.style_tip && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center gap-1.5 text-[10px] text-primary cursor-help mb-3">
+                            <Info className="w-3 h-3" />
+                            <span className="truncate">Dica de estilo</span>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="max-w-xs">
+                          <p className="text-xs">{look.style_tip}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
 
                   {/* Add Button */}
                   <Button
                     size="sm"
                     variant={added ? 'secondary' : 'default'}
-                    className="w-full mt-3 h-8 text-xs rounded-lg"
+                    className="w-full h-8 text-xs rounded-lg"
                     onClick={() => onAddLook(look.items)}
                     disabled={added}
                   >
                     {added ? (
-                      'Adicionado'
+                      'Adicionado ✓'
                     ) : (
                       <>
                         <Plus className="w-3 h-3 mr-1" />

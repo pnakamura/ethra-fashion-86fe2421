@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
-import { Sun, Cloud, CloudRain, Snowflake, CloudSun, CloudFog, CloudLightning, Umbrella, Thermometer } from 'lucide-react';
+import { Sun, Cloud, CloudRain, Snowflake, CloudSun, CloudFog, CloudLightning, Umbrella, Thermometer, Lightbulb, MapPin, Ban, Star } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { TipsCategories } from '@/hooks/useTripWeather';
 
 interface WeatherPreviewProps {
   weather: {
@@ -11,7 +12,7 @@ interface WeatherPreviewProps {
     rain_probability: number;
     conditions: string[];
   };
-  tips?: string[];
+  tips?: TipsCategories;
 }
 
 const conditionIcons: Record<string, typeof Sun> = {
@@ -40,9 +41,51 @@ function getTemperatureGradient(min: number, max: number): string {
   return 'from-orange-500 to-red-500';
 }
 
-export function WeatherPreview({ weather, tips = [] }: WeatherPreviewProps) {
+interface TipSectionProps {
+  icon: typeof Lightbulb;
+  title: string;
+  tips: string[];
+  color: string;
+  delay: number;
+}
+
+function TipSection({ icon: Icon, title, tips, color, delay }: TipSectionProps) {
+  if (!tips || tips.length === 0) return null;
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 5 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+      className="space-y-1.5"
+    >
+      <div className={`flex items-center gap-1.5 ${color}`}>
+        <Icon className="w-3.5 h-3.5" />
+        <span className="text-xs font-medium">{title}</span>
+      </div>
+      <ul className="space-y-1 pl-5">
+        {tips.slice(0, 2).map((tip, index) => (
+          <li key={index} className="text-xs text-foreground/70 list-disc">
+            {tip}
+          </li>
+        ))}
+      </ul>
+    </motion.div>
+  );
+}
+
+export function WeatherPreview({ weather, tips }: WeatherPreviewProps) {
   const mainCondition = weather.conditions[0] || 'partly_cloudy';
   const WeatherIcon = conditionIcons[mainCondition] || CloudSun;
+
+  // Handle both old format (string[]) and new format (TipsCategories)
+  const hasCategorizedTips = tips && typeof tips === 'object' && !Array.isArray(tips);
+  const hasAnyTips = hasCategorizedTips && (
+    (tips.essentials?.length || 0) > 0 ||
+    (tips.local_culture?.length || 0) > 0 ||
+    (tips.avoid?.length || 0) > 0 ||
+    (tips.pro_tips?.length || 0) > 0
+  );
 
   return (
     <motion.div
@@ -72,7 +115,7 @@ export function WeatherPreview({ weather, tips = [] }: WeatherPreviewProps) {
 
           {/* Weather Info */}
           <div className="flex-1 min-w-0">
-            <p className="text-sm text-foreground font-medium leading-snug line-clamp-2">
+            <p className="text-sm text-foreground font-medium leading-snug line-clamp-3">
               {weather.summary}
             </p>
             
@@ -104,24 +147,37 @@ export function WeatherPreview({ weather, tips = [] }: WeatherPreviewProps) {
           </div>
         </div>
 
-        {/* Tips */}
-        {tips.length > 0 && (
-          <div className="mt-4 pt-3 border-t border-border/50">
-            <p className="text-xs font-medium text-muted-foreground mb-2">Dicas para a viagem:</p>
-            <ul className="space-y-1">
-              {tips.slice(0, 3).map((tip, index) => (
-                <motion.li
-                  key={index}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 + index * 0.1 }}
-                  className="text-xs text-foreground/80 flex items-start gap-2"
-                >
-                  <span className="text-primary mt-0.5">•</span>
-                  <span>{tip}</span>
-                </motion.li>
-              ))}
-            </ul>
+        {/* Categorized Tips */}
+        {hasAnyTips && (
+          <div className="mt-4 pt-3 border-t border-border/50 grid grid-cols-2 gap-3">
+            <TipSection
+              icon={Lightbulb}
+              title="Essenciais"
+              tips={tips.essentials || []}
+              color="text-amber-600"
+              delay={0.3}
+            />
+            <TipSection
+              icon={MapPin}
+              title="Cultura Local"
+              tips={tips.local_culture || []}
+              color="text-primary"
+              delay={0.4}
+            />
+            <TipSection
+              icon={Ban}
+              title="Evite"
+              tips={tips.avoid || []}
+              color="text-red-500"
+              delay={0.5}
+            />
+            <TipSection
+              icon={Star}
+              title="Dicas Pro"
+              tips={tips.pro_tips || []}
+              color="text-purple-500"
+              delay={0.6}
+            />
           </div>
         )}
       </Card>

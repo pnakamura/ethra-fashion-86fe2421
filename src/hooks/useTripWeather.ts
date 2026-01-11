@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface WeatherData {
+export interface WeatherData {
   summary: string;
+  climate_vibe: string;
+  packing_mood: string;
   temp_avg: number;
   temp_min: number;
   temp_max: number;
@@ -11,18 +13,28 @@ interface WeatherData {
   conditions: string[];
 }
 
-interface SuggestedLook {
+export interface SuggestedLook {
+  name: string;
   occasion: string;
   items: string[];
   description: string;
+  style_tip: string;
+}
+
+export interface TipsCategories {
+  essentials: string[];
+  local_culture: string[];
+  avoid: string[];
+  pro_tips: string[];
 }
 
 export interface TripWeatherResult {
   weather: WeatherData;
+  trip_brief: string;
   recommendations: {
     essential_items: string[];
     suggested_looks: SuggestedLook[];
-    tips: string[];
+    tips: TipsCategories;
   };
 }
 
@@ -78,8 +90,40 @@ export function useTripWeather(): UseTripWeatherResult {
         throw new Error(result.error);
       }
 
-      setData(result);
-      return result;
+      // Ensure backward compatibility with old response format
+      const normalizedResult: TripWeatherResult = {
+        weather: {
+          summary: result.weather?.summary || '',
+          climate_vibe: result.weather?.climate_vibe || 'versatile_weather',
+          packing_mood: result.weather?.packing_mood || 'Viaje com estilo!',
+          temp_avg: result.weather?.temp_avg || 0,
+          temp_min: result.weather?.temp_min || 0,
+          temp_max: result.weather?.temp_max || 0,
+          rain_probability: result.weather?.rain_probability || 0,
+          conditions: result.weather?.conditions || [],
+        },
+        trip_brief: result.trip_brief || '',
+        recommendations: {
+          essential_items: result.recommendations?.essential_items || [],
+          suggested_looks: (result.recommendations?.suggested_looks || []).map((look: Record<string, unknown>) => ({
+            name: look.name || look.occasion || 'Look',
+            occasion: look.occasion || '',
+            items: look.items || [],
+            description: look.description || '',
+            style_tip: look.style_tip || '',
+          })),
+          tips: {
+            essentials: result.recommendations?.tips?.essentials || 
+              (Array.isArray(result.recommendations?.tips) ? result.recommendations.tips : []),
+            local_culture: result.recommendations?.tips?.local_culture || [],
+            avoid: result.recommendations?.tips?.avoid || [],
+            pro_tips: result.recommendations?.tips?.pro_tips || [],
+          },
+        },
+      };
+
+      setData(normalizedResult);
+      return normalizedResult;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao analisar clima';
       setError(message);

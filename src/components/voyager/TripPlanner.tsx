@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Calendar, Briefcase, Plus, Check, CloudSun, Loader2 } from 'lucide-react';
+import { MapPin, Calendar, Briefcase, Check, CloudSun, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select';
 import { WeatherPreview } from './WeatherPreview';
 import { SuggestedLooks } from './SuggestedLooks';
+import { TripBrief } from './TripBrief';
 import { useTripWeather, TripWeatherResult } from '@/hooks/useTripWeather';
 
 interface TripPlannerProps {
@@ -67,7 +68,6 @@ export function TripPlanner({ wardrobeItems, onCreateTrip, userId }: TripPlanner
     
     if (result) {
       setWeatherData(result);
-      // Pre-select essential items if user has no items selected
       if (packedItems.length === 0 && result.recommendations.essential_items.length > 0) {
         setPackedItems(result.recommendations.essential_items.slice(0, 5));
       }
@@ -84,7 +84,6 @@ export function TripPlanner({ wardrobeItems, onCreateTrip, userId }: TripPlanner
       trip_type: tripType,
       packed_items: packedItems,
     });
-    // Reset
     setDestination('');
     setStartDate('');
     setEndDate('');
@@ -113,14 +112,14 @@ export function TripPlanner({ wardrobeItems, onCreateTrip, userId }: TripPlanner
           <CloudSun className="w-16 h-16 text-primary" />
         </motion.div>
         <div className="text-center space-y-2">
-          <h3 className="text-xl font-display font-semibold">Analisando o Clima</h3>
+          <h3 className="text-xl font-display font-semibold">Consultando Aura...</h3>
           <p className="text-muted-foreground text-sm">
-            Buscando condições climáticas para {destination}...
+            Analisando clima e preparando looks para {destination}
           </p>
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="w-4 h-4 animate-spin" />
-          Preparando sugestões personalizadas
+          Criando sugestões personalizadas ✨
         </div>
       </motion.div>
     );
@@ -134,7 +133,7 @@ export function TripPlanner({ wardrobeItems, onCreateTrip, userId }: TripPlanner
       <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
-        className="space-y-6"
+        className="space-y-5"
       >
         <div className="text-center">
           <h3 className="text-2xl font-display font-semibold mb-1">Monte sua Mala</h3>
@@ -142,6 +141,15 @@ export function TripPlanner({ wardrobeItems, onCreateTrip, userId }: TripPlanner
             {tripDays} dias em {destination}
           </p>
         </div>
+
+        {/* Trip Brief - Editorial Section */}
+        {weatherData && (
+          <TripBrief
+            tripBrief={weatherData.trip_brief}
+            packingMood={weatherData.weather.packing_mood}
+            climateVibe={weatherData.weather.climate_vibe}
+          />
+        )}
 
         {/* Weather Preview */}
         {weatherData && (
@@ -200,7 +208,7 @@ export function TripPlanner({ wardrobeItems, onCreateTrip, userId }: TripPlanner
                     {/* Essential badge */}
                     {isEssential && !isSelected && (
                       <div className="absolute top-1 right-1 px-1.5 py-0.5 rounded-full bg-amber-400 text-[10px] font-medium text-amber-900">
-                        IA
+                        Aura ✨
                       </div>
                     )}
                     
@@ -261,7 +269,7 @@ export function TripPlanner({ wardrobeItems, onCreateTrip, userId }: TripPlanner
       <div className="text-center">
         <h3 className="text-2xl font-display font-semibold mb-1">Nova Viagem</h3>
         <p className="text-muted-foreground">
-          Planeje sua mala inteligente
+          Deixe a Aura planejar sua mala ✨
         </p>
       </div>
 
@@ -334,7 +342,7 @@ export function TripPlanner({ wardrobeItems, onCreateTrip, userId }: TripPlanner
         {isLoading ? (
           <>
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Analisando...
+            Consultando Aura...
           </>
         ) : (
           <>

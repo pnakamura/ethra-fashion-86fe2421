@@ -20,8 +20,25 @@ interface WardrobeItem {
   image_url: string;
 }
 
+interface SuggestedLook {
+  name: string;
+  occasion: string;
+  items: string[];
+  description: string;
+  style_tip: string;
+}
+
+interface TipsCategories {
+  essentials: string[];
+  local_culture: string[];
+  avoid: string[];
+  pro_tips: string[];
+}
+
 interface WeatherData {
   summary: string;
+  climate_vibe: string;
+  packing_mood: string;
   temp_avg: number;
   temp_min: number;
   temp_max: number;
@@ -29,29 +46,46 @@ interface WeatherData {
   conditions: string[];
 }
 
-interface SuggestedLook {
-  occasion: string;
-  items: string[];
-  description: string;
-}
-
 interface WeatherRecommendations {
   weather: WeatherData;
+  trip_brief: string;
   recommendations: {
     essential_items: string[];
     suggested_looks: SuggestedLook[];
-    tips: string[];
+    tips: TipsCategories;
   };
+}
+
+// Map trip type to more descriptive Portuguese label
+function getTripTypeLabel(tripType: string): string {
+  const labels: Record<string, string> = {
+    leisure: "lazer e turismo",
+    business: "negócios e reuniões",
+    adventure: "aventura e esportes",
+    romantic: "viagem romântica",
+    beach: "praia e relaxamento",
+  };
+  return labels[tripType] || tripType;
+}
+
+// Get climate vibe based on conditions and temperature
+function inferClimateVibe(conditions: string[], tempAvg: number): string {
+  if (conditions.includes("snowy")) return "winter_wonderland";
+  if (conditions.includes("rainy") || conditions.includes("stormy")) return "rainy_adventure";
+  if (tempAvg >= 28 && (conditions.includes("sunny") || conditions.includes("partly_cloudy"))) return "tropical_beach";
+  if (tempAvg >= 22 && tempAvg < 28) return "warm_vibes";
+  if (tempAvg >= 15 && tempAvg < 22) return "mild_comfort";
+  if (tempAvg < 15) return "cozy_layers";
+  return "versatile_weather";
 }
 
 async function geocodeDestination(destination: string): Promise<{ lat: number; lon: number; name: string } | null> {
   console.log(`Geocoding destination: ${destination}`);
   
-  // Try different search strategies
   const searchTerms = [
     destination,
-    destination.split(',')[0].trim(), // Just the city name
-    destination.replace(/,/g, ' ').trim(), // Replace commas with spaces
+    destination.split(',')[0].trim(),
+    destination.replace(/,/g, ' ').trim(),
   ];
   
   for (const term of searchTerms) {
@@ -101,15 +135,12 @@ async function getWeatherData(
   const start = new Date(startDate);
   const end = new Date(endDate);
   
-  // Calculate days from today to end date
   const daysUntilEnd = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   
   try {
     let weatherData;
     
-    // Open-Meteo forecast API supports up to 16 days from today
     if (daysUntilEnd <= 16) {
-      // Use forecast API - dates are within range
       console.log("Using forecast API (within 16 days)");
       const response = await fetch(
         `${OPEN_METEO_FORECAST}?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode&start_date=${startDate}&end_date=${endDate}&timezone=auto`
@@ -118,13 +149,11 @@ async function getWeatherData(
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Forecast API failed:", response.status, errorText);
-        // Fall through to try historical data
       } else {
         weatherData = await response.json();
       }
     }
     
-    // If forecast didn't work or dates are too far, use historical data from previous year
     if (!weatherData) {
       console.log("Using historical data (previous year same period)");
       const lastYearStart = new Date(start);
@@ -164,7 +193,6 @@ async function getWeatherData(
         ? daily.precipitation_sum.reduce((a: number, b: number) => a + b, 0)
         : 0;
     
-    // Map weather codes to conditions
     const weatherCodes = daily.weathercode || [];
     const conditions = new Set<string>();
     
@@ -206,7 +234,6 @@ async function analyzeWithAI(
     throw new Error("LOVABLE_API_KEY not configured");
   }
   
-  // Prepare wardrobe summary
   const itemsSummary = wardrobeItems.slice(0, 50).map((item) => ({
     id: item.id,
     name: item.name || item.category,
@@ -215,29 +242,65 @@ async function analyzeWithAI(
     occasion: item.occasion,
   }));
   
-  const systemPrompt = `Você é um consultor de moda especializado em planejamento de viagens. 
-Analise as condições climáticas e o guarda-roupa do usuário para sugerir as melhores peças e combinações.
-Responda APENAS com a chamada da função suggest_packing, sem texto adicional.`;
+  const tripTypeLabel = getTripTypeLabel(tripType);
+  const tempAvg = Math.round((weather.tempMin + weather.tempMax) / 2);
+  const climateVibe = inferClimateVibe(weather.conditions, tempAvg);
+
+  const systemPrompt = `Você é a Aura, uma personal stylist brasileira especializada em viagens. 
+Seu tom é sofisticado mas descontraído, como uma amiga fashion que adora dar dicas. 
+Use expressões naturais e um emoji ocasional para dar personalidade (mas sem exagerar!).
+
+REGRAS DE OURO:
+- Seja específica sobre o destino: mencione pontos turísticos, cultura local, bairros famosos
+- Faça trocadilhos leves relacionados à moda quando cabível
+- Dê dicas práticas mas com charme editorial
+- Considere as atividades típicas do tipo de viagem
+- Sugira looks com nomes criativos e evocativos (ex: "Sunset em Porto da Barra", "City Explorer")
+- Use linguagem que pareça uma conversa entre amigas, não um manual técnico
+- Cada look precisa ter um style_tip específico e útil
+
+IMPORTANTE: Os IDs das peças nos suggested_looks DEVEM ser IDs válidos do guarda-roupa fornecido.`;
 
   const userPrompt = `
-DESTINO: ${destination}
-DURAÇÃO: ${tripDays} dias
-TIPO DE VIAGEM: ${tripType}
+🌍 DESTINO: ${destination}
+📅 DURAÇÃO: ${tripDays} dias
+✈️ TIPO DE VIAGEM: ${tripTypeLabel}
 
-CONDIÇÕES CLIMÁTICAS:
+☀️ CONDIÇÕES CLIMÁTICAS:
 - Temperatura mínima: ${weather.tempMin}°C
 - Temperatura máxima: ${weather.tempMax}°C  
 - Probabilidade de chuva: ${weather.precipitationSum}%
 - Condições: ${weather.conditions.join(", ")}
 
-GUARDA-ROUPA DISPONÍVEL (${itemsSummary.length} peças):
+👗 GUARDA-ROUPA DISPONÍVEL (${itemsSummary.length} peças):
 ${JSON.stringify(itemsSummary, null, 2)}
 
-Com base nessas informações:
-1. Crie um resumo amigável do clima esperado
-2. Selecione as peças essenciais do guarda-roupa (IDs)
-3. Monte 2-3 looks sugeridos para diferentes ocasiões da viagem
-4. Forneça 2-3 dicas de vestuário para o destino`;
+Por favor, analise e crie:
+
+1. **weather_summary**: Um resumo CRIATIVO e DIVERTIDO do clima em até 2 frases. Não seja técnica, seja amiga!
+   Exemplo bom: "Salvador te recebe de braços abertos com aquele calor gostoso de verão! ☀️"
+   Exemplo ruim: "Temperaturas entre 24°C e 31°C com possibilidade de precipitação."
+
+2. **climate_vibe**: Use "${climateVibe}" ou sugira outro se achar melhor
+
+3. **packing_mood**: Uma frase inspiracional/mantra para a mala (ex: "Menos peso, mais leveza. Sua mala vai ser leve como a brisa do mar!")
+
+4. **trip_brief**: Um parágrafo editorial (3-4 frases) sobre a vibe do destino e como o estilo deve acompanhar. Mencione lugares específicos, cultura local e atividades típicas.
+
+5. **essential_items**: IDs das peças ESSENCIAIS do guarda-roupa (máximo 8)
+
+6. **suggested_looks**: 3 looks criativos com:
+   - name: Nome criativo e evocativo relacionado ao destino/atividade
+   - occasion: Quando usar (passeio, noite, praia, jantar, etc.)
+   - items: IDs das peças (use apenas IDs válidos do guarda-roupa!)
+   - description: Descrição editorial curta e charmosa
+   - style_tip: Dica específica de styling para este look
+
+7. **tips**: Categorize em:
+   - essentials: 2 dicas sobre itens/cuidados essenciais
+   - local_culture: 2 dicas sobre a cultura local e estilo do lugar
+   - avoid: 2 coisas para evitar levar/usar
+   - pro_tips: 2 dicas de expert/truques`;
 
   const response = await fetch(LOVABLE_AI_GATEWAY, {
     method: "POST",
@@ -256,13 +319,25 @@ Com base nessas informações:
           type: "function",
           function: {
             name: "suggest_packing",
-            description: "Retorna sugestões de peças e looks para a viagem",
+            description: "Retorna sugestões de peças e looks para a viagem com tom editorial e divertido",
             parameters: {
               type: "object",
               properties: {
                 weather_summary: {
                   type: "string",
-                  description: "Resumo amigável do clima esperado em português",
+                  description: "Resumo criativo e amigável do clima em português, com personalidade",
+                },
+                climate_vibe: {
+                  type: "string",
+                  description: "Vibe climática: tropical_beach, winter_wonderland, warm_vibes, mild_comfort, cozy_layers, rainy_adventure, versatile_weather",
+                },
+                packing_mood: {
+                  type: "string",
+                  description: "Frase inspiracional/mantra para guiar a montagem da mala",
+                },
+                trip_brief: {
+                  type: "string",
+                  description: "Parágrafo editorial sobre o destino, cultura e estilo esperado",
                 },
                 essential_items: {
                   type: "array",
@@ -274,20 +349,27 @@ Com base nessas informações:
                   items: {
                     type: "object",
                     properties: {
-                      occasion: { type: "string", description: "Ocasião do look (ex: passeio, jantar, praia)" },
+                      name: { type: "string", description: "Nome criativo do look (ex: Sunset em Ipanema)" },
+                      occasion: { type: "string", description: "Ocasião do look (passeio, jantar, praia, noite)" },
                       items: { type: "array", items: { type: "string" }, description: "IDs das peças do look" },
-                      description: { type: "string", description: "Descrição breve do look" },
+                      description: { type: "string", description: "Descrição editorial do look" },
+                      style_tip: { type: "string", description: "Dica de styling específica para este look" },
                     },
-                    required: ["occasion", "items", "description"],
+                    required: ["name", "occasion", "items", "description", "style_tip"],
                   },
                 },
                 tips: {
-                  type: "array",
-                  items: { type: "string" },
-                  description: "Dicas de vestuário para o destino",
+                  type: "object",
+                  properties: {
+                    essentials: { type: "array", items: { type: "string" }, description: "Dicas sobre itens essenciais" },
+                    local_culture: { type: "array", items: { type: "string" }, description: "Dicas sobre cultura e estilo local" },
+                    avoid: { type: "array", items: { type: "string" }, description: "O que evitar levar/usar" },
+                    pro_tips: { type: "array", items: { type: "string" }, description: "Dicas de expert" },
+                  },
+                  required: ["essentials", "local_culture", "avoid", "pro_tips"],
                 },
               },
-              required: ["weather_summary", "essential_items", "suggested_looks", "tips"],
+              required: ["weather_summary", "climate_vibe", "packing_mood", "trip_brief", "essential_items", "suggested_looks", "tips"],
             },
           },
         },
@@ -312,7 +394,6 @@ Com base nessas informações:
   const data = await response.json();
   console.log("AI response received");
   
-  // Extract tool call result
   const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
   if (!toolCall || toolCall.function.name !== "suggest_packing") {
     console.error("Unexpected AI response format:", JSON.stringify(data));
@@ -321,25 +402,35 @@ Com base nessas informações:
   
   const suggestions = JSON.parse(toolCall.function.arguments);
   
+  // Ensure tips is properly structured
+  const tips: TipsCategories = {
+    essentials: suggestions.tips?.essentials || [],
+    local_culture: suggestions.tips?.local_culture || [],
+    avoid: suggestions.tips?.avoid || [],
+    pro_tips: suggestions.tips?.pro_tips || [],
+  };
+  
   return {
     weather: {
       summary: suggestions.weather_summary,
-      temp_avg: Math.round((weather.tempMin + weather.tempMax) / 2),
+      climate_vibe: suggestions.climate_vibe || climateVibe,
+      packing_mood: suggestions.packing_mood || "Viaje leve, viaje com estilo!",
+      temp_avg: tempAvg,
       temp_min: Math.round(weather.tempMin),
       temp_max: Math.round(weather.tempMax),
       rain_probability: Math.round(weather.precipitationSum),
       conditions: weather.conditions,
     },
+    trip_brief: suggestions.trip_brief || "",
     recommendations: {
       essential_items: suggestions.essential_items || [],
       suggested_looks: suggestions.suggested_looks || [],
-      tips: suggestions.tips || [],
+      tips,
     },
   };
 }
 
 serve(async (req) => {
-  // Handle CORS
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -356,7 +447,6 @@ serve(async (req) => {
       );
     }
     
-    // Geocode destination
     const location = await geocodeDestination(destination);
     if (!location) {
       return new Response(
@@ -365,7 +455,6 @@ serve(async (req) => {
       );
     }
     
-    // Get weather data
     const weather = await getWeatherData(location.lat, location.lon, start_date, end_date);
     if (!weather) {
       return new Response(
@@ -374,12 +463,10 @@ serve(async (req) => {
       );
     }
     
-    // Calculate trip duration
     const tripDays = Math.ceil(
       (new Date(end_date).getTime() - new Date(start_date).getTime()) / (1000 * 60 * 60 * 24)
     ) + 1;
     
-    // Fetch user's wardrobe items
     let wardrobeItems: WardrobeItem[] = [];
     
     if (user_id) {
@@ -401,31 +488,39 @@ serve(async (req) => {
     
     console.log(`Found ${wardrobeItems.length} wardrobe items for user`);
     
-    // If no wardrobe items, return basic weather info
+    // If no wardrobe items, return basic weather info with creative defaults
     if (wardrobeItems.length === 0) {
+      const tempAvg = Math.round((weather.tempMin + weather.tempMax) / 2);
+      const climateVibe = inferClimateVibe(weather.conditions, tempAvg);
+      
       return new Response(
         JSON.stringify({
           weather: {
-            summary: `Clima em ${location.name}: ${weather.tempMin}°C a ${weather.tempMax}°C`,
-            temp_avg: Math.round((weather.tempMin + weather.tempMax) / 2),
+            summary: `${location.name} te espera com temperaturas entre ${Math.round(weather.tempMin)}°C e ${Math.round(weather.tempMax)}°C. Prepare-se para dias incríveis! ✨`,
+            climate_vibe: climateVibe,
+            packing_mood: "Primeiro passo: adicione suas peças ao closet! 👗",
+            temp_avg: tempAvg,
             temp_min: Math.round(weather.tempMin),
             temp_max: Math.round(weather.tempMax),
             rain_probability: Math.round(weather.precipitationSum),
             conditions: weather.conditions,
           },
+          trip_brief: "Adicione peças ao seu guarda-roupa virtual para que eu possa criar looks perfeitos para sua viagem! Quanto mais peças você tiver, mais personalizada será a sua mala.",
           recommendations: {
             essential_items: [],
             suggested_looks: [],
-            tips: [
-              "Adicione peças ao seu guarda-roupa para receber sugestões personalizadas",
-            ],
+            tips: {
+              essentials: ["Adicione peças ao seu closet para receber sugestões personalizadas"],
+              local_culture: [],
+              avoid: [],
+              pro_tips: ["Fotografe suas roupas favoritas para ter sempre à mão"],
+            },
           },
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     
-    // Analyze with AI
     const result = await analyzeWithAI(
       weather,
       wardrobeItems,
