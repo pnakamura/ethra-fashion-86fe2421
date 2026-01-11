@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      external_garments: {
+        Row: {
+          created_at: string
+          detected_category: string | null
+          id: string
+          name: string | null
+          original_image_url: string
+          processed_image_url: string | null
+          source_type: string
+          source_url: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          detected_category?: string | null
+          id?: string
+          name?: string | null
+          original_image_url: string
+          processed_image_url?: string | null
+          source_type: string
+          source_url?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          detected_category?: string | null
+          id?: string
+          name?: string | null
+          original_image_url?: string
+          processed_image_url?: string | null
+          source_type?: string
+          source_url?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       outfits: {
         Row: {
           created_at: string
@@ -106,6 +142,83 @@ export type Database = {
           packed_items?: string[] | null
           start_date?: string
           trip_type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      try_on_results: {
+        Row: {
+          avatar_id: string | null
+          created_at: string
+          error_message: string | null
+          garment_id: string | null
+          garment_image_url: string
+          garment_source: string
+          id: string
+          processing_time_ms: number | null
+          result_image_url: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          avatar_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          garment_id?: string | null
+          garment_image_url: string
+          garment_source: string
+          id?: string
+          processing_time_ms?: number | null
+          result_image_url?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          avatar_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          garment_id?: string | null
+          garment_image_url?: string
+          garment_source?: string
+          id?: string
+          processing_time_ms?: number | null
+          result_image_url?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "try_on_results_avatar_id_fkey"
+            columns: ["avatar_id"]
+            isOneToOne: false
+            referencedRelation: "user_avatars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_avatars: {
+        Row: {
+          body_type: string | null
+          created_at: string
+          id: string
+          image_url: string
+          is_primary: boolean | null
+          user_id: string
+        }
+        Insert: {
+          body_type?: string | null
+          created_at?: string
+          id?: string
+          image_url: string
+          is_primary?: boolean | null
+          user_id: string
+        }
+        Update: {
+          body_type?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string
+          is_primary?: boolean | null
           user_id?: string
         }
         Relationships: []

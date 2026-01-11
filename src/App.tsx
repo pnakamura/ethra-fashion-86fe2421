@@ -10,6 +10,7 @@ import Wardrobe from "./pages/Wardrobe";
 import Chromatic from "./pages/Chromatic";
 import Canvas from "./pages/Canvas";
 import Voyager from "./pages/Voyager";
+import VirtualTryOn from "./pages/VirtualTryOn";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/chromatic" element={<Chromatic />} />
             <Route path="/canvas" element={<Canvas />} />
             <Route path="/voyager" element={<Voyager />} />
+            <Route path="/provador" element={<VirtualTryOn />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

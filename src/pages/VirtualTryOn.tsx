@@ -1,0 +1,243 @@
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, AlertCircle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { PageContainer } from '@/components/layout/PageContainer';
+import { Header } from '@/components/layout/Header';
+import { BottomNav } from '@/components/layout/BottomNav';
+import { AvatarManager } from '@/components/try-on/AvatarManager';
+import { TryOnCanvas } from '@/components/try-on/TryOnCanvas';
+import { GarmentCapture } from '@/components/try-on/GarmentCapture';
+import { WardrobeSelector } from '@/components/try-on/WardrobeSelector';
+import { TryOnGallery } from '@/components/try-on/TryOnGallery';
+import { useVirtualTryOn } from '@/hooks/useVirtualTryOn';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+
+interface SelectedGarment {
+  id?: string;
+  imageUrl: string;
+  processedImageUrl?: string;
+  source: 'wardrobe' | 'external_photo' | 'screenshot' | 'url' | 'camera_scan';
+  name?: string;
+  category?: string | null;
+}
+
+export default function VirtualTryOn() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [selectedGarment, setSelectedGarment] = useState<SelectedGarment | null>(null);
+  const [currentResult, setCurrentResult] = useState<{
+    id: string;
+    result_image_url: string | null;
+    garment_image_url: string;
+    status: string;
+    processing_time_ms: number | null;
+    created_at: string;
+  } | null>(null);
+
+  const {
+    primaryAvatar,
+    isLoadingAvatar,
+    isProcessing,
+    startTryOnAsync,
+  } = useVirtualTryOn();
+
+  const handleStartTryOn = async () => {
+    if (!selectedGarment) return;
+
+    try {
+      const garmentSource = selectedGarment.source === 'wardrobe' 
+        ? 'wardrobe' 
+        : selectedGarment.source === 'camera_scan'
+        ? 'external_photo'
+        : 'screenshot';
+
+      const result = await startTryOnAsync({
+        garmentImageUrl: selectedGarment.processedImageUrl || selectedGarment.imageUrl,
+        garmentSource: garmentSource as 'wardrobe' | 'external_photo' | 'screenshot',
+        garmentId: selectedGarment.id,
+        category: selectedGarment.category || 'upper_body',
+      });
+
+      setCurrentResult(result as typeof currentResult);
+    } catch (error) {
+      console.error('Try-on error:', error);
+    }
+  };
+
+  const handleSelectFromWardrobe = (item: {
+    id: string;
+    name: string;
+    imageUrl: string;
+    category: string | null;
+  }) => {
+    setSelectedGarment({
+      id: item.id,
+      imageUrl: item.imageUrl,
+      source: 'wardrobe',
+      name: item.name,
+      category: item.category,
+    });
+    setCurrentResult(null);
+  };
+
+  const handleCapturedGarment = (garment: {
+    imageUrl: string;
+    processedImageUrl?: string;
+    source: 'camera_scan' | 'screenshot' | 'url';
+    id?: string;
+  }) => {
+    setSelectedGarment({
+      id: garment.id,
+      imageUrl: garment.imageUrl,
+      processedImageUrl: garment.processedImageUrl,
+      source: garment.source,
+    });
+    setCurrentResult(null);
+  };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Header />
+        <PageContainer className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <Sparkles className="w-12 h-12 text-primary mx-auto mb-4" />
+            <h2 className="font-display text-2xl mb-2">Provador Virtual</h2>
+            <p className="text-muted-foreground mb-4">
+              Entre para acessar o provador virtual
+            </p>
+            <Button onClick={() => navigate('/auth')} className="gradient-primary text-primary-foreground">
+              Entrar
+            </Button>
+          </div>
+        </PageContainer>
+        <BottomNav />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      <Header />
+      
+      <PageContainer className="flex-1 pb-24">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-6"
+        >
+          {/* Hero */}
+          <div className="text-center pt-4">
+            <h1 className="font-display text-3xl text-gradient mb-2">
+              Provador Virtual
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Experimente roupas virtualmente com IA
+            </p>
+          </div>
+
+          {/* Avatar Manager */}
+          <AvatarManager />
+
+          {/* No Avatar Warning */}
+          {!isLoadingAvatar && !primaryAvatar && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Configure seu avatar para começar a provar roupas virtualmente.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Try-On Canvas */}
+          <TryOnCanvas
+            result={currentResult}
+            avatarImageUrl={primaryAvatar?.image_url}
+            isProcessing={isProcessing}
+            onRetry={() => {
+              setCurrentResult(null);
+              setSelectedGarment(null);
+            }}
+          />
+
+          {/* Garment Selection */}
+          <Tabs defaultValue="closet" className="w-full">
+            <TabsList className="grid grid-cols-2 mb-4">
+              <TabsTrigger value="closet">
+                Meu Closet
+              </TabsTrigger>
+              <TabsTrigger value="capture">
+                Capturar
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="closet" className="mt-0">
+              <WardrobeSelector
+                onSelect={handleSelectFromWardrobe}
+                selectedId={selectedGarment?.source === 'wardrobe' ? selectedGarment.id : undefined}
+              />
+            </TabsContent>
+
+            <TabsContent value="capture" className="mt-0">
+              <GarmentCapture onGarmentSelected={handleCapturedGarment} />
+            </TabsContent>
+          </Tabs>
+
+          {/* Selected Garment Preview & Action */}
+          <AnimatePresence>
+            {selectedGarment && primaryAvatar && !isProcessing && !currentResult && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="fixed bottom-20 left-4 right-4 z-40"
+              >
+                <div className="max-w-lg mx-auto bg-background/95 backdrop-blur-xl rounded-2xl shadow-elevated p-4 border border-border">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-20 rounded-lg overflow-hidden bg-secondary flex-shrink-0">
+                      <img
+                        src={selectedGarment.processedImageUrl || selectedGarment.imageUrl}
+                        alt="Selected garment"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground truncate">
+                        {selectedGarment.name || 'Peça selecionada'}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {selectedGarment.source === 'wardrobe'
+                          ? 'Do seu closet'
+                          : selectedGarment.source === 'camera_scan'
+                          ? 'Captura da câmera'
+                          : 'De print/URL'}
+                      </p>
+                    </div>
+                    <Button
+                      onClick={handleStartTryOn}
+                      className="gradient-primary text-primary-foreground flex-shrink-0"
+                    >
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Provar
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* History */}
+          <TryOnGallery
+            onSelectResult={(result) => setCurrentResult(result as typeof currentResult)}
+          />
+        </motion.div>
+      </PageContainer>
+
+      <BottomNav />
+    </div>
+  );
+}
