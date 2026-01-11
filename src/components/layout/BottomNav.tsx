@@ -1,11 +1,11 @@
-import { Home, Shirt, Palette, Layers, Plane } from 'lucide-react';
+import { Home, Shirt, Palette, Layers, Plane, Sparkles } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 const navItems = [
   { path: '/', icon: Home, label: 'Início' },
   { path: '/wardrobe', icon: Shirt, label: 'Closet' },
-  { path: '/chromatic', icon: Palette, label: 'Cores' },
+  { path: '/provador', icon: Sparkles, label: 'Provador' },
   { path: '/canvas', icon: Layers, label: 'Looks' },
   { path: '/voyager', icon: Plane, label: 'Viagens' },
 ];

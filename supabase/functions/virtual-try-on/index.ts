@@ -1,0 +1,129 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import Replicate from "https://esm.sh/replicate@0.25.2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+serve(async (req) => {
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const REPLICATE_API_KEY = Deno.env.get("REPLICATE_API_KEY");
+    if (!REPLICATE_API_KEY) {
+      throw new Error("REPLICATE_API_KEY is not configured");
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      throw new Error("No authorization header");
+    }
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(
+      authHeader.replace("Bearer ", "")
+    );
+
+    if (authError || !user) {
+      throw new Error("Unauthorized");
+    }
+
+    const body = await req.json();
+    const { avatarImageUrl, garmentImageUrl, category, tryOnResultId } = body;
+
+    console.log("Virtual Try-On request:", {
+      userId: user.id,
+      category,
+      tryOnResultId,
+      hasAvatar: !!avatarImageUrl,
+      hasGarment: !!garmentImageUrl,
+    });
+
+    if (!avatarImageUrl || !garmentImageUrl) {
+      return new Response(
+        JSON.stringify({ error: "Avatar image and garment image are required" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
+
+    // Update status to processing
+    if (tryOnResultId) {
+      await supabase
+        .from("try_on_results")
+        .update({ status: "processing" })
+        .eq("id", tryOnResultId);
+    }
+
+    const startTime = Date.now();
+
+    const replicate = new Replicate({
+      auth: REPLICATE_API_KEY,
+    });
+
+    console.log("Calling IDM-VTON model...");
+
+    // Use IDM-VTON model for virtual try-on
+    // Model: cuuupid/idm-vton
+    const output = await replicate.run(
+      "cuuupid/idm-vton:c871bb9b046607b680449ecbae55fd8c6d945e0a1948644bf2361b3d021d3ff4",
+      {
+        input: {
+          human_img: avatarImageUrl,
+          garm_img: garmentImageUrl,
+          garment_des: category || "clothing",
+          auto_mask: true,
+          auto_crop: true,
+          denoise_steps: 30,
+          seed: 42,
+        },
+      }
+    );
+
+    const processingTime = Date.now() - startTime;
+    console.log("IDM-VTON completed in", processingTime, "ms");
+    console.log("Output:", output);
+
+    // The output is the URL of the generated image
+    const resultImageUrl = Array.isArray(output) ? output[0] : output;
+
+    // Update the try_on_results record
+    if (tryOnResultId) {
+      await supabase
+        .from("try_on_results")
+        .update({
+          status: "completed",
+          result_image_url: resultImageUrl,
+          processing_time_ms: processingTime,
+        })
+        .eq("id", tryOnResultId);
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        resultImageUrl,
+        processingTimeMs: processingTime,
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  } catch (error) {
+    console.error("Virtual try-on error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to process virtual try-on";
+
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: errorMessage,
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+    );
+  }
+});
