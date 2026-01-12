@@ -14,6 +14,20 @@ export default function Index() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
+  const { data: profile, isLoading: profileLoading } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase
+        .from('profiles')
+        .select('onboarding_complete')
+        .eq('user_id', user.id)
+        .single();
+      return data;
+    },
+    enabled: !!user,
+  });
+
   const { data: itemCount = 0 } = useQuery({
     queryKey: ['wardrobe-count', user?.id],
     queryFn: async () => {
@@ -29,11 +43,17 @@ export default function Index() {
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate('/auth');
+      navigate('/welcome');
     }
   }, [user, loading, navigate]);
 
-  if (loading) {
+  useEffect(() => {
+    if (!profileLoading && profile && !profile.onboarding_complete) {
+      navigate('/onboarding');
+    }
+  }, [profile, profileLoading, navigate]);
+
+  if (loading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center gradient-soft">
         <div className="text-center">

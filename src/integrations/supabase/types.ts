@@ -86,7 +86,9 @@ export type Database = {
           color_season: string | null
           created_at: string
           id: string
+          onboarding_complete: boolean | null
           style_archetype: string | null
+          style_preferences: Json | null
           updated_at: string
           user_id: string
           username: string | null
@@ -96,7 +98,9 @@ export type Database = {
           color_season?: string | null
           created_at?: string
           id?: string
+          onboarding_complete?: boolean | null
           style_archetype?: string | null
+          style_preferences?: Json | null
           updated_at?: string
           user_id: string
           username?: string | null
@@ -106,7 +110,9 @@ export type Database = {
           color_season?: string | null
           created_at?: string
           id?: string
+          onboarding_complete?: boolean | null
           style_archetype?: string | null
+          style_preferences?: Json | null
           updated_at?: string
           user_id?: string
           username?: string | null
