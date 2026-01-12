@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { HeroSection } from '@/components/landing/HeroSection';
 import { FeaturesGrid } from '@/components/landing/FeaturesGrid';
 import { DemoSection } from '@/components/landing/DemoSection';
@@ -12,14 +13,33 @@ import { Footer } from '@/components/landing/Footer';
 export default function Landing() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [checkingProfile, setCheckingProfile] = useState(false);
 
   useEffect(() => {
-    if (!loading && user) {
-      navigate('/');
+    async function checkAndRedirect() {
+      if (!loading && user) {
+        setCheckingProfile(true);
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('onboarding_complete')
+            .eq('user_id', user.id)
+            .single();
+          
+          if (profile && !profile.onboarding_complete) {
+            navigate('/onboarding');
+          } else {
+            navigate('/');
+          }
+        } catch {
+          navigate('/');
+        }
+      }
     }
+    checkAndRedirect();
   }, [user, loading, navigate]);
 
-  if (loading) {
+  if (loading || checkingProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center gradient-soft">
         <div className="text-center">

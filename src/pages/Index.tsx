@@ -42,16 +42,14 @@ export default function Index() {
   });
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate('/welcome');
+    if (!loading) {
+      if (!user) {
+        navigate('/welcome');
+      } else if (!profileLoading && profile && !profile.onboarding_complete) {
+        navigate('/onboarding');
+      }
     }
-  }, [user, loading, navigate]);
-
-  useEffect(() => {
-    if (!profileLoading && profile && !profile.onboarding_complete) {
-      navigate('/onboarding');
-    }
-  }, [profile, profileLoading, navigate]);
+  }, [user, loading, profile, profileLoading, navigate]);
 
   if (loading || profileLoading) {
     return (

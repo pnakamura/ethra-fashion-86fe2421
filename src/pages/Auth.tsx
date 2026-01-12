@@ -61,8 +61,10 @@ export default function Auth() {
             title: 'Conta criada!',
             description: 'Bem-vinda ao Ethra.',
           });
+          navigate('/onboarding');
+        } else {
+          navigate('/');
         }
-        navigate('/');
       }
     } finally {
       setLoading(false);
