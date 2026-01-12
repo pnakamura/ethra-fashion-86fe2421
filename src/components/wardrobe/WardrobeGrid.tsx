@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Heart, MoreVertical } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { CompatibilityBadge } from './CompatibilityBadge';
 
 interface WardrobeItem {
   id: string;
@@ -8,6 +9,7 @@ interface WardrobeItem {
   name?: string;
   category: string;
   is_favorite: boolean;
+  chromatic_compatibility?: string | null;
 }
 
 interface WardrobeGridProps {
@@ -33,6 +35,11 @@ export function WardrobeGrid({ items, onToggleFavorite }: WardrobeGridProps) {
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-charcoal/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              
+              {/* Compatibility badge - always visible */}
+              <div className="absolute top-2 left-2">
+                <CompatibilityBadge compatibility={item.chromatic_compatibility} />
+              </div>
               
               {/* Actions overlay */}
               <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

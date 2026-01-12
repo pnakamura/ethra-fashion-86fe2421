@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Filter } from 'lucide-react';
+import { Plus, Filter, Check, Minus, AlertTriangle } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -10,9 +10,18 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
+type CompatibilityFilter = 'all' | 'ideal' | 'neutral' | 'avoid';
 
 export default function Wardrobe() {
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [compatibilityFilter, setCompatibilityFilter] = useState<CompatibilityFilter>('all');
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -29,6 +38,11 @@ export default function Wardrobe() {
       return data || [];
     },
     enabled: !!user,
+  });
+
+  const filteredItems = items.filter(item => {
+    if (compatibilityFilter === 'all') return true;
+    return item.chromatic_compatibility === compatibilityFilter;
   });
 
   const addMutation = useMutation({
@@ -56,6 +70,15 @@ export default function Wardrobe() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['wardrobe-items'] }),
   });
 
+  const filterOptions = [
+    { value: 'all', label: 'Todas', icon: null },
+    { value: 'ideal', label: 'Ideais', icon: Check, color: 'text-emerald-600' },
+    { value: 'neutral', label: 'Neutras', icon: Minus, color: 'text-amber-600' },
+    { value: 'avoid', label: 'Evitar', icon: AlertTriangle, color: 'text-rose-600' },
+  ];
+
+  const activeFilter = filterOptions.find(f => f.value === compatibilityFilter);
+
   return (
     <>
       <Header title="Meu Closet" />
@@ -64,27 +87,62 @@ export default function Wardrobe() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-display font-semibold">Suas Peças</h2>
-              <p className="text-sm text-muted-foreground">{items.length} itens</p>
+              <p className="text-sm text-muted-foreground">
+                {filteredItems.length} {compatibilityFilter !== 'all' ? `de ${items.length}` : ''} itens
+              </p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="icon" className="rounded-xl">
-                <Filter className="w-4 h-4" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant={compatibilityFilter !== 'all' ? 'default' : 'outline'} 
+                    size="icon" 
+                    className="rounded-xl"
+                  >
+                    <Filter className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40">
+                  {filterOptions.map(option => (
+                    <DropdownMenuItem
+                      key={option.value}
+                      onClick={() => setCompatibilityFilter(option.value as CompatibilityFilter)}
+                      className="flex items-center gap-2"
+                    >
+                      {option.icon && <option.icon className={`w-4 h-4 ${option.color}`} />}
+                      <span>{option.label}</span>
+                      {compatibilityFilter === option.value && (
+                        <Check className="w-4 h-4 ml-auto" />
+                      )}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Button onClick={() => setIsAddOpen(true)} className="rounded-xl gradient-primary text-primary-foreground">
                 <Plus className="w-4 h-4 mr-1" /> Nova
               </Button>
             </div>
           </div>
 
-          {items.length === 0 ? (
+          {filteredItems.length === 0 ? (
             <div className="py-16 text-center">
-              <p className="text-muted-foreground mb-4">Seu closet está vazio</p>
-              <Button onClick={() => setIsAddOpen(true)} className="rounded-xl gradient-primary text-primary-foreground">
-                <Plus className="w-4 h-4 mr-2" /> Adicionar Peça
-              </Button>
+              <p className="text-muted-foreground mb-4">
+                {compatibilityFilter !== 'all' 
+                  ? `Nenhuma peça com compatibilidade "${activeFilter?.label}"`
+                  : 'Seu closet está vazio'}
+              </p>
+              {compatibilityFilter !== 'all' ? (
+                <Button onClick={() => setCompatibilityFilter('all')} variant="outline" className="rounded-xl">
+                  Ver todas as peças
+                </Button>
+              ) : (
+                <Button onClick={() => setIsAddOpen(true)} className="rounded-xl gradient-primary text-primary-foreground">
+                  <Plus className="w-4 h-4 mr-2" /> Adicionar Peça
+                </Button>
+              )}
             </div>
           ) : (
-            <WardrobeGrid items={items} onToggleFavorite={(id) => toggleFavorite.mutate(id)} />
+            <WardrobeGrid items={filteredItems} onToggleFavorite={(id) => toggleFavorite.mutate(id)} />
           )}
         </div>
       </PageContainer>

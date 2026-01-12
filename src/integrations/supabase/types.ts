@@ -122,6 +122,33 @@ export type Database = {
         }
         Relationships: []
       }
+      recommended_looks: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          look_data: Json
+          occasion: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          look_data: Json
+          occasion?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          look_data?: Json
+          occasion?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       trips: {
         Row: {
           created_at: string
@@ -235,8 +262,10 @@ export type Database = {
       wardrobe_items: {
         Row: {
           category: string
+          chromatic_compatibility: string | null
           color_code: string | null
           created_at: string
+          dominant_colors: Json | null
           id: string
           image_url: string
           is_favorite: boolean | null
@@ -248,8 +277,10 @@ export type Database = {
         }
         Insert: {
           category: string
+          chromatic_compatibility?: string | null
           color_code?: string | null
           created_at?: string
+          dominant_colors?: Json | null
           id?: string
           image_url: string
           is_favorite?: boolean | null
@@ -261,8 +292,10 @@ export type Database = {
         }
         Update: {
           category?: string
+          chromatic_compatibility?: string | null
           color_code?: string | null
           created_at?: string
+          dominant_colors?: Json | null
           id?: string
           image_url?: string
           is_favorite?: boolean | null

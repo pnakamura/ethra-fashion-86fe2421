@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.analyze-colors]
 verify_jwt = false
+
+[functions.analyze-garment-colors]
+verify_jwt = false
+
+[functions.suggest-looks]
+verify_jwt = false
