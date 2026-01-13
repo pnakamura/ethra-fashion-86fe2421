@@ -6,7 +6,7 @@ export type BackgroundVariant = 'abstract' | 'portrait' | 'none';
 
 interface BackgroundSettings {
   variant: BackgroundVariant;
-  opacity: number; // 0.05 to 0.30
+  opacity: number; // 0.30 to 1.0
 }
 
 interface BackgroundSettingsContextType {
@@ -18,7 +18,7 @@ interface BackgroundSettingsContextType {
 
 const defaultSettings: BackgroundSettings = {
   variant: 'abstract',
-  opacity: 0.15,
+  opacity: 0.30,
 };
 
 const BackgroundSettingsContext = createContext<BackgroundSettingsContextType | undefined>(undefined);
@@ -36,7 +36,7 @@ export function BackgroundSettingsProvider({ children }: { children: React.React
         const parsed = JSON.parse(stored);
         setSettings({
           variant: parsed.variant || 'abstract',
-          opacity: parsed.opacity ?? 0.15,
+          opacity: parsed.opacity ?? 0.30,
         });
       } catch {
         // Invalid JSON, use defaults
@@ -57,8 +57,8 @@ export function BackgroundSettingsProvider({ children }: { children: React.React
   };
 
   const setOpacity = (opacity: number) => {
-    // Clamp between 0.05 and 0.30
-    const clamped = Math.min(0.30, Math.max(0.05, opacity));
+    // Clamp between 0.30 and 1.0
+    const clamped = Math.min(1.0, Math.max(0.30, opacity));
     setSettings(prev => ({ ...prev, opacity: clamped }));
   };
 
