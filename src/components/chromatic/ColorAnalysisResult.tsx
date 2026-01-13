@@ -1,6 +1,11 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, RotateCcw, Sparkles, X, Lock } from 'lucide-react';
+import { Check, RotateCcw, Sparkles, X, Lock, Crown, Gem, ChevronRight, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { SeasonDetailModal } from './SeasonDetailModal';
+import { chromaticSeasons } from '@/data/chromatic-seasons';
+import { toast } from 'sonner';
 import type { ColorAnalysisResult as AnalysisType } from '@/hooks/useColorAnalysis';
 
 interface ColorAnalysisResultProps {
@@ -11,6 +16,25 @@ interface ColorAnalysisResultProps {
   demoMode?: boolean;
 }
 
+// Helper to find season data
+function findSeasonData(seasonName: string, subtype: string) {
+  const seasonId = `${seasonName.toLowerCase().replace('ã', 'a').replace('é', 'e')}-${subtype.toLowerCase().replace('ã', 'a').replace('é', 'e')}`;
+  return chromaticSeasons.find(s => s.id === seasonId) || 
+         chromaticSeasons.find(s => 
+           s.name.toLowerCase() === seasonName.toLowerCase() && 
+           s.subtype.toLowerCase() === subtype.toLowerCase()
+         );
+}
+
+// Metal icons/colors
+const metalStyles: Record<string, { bg: string; text: string; label: string }> = {
+  gold: { bg: 'bg-amber-100', text: 'text-amber-700', label: 'Ouro' },
+  silver: { bg: 'bg-slate-100', text: 'text-slate-600', label: 'Prata' },
+  'rose-gold': { bg: 'bg-rose-100', text: 'text-rose-600', label: 'Rosé' },
+  copper: { bg: 'bg-orange-100', text: 'text-orange-700', label: 'Cobre' },
+  bronze: { bg: 'bg-amber-200', text: 'text-amber-800', label: 'Bronze' },
+};
+
 export function ColorAnalysisResult({ 
   result, 
   capturedImage, 
@@ -18,6 +42,16 @@ export function ColorAnalysisResult({
   onSave,
   demoMode = false 
 }: ColorAnalysisResultProps) {
+  const [showSeasonDetail, setShowSeasonDetail] = useState(false);
+  
+  // Find matching season data
+  const seasonData = findSeasonData(result.season_name, result.subtype);
+
+  const copyColorHex = (hex: string, name: string) => {
+    navigator.clipboard.writeText(hex);
+    toast.success(`${name} copiado: ${hex}`);
+  };
+
   return (
     <motion.div
       className="space-y-6"
@@ -51,6 +85,7 @@ export function ColorAnalysisResult({
           transition={{ delay: 0.4 }}
         >
           <span className="text-sm">{result.confidence}% de confiança</span>
+          {seasonData && <span className="text-lg">{seasonData.seasonIcon}</span>}
         </motion.div>
       </div>
 
@@ -103,19 +138,26 @@ export function ColorAnalysisResult({
         
         <div className="grid grid-cols-6 gap-2">
           {result.recommended_colors.slice(0, demoMode ? 3 : 6).map((color, index) => (
-            <motion.div
+            <motion.button
               key={color.hex}
-              className="text-center"
+              onClick={() => !demoMode && copyColorHex(color.hex, color.name)}
+              className="text-center group cursor-pointer"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.8 + index * 0.05 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               <div
-                className="w-full aspect-square rounded-xl shadow-soft mb-1"
+                className="w-full aspect-square rounded-xl shadow-soft mb-1 relative overflow-hidden"
                 style={{ backgroundColor: color.hex }}
-              />
+              >
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/20 transition-opacity">
+                  <Copy className="w-3 h-3 text-white" />
+                </div>
+              </div>
               <p className="text-xs text-muted-foreground truncate">{color.name}</p>
-            </motion.div>
+            </motion.button>
           ))}
           
           {/* Demo mode: show locked colors */}
@@ -167,9 +209,13 @@ export function ColorAnalysisResult({
                 transition={{ delay: 1 + index * 0.05 }}
               >
                 <div
-                  className="w-full aspect-square rounded-xl shadow-soft mb-1 opacity-60"
+                  className="w-full aspect-square rounded-xl shadow-soft mb-1 opacity-60 relative"
                   style={{ backgroundColor: color.hex }}
-                />
+                >
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <X className="w-6 h-6 text-white drop-shadow-lg" />
+                  </div>
+                </div>
                 <p className="text-xs text-muted-foreground">{color.name}</p>
               </motion.div>
             ))}
@@ -177,36 +223,133 @@ export function ColorAnalysisResult({
         </motion.div>
       )}
 
+      {/* Celebrities Section - NEW */}
+      {!demoMode && seasonData && seasonData.celebrities.length > 0 && (
+        <motion.div
+          className="bg-card rounded-2xl p-4 shadow-soft"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.0 }}
+        >
+          <h4 className="font-display text-lg font-medium mb-3 flex items-center gap-2">
+            <Crown className="w-4 h-4 text-primary" />
+            Você em boa companhia
+          </h4>
+          
+          <div className="flex flex-wrap gap-2">
+            {seasonData.celebrities.map((celebrity, index) => (
+              <motion.span
+                key={celebrity}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 1.1 + index * 0.05 }}
+                className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium"
+              >
+                {celebrity}
+              </motion.span>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            Celebridades com a mesma paleta cromática
+          </p>
+        </motion.div>
+      )}
+
+      {/* Metals & Jewelry Section - NEW */}
+      {!demoMode && seasonData && (
+        <motion.div
+          className="bg-card rounded-2xl p-4 shadow-soft"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.1 }}
+        >
+          <h4 className="font-display text-lg font-medium mb-3 flex items-center gap-2">
+            <Gem className="w-4 h-4 text-primary" />
+            Metais Ideais
+          </h4>
+          
+          <div className="flex flex-wrap gap-2 mb-4">
+            {seasonData.metals.map((metal, index) => {
+              const style = metalStyles[metal] || metalStyles.gold;
+              return (
+                <motion.span
+                  key={metal}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 1.2 + index * 0.05 }}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium ${style.bg} ${style.text}`}
+                >
+                  ✓ {style.label}
+                </motion.span>
+              );
+            })}
+          </div>
+
+          {seasonData.jewelry.length > 0 && (
+            <>
+              <p className="text-xs text-muted-foreground mb-2">Joias recomendadas:</p>
+              <p className="text-sm text-foreground">
+                {seasonData.jewelry.slice(0, 4).join(' • ')}
+              </p>
+            </>
+          )}
+        </motion.div>
+      )}
+
       {/* Actions */}
       <motion.div
-        className="flex gap-3"
+        className="space-y-3"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.1 }}
+        transition={{ delay: 1.2 }}
       >
-        {onRetry && (
+        <div className="flex gap-3">
+          {onRetry && (
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={onRetry}
+              className="flex-1"
+            >
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Tentar novamente
+            </Button>
+          )}
+          
+          {onSave && (
+            <Button
+              size="lg"
+              onClick={onSave}
+              className="flex-1 gradient-primary text-primary-foreground shadow-glow"
+            >
+              <Check className="w-4 h-4 mr-2" />
+              Salvar paleta
+            </Button>
+          )}
+        </div>
+
+        {/* Explore Details Button - NEW */}
+        {!demoMode && seasonData && (
           <Button
-            variant="outline"
+            variant="ghost"
             size="lg"
-            onClick={onRetry}
-            className="flex-1"
+            onClick={() => setShowSeasonDetail(true)}
+            className="w-full text-primary hover:text-primary"
           >
-            <RotateCcw className="w-4 h-4 mr-2" />
-            Tentar novamente
-          </Button>
-        )}
-        
-        {onSave && (
-          <Button
-            size="lg"
-            onClick={onSave}
-            className="flex-1 gradient-primary text-primary-foreground shadow-glow"
-          >
-            <Check className="w-4 h-4 mr-2" />
-            Salvar paleta
+            Explorar detalhes da sua paleta
+            <ChevronRight className="w-4 h-4 ml-2" />
           </Button>
         )}
       </motion.div>
+
+      {/* Season Detail Modal */}
+      {seasonData && (
+        <SeasonDetailModal
+          season={seasonData}
+          isOpen={showSeasonDetail}
+          onClose={() => setShowSeasonDetail(false)}
+        />
+      )}
     </motion.div>
   );
 }

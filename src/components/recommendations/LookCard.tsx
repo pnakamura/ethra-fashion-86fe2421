@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
-import { Sparkles, ExternalLink } from 'lucide-react';
+import { Sparkles, ExternalLink, Palette } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CompatibilityBadge } from '@/components/wardrobe/CompatibilityBadge';
+import { LookHarmonyBadge } from './LookHarmonyBadge';
 import type { RecommendedLook } from '@/hooks/useLookRecommendations';
 
 interface LookCardProps {
@@ -12,6 +13,11 @@ interface LookCardProps {
 }
 
 export function LookCard({ look, index, onOpenInCanvas }: LookCardProps) {
+  // Calculate chromatic stats
+  const chromaticItems = look.items.map(item => ({
+    chromatic_compatibility: item.chromatic_compatibility,
+  }));
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -39,6 +45,16 @@ export function LookCard({ look, index, onOpenInCanvas }: LookCardProps) {
             ))}
           </div>
           
+          {/* Harmony badge - TOP RIGHT */}
+          <div className="absolute top-2 left-2 z-10">
+            <LookHarmonyBadge 
+              items={chromaticItems} 
+              size="sm" 
+              showPercentage
+              harmonyType={look.harmony_type}
+            />
+          </div>
+          
           {/* Look name overlay */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-charcoal/80 to-transparent p-3">
             <div className="flex items-center gap-2">
@@ -57,6 +73,12 @@ export function LookCard({ look, index, onOpenInCanvas }: LookCardProps) {
             <span className="text-xs text-muted-foreground">
               {look.items.length} peças
             </span>
+            {look.chromatic_score && (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary flex items-center gap-1">
+                <Palette className="w-3 h-3" />
+                {look.chromatic_score}%
+              </span>
+            )}
           </div>
 
           <p className="text-sm text-muted-foreground line-clamp-2">

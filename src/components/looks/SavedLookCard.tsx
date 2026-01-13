@@ -1,15 +1,22 @@
-import { Heart, Share2, Trash2 } from 'lucide-react';
+import { Heart, Share2, Trash2, Palette } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface WardrobeItem {
   id: string;
   image_url: string;
   category: string;
   name?: string | null;
+  chromatic_compatibility?: string | null;
 }
 
 interface Outfit {
@@ -32,6 +39,20 @@ interface SavedLookCardProps {
   onShare: () => void;
 }
 
+// Calculate chromatic harmony stats
+function calculateHarmonyStats(items: WardrobeItem[]) {
+  const stats = {
+    ideal: items.filter(i => i.chromatic_compatibility === 'ideal').length,
+    neutral: items.filter(i => i.chromatic_compatibility === 'neutral').length,
+    avoid: items.filter(i => i.chromatic_compatibility === 'avoid').length,
+  };
+  const total = items.length;
+  const score = total > 0 
+    ? Math.round(((stats.ideal * 100 + stats.neutral * 50) / (total * 100)) * 100)
+    : 0;
+  return { ...stats, score, total };
+}
+
 export function SavedLookCard({
   outfit,
   items,
@@ -41,6 +62,23 @@ export function SavedLookCard({
   onShare
 }: SavedLookCardProps) {
   const itemCount = outfit.items?.length || items.length;
+  const harmonyStats = calculateHarmonyStats(items);
+  
+  // Determine harmony badge style
+  const getHarmonyStyle = () => {
+    if (harmonyStats.avoid > 0) {
+      return { bg: 'bg-rose-100 dark:bg-rose-900/30', text: 'text-rose-600', icon: '⚠️' };
+    }
+    if (harmonyStats.score >= 80) {
+      return { bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-600', icon: '✨' };
+    }
+    if (harmonyStats.score >= 50) {
+      return { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-600', icon: '◐' };
+    }
+    return { bg: 'bg-muted', text: 'text-muted-foreground', icon: '○' };
+  };
+
+  const harmonyStyle = getHarmonyStyle();
   
   return (
     <Card className="overflow-hidden group shadow-soft hover:shadow-elevated transition-shadow">
@@ -78,6 +116,34 @@ export function SavedLookCard({
             </div>
           )}
 
+          {/* Chromatic Harmony Badge - NEW */}
+          {items.length > 0 && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className={cn(
+                    "absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1",
+                    harmonyStyle.bg,
+                    harmonyStyle.text
+                  )}>
+                    <Palette className="w-3 h-3" />
+                    {harmonyStats.score}%
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  <p className="font-medium mb-1">Harmonia Cromática</p>
+                  <div className="flex gap-2">
+                    <span>{harmonyStats.ideal} ideais</span>
+                    <span>{harmonyStats.neutral} neutras</span>
+                    {harmonyStats.avoid > 0 && (
+                      <span className="text-rose-500">{harmonyStats.avoid} evitar</span>
+                    )}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+
           {/* Favorite button */}
           <button
             onClick={(e) => {
@@ -100,6 +166,13 @@ export function SavedLookCard({
           {outfit.shared_at && (
             <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium">
               Compartilhado
+            </div>
+          )}
+
+          {/* Warning if has items to avoid */}
+          {harmonyStats.avoid > 0 && (
+            <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-full bg-rose-500/90 text-white text-[10px] font-medium">
+              {harmonyStats.avoid} peça(s) a evitar
             </div>
           )}
         </div>

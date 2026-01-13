@@ -71,51 +71,73 @@ serve(async (req) => {
       );
     }
 
-    // Build wardrobe description
+    // Build wardrobe description with color details
     const wardrobeDescription = items.map(item => {
       const colors = item.dominant_colors 
-        ? (item.dominant_colors as any[]).map(c => c.name).join(', ')
+        ? (item.dominant_colors as any[]).map(c => `${c.name} (${c.hex})`).join(', ')
         : item.color_code || 'cor não analisada';
       return `- ID: ${item.id} | ${item.category} | Cores: ${colors} | Compatibilidade: ${item.chromatic_compatibility || 'unknown'}`;
     }).join('\n');
 
     const colorAnalysis = profile?.color_analysis as any;
     const chromaticContext = colorAnalysis ? `
+## PERFIL CROMÁTICO DO USUÁRIO
 Estação cromática: ${colorAnalysis.season} ${colorAnalysis.subtype || ''}
-Cores recomendadas: ${colorAnalysis.recommended_colors?.slice(0, 5).join(', ') || 'não definidas'}
-Cores a evitar: ${colorAnalysis.avoid_colors?.slice(0, 3).join(', ') || 'não definidas'}
+Cores recomendadas: ${colorAnalysis.recommended_colors?.slice(0, 6).join(', ') || 'não definidas'}
+Cores a evitar: ${colorAnalysis.avoid_colors?.slice(0, 4).join(', ') || 'não definidas'}
 Tom de pele: ${colorAnalysis.skin_tone || 'não definido'}
+Subtom: ${colorAnalysis.undertone || 'não definido'}
 ` : 'Análise cromática não disponível. Sugira looks harmoniosos baseados nas cores das peças.';
 
-    const prompt = `Você é Aura, uma stylist virtual de luxo especializada em colorimetria pessoal e moda.
+    // Enhanced prompt with color theory
+    const prompt = `Você é Aura, uma stylist virtual de luxo especializada em colorimetria pessoal e teoria das cores.
 
-CONTEXTO DO USUÁRIO:
 ${chromaticContext}
 
-GUARDA-ROUPA DISPONÍVEL:
+## GUARDA-ROUPA DISPONÍVEL
 ${wardrobeDescription}
 
-${occasion ? `OCASIÃO DESEJADA: ${occasion}` : 'OCASIÃO: Variada (crie looks para diferentes momentos)'}
+${occasion ? `## OCASIÃO DESEJADA: ${occasion}` : '## OCASIÃO: Variada (crie looks para diferentes momentos)'}
 
-TAREFA:
+## TEORIA DAS CORES - USE ISSO PARA CRIAR HARMONIAS
+
+Tipos de Harmonia Cromática:
+1. **Monocromática**: Tons da mesma cor em diferentes saturações e valores. Elegante e sofisticado.
+2. **Análoga**: Cores adjacentes no círculo cromático (ex: azul + verde-azulado + verde). Harmoniosa e natural.
+3. **Complementar**: Cores opostas no círculo (ex: azul + laranja). Alto impacto e contraste.
+4. **Tríade**: Três cores equidistantes (ex: vermelho + azul + amarelo). Vibrante e equilibrado.
+5. **Neutral + Accent**: Base neutra com uma cor de destaque. Clássico e versátil.
+
+## TAREFA
 Crie exatamente ${count} looks completos e harmonioso usando APENAS peças do guarda-roupa acima.
 
-REGRAS:
-1. Priorize peças com compatibilidade "ideal" ou "neutral"
-2. Cada look deve ter 2-4 peças que combinem entre si
-3. Considere a harmonia de cores e a teoria das cores
-4. Dê nomes criativos e elegantes aos looks
-5. Explique brevemente por que as cores funcionam juntas
+## REGRAS IMPORTANTES
+1. **PRIORIZE** peças com compatibilidade "ideal" - elas são as melhores para a estação do usuário
+2. Use peças "neutral" como base ou complemento
+3. **EVITE** peças com compatibilidade "avoid" sempre que possível
+4. Cada look deve ter 2-4 peças que funcionem bem juntas
+5. Considere a harmonia entre as cores das peças (use a teoria das cores)
+6. Dê nomes criativos e elegantes aos looks (em português)
+7. Explique a harmonia de cores usando termos da teoria das cores
+8. Calcule um score de 0-100 baseado na compatibilidade cromática das peças
 
-Retorne APENAS um objeto JSON válido (sem markdown):
+## CÁLCULO DO CHROMATIC SCORE
+- Peça "ideal" = 100 pontos
+- Peça "neutral" = 50 pontos  
+- Peça "avoid" = 0 pontos
+- Score final = média de todas as peças do look
+
+Retorne APENAS um objeto JSON válido (sem markdown, sem backticks):
 {
   "looks": [
     {
-      "name": "Nome elegante do look",
+      "name": "Nome elegante e criativo em português",
       "items": ["uuid1", "uuid2", "uuid3"],
-      "occasion": "casual/trabalho/festa/formal",
-      "color_harmony": "Explicação breve da harmonia de cores (máx 50 palavras)",
-      "styling_tip": "Dica de styling ou acessório complementar"
+      "occasion": "casual|trabalho|festa|formal",
+      "harmony_type": "monocromática|análoga|complementar|tríade|neutral_accent",
+      "color_harmony": "Explicação da harmonia de cores usando teoria das cores (máx 50 palavras)",
+      "chromatic_score": 85,
+      "styling_tip": "Dica de styling, acessório ou como vestir"
     }
   ]
 }`;
@@ -129,7 +151,7 @@ Retorne APENAS um objeto JSON válido (sem markdown):
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 2000,
+        max_tokens: 2500,
         temperature: 0.7,
       }),
     });
@@ -184,14 +206,28 @@ Retorne APENAS um objeto JSON válido (sem markdown):
       );
     }
 
-    // Enrich looks with item details
+    // Enrich looks with item details and calculate real chromatic score
     const enrichedLooks = result.looks.map((look: any) => {
       const lookItems = look.items
         .map((id: string) => items.find(item => item.id === id))
         .filter(Boolean);
       
+      // Calculate real chromatic score based on actual items
+      const scores = lookItems.map((item: any) => {
+        switch (item.chromatic_compatibility) {
+          case 'ideal': return 100;
+          case 'neutral': return 50;
+          case 'avoid': return 0;
+          default: return 25;
+        }
+      });
+      const realScore = scores.length > 0 
+        ? Math.round(scores.reduce((a: number, b: number) => a + b, 0) / scores.length)
+        : 0;
+      
       return {
         ...look,
+        chromatic_score: realScore,
         items: lookItems.map((item: any) => ({
           id: item.id,
           name: item.name,
@@ -201,6 +237,9 @@ Retorne APENAS um objeto JSON válido (sem markdown):
         }))
       };
     });
+
+    // Sort by chromatic score (best first)
+    enrichedLooks.sort((a: any, b: any) => (b.chromatic_score || 0) - (a.chromatic_score || 0));
 
     console.log(`Generated ${enrichedLooks.length} looks successfully`);
 

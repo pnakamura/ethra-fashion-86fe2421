@@ -2,12 +2,14 @@ import { motion } from 'framer-motion';
 import { Sparkles, Camera } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { LookHarmonyMini } from './LookHarmonyBadge';
 
 interface LookItem {
   id: string;
   image_url?: string;
   imageUrl?: string;
   category?: string;
+  chromatic_compatibility?: string | null;
 }
 
 interface Look {
@@ -15,6 +17,7 @@ interface Look {
   items: LookItem[];
   occasion?: string;
   harmony_explanation?: string;
+  chromatic_score?: number;
 }
 
 interface LookCardCompactProps {
@@ -31,6 +34,11 @@ export function LookCardCompact({
   onOpenCanvas,
 }: LookCardCompactProps) {
   const displayItems = look.items.slice(0, 3);
+
+  // Prepare items for harmony calculation
+  const chromaticItems = look.items.map(item => ({
+    chromatic_compatibility: item.chromatic_compatibility,
+  }));
 
   return (
     <motion.div
@@ -63,6 +71,11 @@ export function LookCardCompact({
             );
           })}
           
+          {/* Harmony badge - TOP LEFT */}
+          <div className="absolute top-2 left-2 z-10">
+            <LookHarmonyMini items={chromaticItems} />
+          </div>
+          
           {/* Item count badge */}
           {look.items.length > 3 && (
             <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-background/90 backdrop-blur rounded-full text-[10px] font-medium">
@@ -74,9 +87,16 @@ export function LookCardCompact({
         <div className="p-3 space-y-2">
           <div>
             <p className="font-medium text-sm truncate">{look.name}</p>
-            <p className="text-[11px] text-muted-foreground truncate">
-              {look.items.length} peças • {look.occasion || 'Casual'}
-            </p>
+            <div className="flex items-center gap-1">
+              <p className="text-[11px] text-muted-foreground truncate flex-1">
+                {look.items.length} peças • {look.occasion || 'Casual'}
+              </p>
+              {look.chromatic_score && (
+                <span className="text-[10px] text-primary font-medium">
+                  {look.chromatic_score}%
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="flex gap-1">
