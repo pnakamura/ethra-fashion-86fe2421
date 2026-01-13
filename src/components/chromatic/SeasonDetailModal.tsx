@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Copy, Check, Sparkles, Users, Gem, Shirt, Palette, Heart, Scissors, Star } from 'lucide-react';
+import { X, Copy, Check, Sparkles, Users, Gem, Shirt, Palette, Heart, Scissors, Star, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,6 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import type { SeasonData } from '@/data/chromatic-seasons';
+import { useTemporarySeason } from '@/contexts/TemporarySeasonContext';
 
 interface SeasonDetailModalProps {
   season: SeasonData | null;
@@ -24,8 +25,17 @@ export function SeasonDetailModal({
   isUserSeason 
 }: SeasonDetailModalProps) {
   const [copiedColor, setCopiedColor] = useState<string | null>(null);
+  const { setTemporarySeason } = useTemporarySeason();
 
   if (!season) return null;
+
+  const handleTryPalette = () => {
+    setTemporarySeason(season);
+    toast.success(`Experimentando ${season.name} ${season.subtype}`, {
+      description: 'Suas recomendações agora usam esta paleta',
+    });
+    onClose();
+  };
 
   const handleCopyColor = (hex: string) => {
     navigator.clipboard.writeText(hex);
@@ -364,18 +374,34 @@ export function SeasonDetailModal({
             </Tabs>
 
             {/* Action buttons */}
-            {onSelect && !isUserSeason && (
-              <div className="pt-4 border-t border-border">
+            {!isUserSeason && (
+              <div className="pt-4 border-t border-border space-y-2">
+                {/* Try temporarily button */}
                 <Button
-                  onClick={() => {
-                    onSelect(season);
-                    onClose();
-                  }}
-                  className="w-full gradient-primary"
+                  onClick={handleTryPalette}
+                  variant="outline"
+                  className="w-full"
                 >
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Usar esta paleta
+                  <Wand2 className="w-4 h-4 mr-2" />
+                  Experimentar esta paleta
                 </Button>
+                <p className="text-xs text-muted-foreground text-center">
+                  Veja como ficariam suas recomendações com esta paleta
+                </p>
+
+                {/* Permanent selection */}
+                {onSelect && (
+                  <Button
+                    onClick={() => {
+                      onSelect(season);
+                      onClose();
+                    }}
+                    className="w-full gradient-primary"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Usar permanentemente
+                  </Button>
+                )}
               </div>
             )}
           </div>

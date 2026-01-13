@@ -2,6 +2,8 @@ import { Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
+import { NotificationPreferencesSheet } from '@/components/notifications/NotificationPreferencesSheet';
 
 interface HeaderProps {
   title?: string;
@@ -27,10 +29,15 @@ export function Header({ title }: HeaderProps) {
         </div>
         
         {user && (
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Settings className="w-5 h-5 text-muted-foreground" />
-            </Button>
+          <div className="flex items-center gap-1">
+            <NotificationBell />
+            <NotificationPreferencesSheet
+              trigger={
+                <Button variant="ghost" size="icon" className="rounded-full">
+                  <Settings className="w-5 h-5 text-muted-foreground" />
+                </Button>
+              }
+            />
             <Button 
               variant="ghost" 
               size="icon" 

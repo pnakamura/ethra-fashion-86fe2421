@@ -10,12 +10,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LookCard } from '@/components/recommendations/LookCard';
 import { LookCardCompact } from '@/components/recommendations/LookCardCompact';
 import { HarmonyStats } from '@/components/recommendations/HarmonyStats';
+import { TemporarySeasonBanner } from '@/components/chromatic/TemporarySeasonBanner';
 import { useLookRecommendations } from '@/hooks/useLookRecommendations';
+import { useTemporarySeason } from '@/contexts/TemporarySeasonContext';
+import { chromaticSeasons } from '@/data/chromatic-seasons';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-
 const occasions = [
   { value: 'all', label: 'Todos', icon: Sparkles },
   { value: 'casual', label: 'Casual', icon: Sun },
@@ -28,6 +30,7 @@ export default function Recommendations() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [selectedOccasion, setSelectedOccasion] = useState('all');
+  const { temporarySeason, isUsingTemporary, getEffectiveSeason } = useTemporarySeason();
   const { looks, isLoading, generateLooks, loadCachedLooks } = useLookRecommendations();
 
   // Fetch profile data
@@ -64,13 +67,29 @@ export default function Recommendations() {
     loadCachedLooks();
   }, [loadCachedLooks]);
 
-  const colorAnalysis = profile?.color_analysis as {
-    season?: string;
-    subtype?: string;
-    recommended_colors?: string[];
-    avoid_colors?: string[];
-  } | null;
-  const hasAnalysis = !!colorAnalysis;
+  // Get effective color analysis (considering temporary season)
+  const userSeasonData = profile?.color_season 
+    ? chromaticSeasons.find(s => s.id === profile.color_season)
+    : null;
+  
+  const effectiveSeason = getEffectiveSeason(userSeasonData);
+  
+  const colorAnalysis = isUsingTemporary && effectiveSeason
+    ? {
+        season: effectiveSeason.name,
+        subtype: effectiveSeason.subtype,
+        season_id: effectiveSeason.id,
+        recommended_colors: effectiveSeason.colors.primary.map(c => c.name),
+        avoid_colors: effectiveSeason.colors.avoid.map(c => c.name),
+      }
+    : (profile?.color_analysis as {
+        season?: string;
+        subtype?: string;
+        recommended_colors?: string[];
+        avoid_colors?: string[];
+      } | null);
+  
+  const hasAnalysis = !!colorAnalysis || !!effectiveSeason;
 
   const handleGenerateLooks = () => {
     const occasion = selectedOccasion === 'all' ? undefined : selectedOccasion;
@@ -152,6 +171,9 @@ export default function Recommendations() {
       <Header title="Looks" />
       <PageContainer className="px-4 py-6">
         <div className="max-w-2xl mx-auto space-y-6">
+          {/* Temporary Season Banner */}
+          <TemporarySeasonBanner />
+
           {/* Hero with Season */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}

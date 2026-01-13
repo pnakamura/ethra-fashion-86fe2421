@@ -50,6 +50,84 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          city: string | null
+          created_at: string | null
+          event_reminder_hours: number | null
+          event_reminders_enabled: boolean | null
+          id: string
+          location_lat: number | null
+          location_lng: number | null
+          look_of_day_enabled: boolean | null
+          look_of_day_time: string | null
+          updated_at: string | null
+          user_id: string
+          weather_alerts_enabled: boolean | null
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string | null
+          event_reminder_hours?: number | null
+          event_reminders_enabled?: boolean | null
+          id?: string
+          location_lat?: number | null
+          location_lng?: number | null
+          look_of_day_enabled?: boolean | null
+          look_of_day_time?: string | null
+          updated_at?: string | null
+          user_id: string
+          weather_alerts_enabled?: boolean | null
+        }
+        Update: {
+          city?: string | null
+          created_at?: string | null
+          event_reminder_hours?: number | null
+          event_reminders_enabled?: boolean | null
+          id?: string
+          location_lat?: number | null
+          location_lng?: number | null
+          look_of_day_enabled?: boolean | null
+          look_of_day_time?: string | null
+          updated_at?: string | null
+          user_id?: string
+          weather_alerts_enabled?: boolean | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          data: Json | null
+          id: string
+          is_read: boolean | null
+          message: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       outfits: {
         Row: {
           created_at: string
@@ -346,6 +424,45 @@ export type Database = {
           id?: string
           image_url?: string
           is_primary?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_events: {
+        Row: {
+          created_at: string | null
+          event_date: string
+          event_time: string | null
+          event_type: string
+          id: string
+          is_notified: boolean | null
+          location: string | null
+          notes: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_date: string
+          event_time?: string | null
+          event_type?: string
+          id?: string
+          is_notified?: boolean | null
+          location?: string | null
+          notes?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_date?: string
+          event_time?: string | null
+          event_type?: string
+          id?: string
+          is_notified?: boolean | null
+          location?: string | null
+          notes?: string | null
+          title?: string
           user_id?: string
         }
         Relationships: []
