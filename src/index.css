@@ -280,10 +280,24 @@
                 0 0 8px hsl(42 85% 55% / 0.1);
   }
 
-  /* Borda com glow violeta sutil */
-  .border-glow-violet {
-    border-color: hsl(238 45% 55% / 0.3);
-    box-shadow: 0 0 10px hsl(238 45% 55% / 0.15);
+  /* Borda com glow dourado - sistema unificado de luxo */
+  .dark .border-glow {
+    border-color: hsl(42 85% 55% / 0.28);
+    box-shadow: 0 0 12px hsl(42 85% 55% / 0.12),
+                inset 0 0 1px hsl(42 85% 55% / 0.08);
+  }
+
+  /* Borda glow intensa - para inputs e elementos focáveis */
+  .dark .border-glow-focus {
+    border-color: hsl(42 85% 55% / 0.45);
+    box-shadow: 0 0 18px hsl(42 85% 55% / 0.2),
+                0 0 4px hsl(42 85% 55% / 0.3);
+  }
+
+  /* Borda glow sutil - para separadores e elementos secundários */
+  .dark .border-glow-subtle {
+    border-color: hsl(42 85% 55% / 0.18);
+    box-shadow: 0 0 8px hsl(42 85% 55% / 0.06);
   }
 
   /* Dark mode card styles */
