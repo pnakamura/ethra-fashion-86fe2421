@@ -16,6 +16,8 @@ export interface RecommendedLook {
   occasion: string;
   color_harmony: string;
   styling_tip: string;
+  harmony_type?: string; // complementar, análoga, tríade, monocromática
+  chromatic_score?: number; // 0-100
 }
 
 export function useLookRecommendations() {
@@ -23,6 +25,22 @@ export function useLookRecommendations() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Calculate chromatic score for a look
+  const calculateChromaticScore = (items: LookItem[]): number => {
+    if (items.length === 0) return 0;
+    
+    const scores = items.map(item => {
+      switch (item.chromatic_compatibility) {
+        case 'ideal': return 100;
+        case 'neutral': return 50;
+        case 'avoid': return 0;
+        default: return 25; // unknown
+      }
+    });
+    
+    return Math.round(scores.reduce((a, b) => a + b, 0) / items.length);
+  };
 
   const generateLooks = useCallback(async (occasion?: string, count = 3) => {
     setIsLoading(true);
@@ -52,8 +70,19 @@ export function useLookRecommendations() {
         return [];
       }
 
-      setLooks(data.looks || []);
-      return data.looks || [];
+      // Enrich looks with chromatic score
+      const enrichedLooks = (data.looks || []).map((look: RecommendedLook) => ({
+        ...look,
+        chromatic_score: look.chromatic_score || calculateChromaticScore(look.items),
+      }));
+
+      // Sort by chromatic score (highest first)
+      enrichedLooks.sort((a: RecommendedLook, b: RecommendedLook) => 
+        (b.chromatic_score || 0) - (a.chromatic_score || 0)
+      );
+
+      setLooks(enrichedLooks);
+      return enrichedLooks;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao gerar looks';
       setError(message);
@@ -80,8 +109,12 @@ export function useLookRecommendations() {
 
       if (data?.look_data) {
         const lookData = data.look_data as unknown as { looks: RecommendedLook[] };
-        setLooks(lookData.looks || []);
-        return lookData.looks || [];
+        const enrichedLooks = (lookData.looks || []).map((look: RecommendedLook) => ({
+          ...look,
+          chromatic_score: look.chromatic_score || calculateChromaticScore(look.items),
+        }));
+        setLooks(enrichedLooks);
+        return enrichedLooks;
       }
       return [];
     } catch {
