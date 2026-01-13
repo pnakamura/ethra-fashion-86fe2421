@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, MapPin, MessageSquare, Briefcase, PartyPopper, Heart, Users, Shirt, Gem, Plane, Star } from 'lucide-react';
+import { Calendar, Clock, MapPin, MessageSquare, Briefcase, PartyPopper, Heart, Users, Shirt, Gem, Plane, Star, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,14 +10,14 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 
 const eventTypes = [
-  { value: 'meeting', label: 'Reunião', icon: Briefcase, color: 'bg-blue-500/10 text-blue-600' },
-  { value: 'party', label: 'Festa', icon: PartyPopper, color: 'bg-pink-500/10 text-pink-600' },
-  { value: 'date', label: 'Encontro', icon: Heart, color: 'bg-rose-500/10 text-rose-600' },
-  { value: 'interview', label: 'Entrevista', icon: Users, color: 'bg-amber-500/10 text-amber-600' },
-  { value: 'casual', label: 'Casual', icon: Shirt, color: 'bg-green-500/10 text-green-600' },
-  { value: 'wedding', label: 'Casamento', icon: Gem, color: 'bg-purple-500/10 text-purple-600' },
-  { value: 'travel', label: 'Viagem', icon: Plane, color: 'bg-cyan-500/10 text-cyan-600' },
-  { value: 'special', label: 'Especial', icon: Star, color: 'bg-yellow-500/10 text-yellow-600' },
+  { value: 'meeting', label: 'Reunião', icon: Briefcase, color: 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400' },
+  { value: 'party', label: 'Festa', icon: PartyPopper, color: 'bg-pink-500/10 text-pink-600 dark:bg-pink-500/20 dark:text-pink-400' },
+  { value: 'date', label: 'Encontro', icon: Heart, color: 'bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400' },
+  { value: 'interview', label: 'Entrevista', icon: Users, color: 'bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400' },
+  { value: 'casual', label: 'Casual', icon: Shirt, color: 'bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400' },
+  { value: 'wedding', label: 'Casamento', icon: Gem, color: 'bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400' },
+  { value: 'travel', label: 'Viagem', icon: Plane, color: 'bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400' },
+  { value: 'special', label: 'Especial', icon: Star, color: 'bg-yellow-500/10 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-400' },
 ] as const;
 
 interface AddEventSheetProps {
@@ -75,12 +75,12 @@ export function AddEventSheet({ trigger, defaultDate, onEventCreated }: AddEvent
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>{trigger}</SheetTrigger>
-      <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl">
+      <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl dark:border-primary/15">
         <SheetHeader className="pb-4">
           <SheetTitle className="font-display">Novo Evento</SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-5 overflow-y-auto pb-20">
+        <div className="space-y-5 overflow-y-auto pb-24">
           {/* Title */}
           <div>
             <label className="text-sm font-medium mb-2 block">Título</label>
@@ -135,8 +135,8 @@ export function AddEventSheet({ trigger, defaultDate, onEventCreated }: AddEvent
                     onClick={() => setEventType(type.value as UserEvent['event_type'])}
                     className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all ${
                       isSelected
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/30'
+                        ? 'border-primary bg-primary/5 dark:bg-primary/10 dark:border-primary/50 dark:shadow-[0_0_10px_hsl(45_100%_55%_/_0.1)]'
+                        : 'border-border dark:border-primary/10 hover:border-primary/30 dark:hover:border-primary/30'
                     }`}
                   >
                     <div className={`p-2 rounded-full ${type.color}`}>
@@ -176,6 +176,21 @@ export function AddEventSheet({ trigger, defaultDate, onEventCreated }: AddEvent
               className="rounded-xl resize-none"
               rows={3}
             />
+          </div>
+
+          {/* Notification Badge */}
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 dark:bg-amber-500/15 dark:border-amber-500/25">
+            <div className="p-2 rounded-full bg-amber-500/20 dark:bg-amber-500/25">
+              <Bell className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                Lembrete automático
+              </p>
+              <p className="text-xs text-amber-600/80 dark:text-amber-400/80">
+                Você receberá uma notificação antes do evento
+              </p>
+            </div>
           </div>
         </div>
 

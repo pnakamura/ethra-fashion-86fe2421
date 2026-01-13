@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { format, startOfDay, endOfDay, addDays } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export interface UserEvent {
   id: string;
@@ -79,8 +80,30 @@ export function useUserEvents() {
       if (error) throw error;
       return data as UserEvent;
     },
-    onSuccess: () => {
+    onSuccess: async (event) => {
       queryClient.invalidateQueries({ queryKey: ['user-events', user?.id] });
+      
+      // Create confirmation notification
+      if (user) {
+        const formattedDate = format(new Date(event.event_date), "d 'de' MMMM", { locale: ptBR });
+        const timeInfo = event.event_time ? ` às ${event.event_time}` : '';
+        
+        await supabase.from('notifications').insert({
+          user_id: user.id,
+          type: 'event_reminder',
+          title: '📅 Evento agendado!',
+          message: `"${event.title}" foi adicionado à sua agenda para ${formattedDate}${timeInfo}.`,
+          data: {
+            event_id: event.id,
+            event_type: event.event_type,
+            event_date: event.event_date,
+            event_time: event.event_time || null,
+          }
+        });
+        
+        // Invalidate notifications to show the new one
+        queryClient.invalidateQueries({ queryKey: ['notifications', user.id] });
+      }
     },
   });
 
