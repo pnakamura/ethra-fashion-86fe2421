@@ -18,7 +18,8 @@ const SelectTrigger = React.forwardRef<
     ref={ref}
     className={cn(
       "flex h-10 w-full items-center justify-between rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
-      "dark:border-primary/20 dark:bg-background/50 dark:focus:ring-primary/50",
+      "dark:border-[hsl(42_85%_55%_/_0.25)] dark:bg-background/50 dark:shadow-[0_0_8px_hsl(42_85%_55%_/_0.06)]",
+      "dark:focus:border-[hsl(42_85%_55%_/_0.45)] dark:focus:ring-[hsl(42_85%_55%_/_0.3)] dark:focus:shadow-[0_0_15px_hsl(42_85%_55%_/_0.15)]",
       className,
     )}
     {...props}
@@ -68,7 +69,7 @@ const SelectContent = React.forwardRef<
       ref={ref}
       className={cn(
         "relative z-[100] max-h-96 min-w-[8rem] overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-lg",
-        "dark:bg-card dark:border-primary/15 dark:shadow-[0_0_20px_hsl(225_50%_3%_/_0.8),0_0_1px_hsl(45_100%_55%_/_0.1)]",
+        "dark:bg-card dark:border-[hsl(42_85%_55%_/_0.2)] dark:shadow-[0_0_25px_hsl(42_85%_55%_/_0.1),0_8px_30px_hsl(235_50%_3%_/_0.7)]",
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
         position === "popper" &&
           "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
@@ -131,7 +132,7 @@ const SelectSeparator = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Separator>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Separator>
 >(({ className, ...props }, ref) => (
-  <SelectPrimitive.Separator ref={ref} className={cn("-mx-1 my-1 h-px bg-muted dark:bg-primary/10", className)} {...props} />
+  <SelectPrimitive.Separator ref={ref} className={cn("-mx-1 my-1 h-px bg-muted dark:bg-[hsl(42_85%_55%_/_0.15)]", className)} {...props} />
 ));
 SelectSeparator.displayName = SelectPrimitive.Separator.displayName;
 
