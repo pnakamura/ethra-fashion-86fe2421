@@ -257,13 +257,13 @@ export default function Settings() {
                     <Slider
                       value={[bgSettings.opacity * 100]}
                       onValueChange={(value) => setOpacity(value[0] / 100)}
-                      min={5}
-                      max={30}
-                      step={1}
+                      min={30}
+                      max={100}
+                      step={5}
                       className="w-full"
                     />
                     <p className="text-xs text-muted-foreground">
-                      Ajuste a visibilidade do fundo artístico
+                      Ajuste a visibilidade do fundo artístico (30% - 100%)
                     </p>
                   </div>
                 )}
