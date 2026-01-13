@@ -24,17 +24,17 @@ export function ArtBackground() {
           backgroundImage: `url(${imageUrl})`,
           opacity: settings.opacity,
           filter: 'blur(0.5px)',
-          mixBlendMode: 'soft-light',
+          mixBlendMode: 'normal',
         }}
       />
       
-      {/* Overlay de gradiente para suavizar */}
+      {/* Overlay de gradiente sutil para suavizar bordas */}
       <div 
-        className="absolute inset-0"
+        className="absolute inset-0 pointer-events-none"
         style={{
           background: `
-            radial-gradient(ellipse at top, transparent 0%, hsl(235 50% 6%) 70%),
-            linear-gradient(180deg, hsl(235 50% 6% / 0.3) 0%, hsl(235 50% 6% / 0.9) 100%)
+            radial-gradient(ellipse at top, transparent 0%, hsl(235 50% 6% / 0.3) 85%),
+            linear-gradient(180deg, transparent 0%, hsl(235 50% 6% / 0.4) 100%)
           `
         }}
       />
