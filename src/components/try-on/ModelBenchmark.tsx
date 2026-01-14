@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Zap, 
@@ -11,7 +11,8 @@ import {
   XCircle,
   RotateCcw,
   ImageIcon,
-  AlertTriangle
+  AlertTriangle,
+  StopCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -72,6 +73,9 @@ const BENCHMARK_MODELS: BenchmarkModel[] = [
   },
 ];
 
+// Timeout constants
+const BENCHMARK_TIMEOUT_MS = 180000; // 3 minutes
+
 interface ModelBenchmarkProps {
   avatarImageUrl?: string;
   onSelectResult?: (imageUrl: string, model: string) => void;
@@ -85,6 +89,11 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
   const [results, setResults] = useState<ModelResult[]>([]);
   const [benchmarkSummary, setBenchmarkSummary] = useState<BenchmarkResponse | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
+  
+  // Refs for cleanup
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Timer during benchmark
   useEffect(() => {
@@ -97,12 +106,29 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
     return () => clearInterval(interval);
   }, [isRunning]);
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+      if (timeoutIdRef.current) clearTimeout(timeoutIdRef.current);
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+    };
+  }, []);
+
   const toggleModel = (modelId: string) => {
     setSelectedModels(prev => 
       prev.includes(modelId)
         ? prev.filter(m => m !== modelId)
         : [...prev, modelId]
     );
+  };
+
+  const cancelBenchmark = () => {
+    abortControllerRef.current?.abort();
+    if (timeoutIdRef.current) clearTimeout(timeoutIdRef.current);
+    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+    setIsRunning(false);
+    toast.info('Benchmark cancelado');
   };
 
   const runBenchmark = async () => {
@@ -119,15 +145,25 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
     // Use default garment if none provided
     const testGarmentUrl = garmentUrl.trim() || 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=600';
 
+    // Create abort controller
+    abortControllerRef.current = new AbortController();
+    
     setIsRunning(true);
     setProgress(10);
     setResults([]);
     setBenchmarkSummary(null);
     setElapsedTime(0);
 
+    // Set global timeout (3 minutes)
+    timeoutIdRef.current = setTimeout(() => {
+      abortControllerRef.current?.abort();
+      toast.error('Timeout: O benchmark demorou mais de 3 minutos');
+      setIsRunning(false);
+    }, BENCHMARK_TIMEOUT_MS);
+
     try {
       // Simulate progress updates
-      const progressInterval = setInterval(() => {
+      progressIntervalRef.current = setInterval(() => {
         setProgress(prev => Math.min(prev + 5, 85));
       }, 2000);
 
@@ -140,7 +176,10 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
         },
       });
 
-      clearInterval(progressInterval);
+      // Cleanup timers
+      if (timeoutIdRef.current) clearTimeout(timeoutIdRef.current);
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+      
       setProgress(100);
 
       if (error) {
@@ -153,8 +192,17 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
       
       toast.success(`Benchmark concluído: ${response.summary.success}/${response.results.length} modelos bem-sucedidos`);
     } catch (error: any) {
+      // Cleanup timers on error
+      if (timeoutIdRef.current) clearTimeout(timeoutIdRef.current);
+      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
+      
       console.error('Benchmark error:', error);
-      toast.error('Erro ao executar benchmark');
+      
+      if (error.name === 'AbortError' || abortControllerRef.current?.signal.aborted) {
+        // Already handled by timeout or cancel
+      } else {
+        toast.error('Erro ao executar benchmark');
+      }
     } finally {
       setIsRunning(false);
     }
@@ -262,36 +310,50 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
         </Card>
       )}
 
-      {/* Run Button */}
-      <Button
-        onClick={isRunning ? undefined : (results.length > 0 ? resetBenchmark : runBenchmark)}
-        disabled={!avatarImageUrl || selectedModels.length === 0}
-        className={cn(
-          "w-full h-12",
-          isRunning 
-            ? "bg-secondary text-secondary-foreground cursor-wait"
-            : results.length > 0
-            ? "bg-secondary hover:bg-secondary/80"
-            : "gradient-primary text-primary-foreground"
-        )}
-      >
+      {/* Action Buttons */}
+      <div className="flex gap-2">
         {isRunning ? (
           <>
-            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-            Processando... {(elapsedTime / 1000).toFixed(1)}s
-          </>
-        ) : results.length > 0 ? (
-          <>
-            <RotateCcw className="w-5 h-5 mr-2" />
-            Novo Benchmark
+            <Button
+              disabled
+              className="flex-1 h-12 bg-secondary text-secondary-foreground cursor-wait"
+            >
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              Processando... {(elapsedTime / 1000).toFixed(1)}s
+            </Button>
+            <Button
+              onClick={cancelBenchmark}
+              variant="destructive"
+              className="h-12 px-4"
+            >
+              <StopCircle className="w-5 h-5" />
+            </Button>
           </>
         ) : (
-          <>
-            <Play className="w-5 h-5 mr-2" />
-            Iniciar Benchmark
-          </>
+          <Button
+            onClick={results.length > 0 ? resetBenchmark : runBenchmark}
+            disabled={!avatarImageUrl || selectedModels.length === 0}
+            className={cn(
+              "w-full h-12",
+              results.length > 0
+                ? "bg-secondary hover:bg-secondary/80"
+                : "gradient-primary text-primary-foreground"
+            )}
+          >
+            {results.length > 0 ? (
+              <>
+                <RotateCcw className="w-5 h-5 mr-2" />
+                Novo Benchmark
+              </>
+            ) : (
+              <>
+                <Play className="w-5 h-5 mr-2" />
+                Iniciar Benchmark
+              </>
+            )}
+          </Button>
         )}
-      </Button>
+      </div>
 
       {/* Progress */}
       <AnimatePresence>
@@ -302,9 +364,14 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
             exit={{ opacity: 0, height: 0 }}
           >
             <Progress value={progress} className="h-2" />
-            <p className="text-xs text-center text-muted-foreground mt-2">
-              Aguarde, os modelos estão processando em paralelo...
-            </p>
+            <div className="flex items-center justify-between mt-2">
+              <p className="text-xs text-muted-foreground">
+                Aguarde, processando em paralelo...
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Timeout: {Math.max(0, Math.floor((BENCHMARK_TIMEOUT_MS - elapsedTime) / 1000))}s
+              </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
