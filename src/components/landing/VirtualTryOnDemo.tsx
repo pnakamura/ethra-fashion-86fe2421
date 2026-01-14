@@ -231,30 +231,37 @@ export function VirtualTryOnDemo() {
           </p>
         </div>
 
-        {/* Result image with partial lock */}
-        <div className="relative mb-6 rounded-2xl overflow-hidden bg-secondary/30">
-          <div className="w-full aspect-[3/4] flex items-center justify-center">
-            {isCorrectingImage ? (
+        {/* Result image - Real size mode (no fixed aspect ratio) */}
+        <div className="relative mb-6">
+          {isCorrectingImage ? (
+            <div className="w-full py-16 flex items-center justify-center rounded-2xl bg-secondary/30">
               <div className="animate-pulse text-muted-foreground text-sm">
                 Otimizando imagem...
               </div>
-            ) : (
+            </div>
+          ) : (
+            <div className="rounded-2xl overflow-hidden bg-secondary/30">
+              {/* Image flows naturally without fixed box */}
               <img 
                 src={correctedImage || resultImage} 
                 alt="Virtual try-on result" 
-                className="max-w-full max-h-full object-contain"
+                className="w-full h-auto block"
+                style={{ maxHeight: '70vh' }}
               />
-            )}
-          </div>
-          
-          {/* Partial blur/lock overlay */}
-          <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-background/95 via-background/80 to-transparent flex items-end justify-center pb-6">
-            <div className="text-center">
-              <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-muted flex items-center justify-center">
-                <Lock className="w-5 h-5 text-muted-foreground" />
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Crie sua conta para ver completo
+            </div>
+          )}
+        </div>
+        
+        {/* CTA lock section - separate from image */}
+        <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-primary/5 to-gold/5 border border-border">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+              <Lock className="w-5 h-5 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="text-sm font-medium">Resultado parcial</p>
+              <p className="text-xs text-muted-foreground">
+                Crie sua conta para acesso completo e ilimitado
               </p>
             </div>
           </div>
