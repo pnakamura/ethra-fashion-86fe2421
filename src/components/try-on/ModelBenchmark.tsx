@@ -18,8 +18,10 @@ import {
   ExternalLink,
   DollarSign,
   Download,
-  Maximize2
+  Maximize2,
+  Info
 } from 'lucide-react';
+import { prepareAvatarForTryOn, analyzeImage } from '@/lib/image-preprocessing';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -105,8 +107,8 @@ const BENCHMARK_MODELS: BenchmarkModel[] = [
   },
 ] as const;
 
-// Timeout constants
-const BENCHMARK_TIMEOUT_MS = 180000; // 3 minutes
+// Timeout constants - Extended to accommodate sequential Replicate delays
+const BENCHMARK_TIMEOUT_MS = 360000; // 6 minutes (12s delay × 3 Replicate models + processing)
 
 interface ModelBenchmarkProps {
   avatarImageUrl?: string;
@@ -124,6 +126,14 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
   const [showWardrobeSelector, setShowWardrobeSelector] = useState(false);
   const [selectedClosetItem, setSelectedClosetItem] = useState<{ id: string; name: string } | null>(null);
   const [viewingImage, setViewingImage] = useState<{ url: string; model: string } | null>(null);
+  const [avatarAnalysis, setAvatarAnalysis] = useState<{
+    width: number;
+    height: number;
+    aspectRatio: number;
+    needsProcessing: boolean;
+    isPortrait: boolean;
+  } | null>(null);
+  const [isPreprocessing, setIsPreprocessing] = useState(false);
   
   // Refs for cleanup
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -149,6 +159,17 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
     };
   }, []);
+
+  // Analyze avatar when received
+  useEffect(() => {
+    if (avatarImageUrl) {
+      analyzeImage(avatarImageUrl)
+        .then(setAvatarAnalysis)
+        .catch(console.error);
+    } else {
+      setAvatarAnalysis(null);
+    }
+  }, [avatarImageUrl]);
 
   const toggleModel = (modelId: string) => {
     setSelectedModels(prev => 
@@ -184,27 +205,65 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
     abortControllerRef.current = new AbortController();
     
     setIsRunning(true);
-    setProgress(10);
+    setProgress(5);
     setResults([]);
     setBenchmarkSummary(null);
     setElapsedTime(0);
 
-    // Set global timeout (3 minutes)
+    // Set global timeout (6 minutes to accommodate sequential delays)
     timeoutIdRef.current = setTimeout(() => {
       abortControllerRef.current?.abort();
-      toast.error('Timeout: O benchmark demorou mais de 3 minutos');
+      toast.error('Timeout: O benchmark demorou mais de 6 minutos');
       setIsRunning(false);
+      setIsPreprocessing(false);
     }, BENCHMARK_TIMEOUT_MS);
 
     try {
-      // Simulate progress updates
+      // Pre-process avatar if needed
+      let processedAvatarUrl = avatarImageUrl;
+      
+      if (avatarAnalysis?.needsProcessing && avatarImageUrl) {
+        try {
+          setIsPreprocessing(true);
+          setProgress(10);
+          console.log("[Benchmark] Avatar needs preprocessing, starting...");
+          
+          const avatarBlob = await prepareAvatarForTryOn(avatarImageUrl);
+          
+          // Upload preprocessed avatar to temp storage
+          const { data: userData } = await supabase.auth.getUser();
+          if (userData.user) {
+            const tempPath = `temp/benchmark-${userData.user.id}-${Date.now()}.jpg`;
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from('avatars')
+              .upload(tempPath, avatarBlob, { contentType: 'image/jpeg', upsert: true });
+            
+            if (!uploadError && uploadData) {
+              const { data: urlData } = supabase.storage
+                .from('avatars')
+                .getPublicUrl(uploadData.path);
+              processedAvatarUrl = urlData.publicUrl;
+              console.log("[Benchmark] Avatar preprocessed successfully:", processedAvatarUrl);
+              toast.info('Avatar otimizado para melhor qualidade');
+            }
+          }
+        } catch (err) {
+          console.warn("[Benchmark] Avatar preprocessing failed, using original:", err);
+        } finally {
+          setIsPreprocessing(false);
+        }
+      }
+      
+      setProgress(15);
+
+      // Simulate progress updates (slower due to sequential processing)
       progressIntervalRef.current = setInterval(() => {
-        setProgress(prev => Math.min(prev + 5, 85));
-      }, 2000);
+        setProgress(prev => Math.min(prev + 2, 85));
+      }, 3000);
 
       const { data, error } = await supabase.functions.invoke('test-vto-models', {
         body: {
-          avatarImageUrl,
+          avatarImageUrl: processedAvatarUrl,
           garmentImageUrl: testGarmentUrl,
           category: 'upper_body',
           models: selectedModels,
@@ -468,6 +527,55 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
         </Card>
       )}
 
+      {/* Avatar Quality Tips */}
+      {avatarImageUrl && avatarAnalysis && (
+        <Card className="border-border/50 bg-blue-500/5 border-blue-500/20">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <Info className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
+              <div className="space-y-2 text-sm">
+                <p className="font-medium text-blue-600 dark:text-blue-400">
+                  Análise do Avatar
+                </p>
+                <ul className="space-y-1 text-muted-foreground">
+                  <li className="flex items-center gap-2">
+                    {avatarAnalysis.isPortrait ? (
+                      <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                    ) : (
+                      <XCircle className="w-3.5 h-3.5 text-amber-500" />
+                    )}
+                    Orientação: {avatarAnalysis.isPortrait ? 'Retrato ✓' : 'Paisagem (será corrigida)'}
+                  </li>
+                  <li className="flex items-center gap-2">
+                    {Math.abs(avatarAnalysis.aspectRatio - 0.75) < 0.1 ? (
+                      <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                    ) : (
+                      <XCircle className="w-3.5 h-3.5 text-amber-500" />
+                    )}
+                    Proporção: {avatarAnalysis.aspectRatio.toFixed(2)} 
+                    {Math.abs(avatarAnalysis.aspectRatio - 0.75) < 0.1 ? ' (ótima)' : ' (ideal: 0.75)'}
+                  </li>
+                  <li className="flex items-center gap-2">
+                    {avatarAnalysis.width >= 768 ? (
+                      <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                    ) : (
+                      <XCircle className="w-3.5 h-3.5 text-amber-500" />
+                    )}
+                    Resolução: {avatarAnalysis.width}×{avatarAnalysis.height}
+                    {avatarAnalysis.width >= 768 ? ' (boa)' : ' (mínimo: 768px)'}
+                  </li>
+                </ul>
+                <p className="text-xs text-muted-foreground/80 pt-1">
+                  {avatarAnalysis.needsProcessing 
+                    ? '⚡ O avatar será otimizado automaticamente antes do benchmark (768×1024, 3:4).'
+                    : '✓ Avatar já está otimizado para os modelos de IA.'}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Action Buttons */}
       <div className="flex gap-2">
         {isRunning ? (
@@ -477,7 +585,7 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
               className="flex-1 h-12 bg-secondary text-secondary-foreground cursor-wait"
             >
               <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              Processando... {(elapsedTime / 1000).toFixed(1)}s
+              {isPreprocessing ? 'Otimizando avatar...' : `Processando... ${(elapsedTime / 1000).toFixed(1)}s`}
             </Button>
             <Button
               onClick={cancelBenchmark}
@@ -524,7 +632,9 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
             <Progress value={progress} className="h-2" />
             <div className="flex items-center justify-between mt-2">
               <p className="text-xs text-muted-foreground">
-                Aguarde, processando em paralelo...
+                {isPreprocessing 
+                  ? 'Otimizando avatar para melhores resultados...'
+                  : 'Modelos Replicate executam em sequência (12s delay para evitar rate limits)'}
               </p>
               <p className="text-xs text-muted-foreground">
                 Timeout: {Math.max(0, Math.floor((BENCHMARK_TIMEOUT_MS - elapsedTime) / 1000))}s

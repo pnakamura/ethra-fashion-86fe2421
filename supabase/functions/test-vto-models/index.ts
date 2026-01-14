@@ -811,92 +811,94 @@ serve(async (req) => {
     console.log("Running models:", modelsToRun);
     const totalStartTime = Date.now();
 
-    // Build promises for each requested model
-    const promises: Promise<ModelResult>[] = [];
+    // Separate models by provider to handle rate limits
+    const replicateModels = modelsToRun.filter((m: string) => 
+      ['idm-vton', 'seedream-4.5', 'seedream-4.0'].includes(m)
+    );
+    const otherModels = modelsToRun.filter((m: string) => 
+      !['idm-vton', 'seedream-4.5', 'seedream-4.0'].includes(m)
+    );
 
-    for (const modelName of modelsToRun) {
-      switch (modelName) {
-        case "idm-vton":
-          if (REPLICATE_API_KEY) {
-            promises.push(
-              withTimeout(
+    console.log("Replicate models (sequential with delay):", replicateModels);
+    console.log("Other models (parallel):", otherModels);
+
+    const allResults: ModelResult[] = [];
+
+    // Execute Replicate models SEQUENTIALLY with delay to avoid rate limits
+    const REPLICATE_DELAY_MS = 12000; // 12 seconds between calls
+    
+    for (let i = 0; i < replicateModels.length; i++) {
+      const modelName = replicateModels[i];
+      
+      if (i > 0) {
+        console.log(`[Replicate] Waiting ${REPLICATE_DELAY_MS / 1000}s before ${modelName}...`);
+        await sleep(REPLICATE_DELAY_MS);
+      }
+      
+      let result: ModelResult;
+      try {
+        switch (modelName) {
+          case "idm-vton":
+            if (REPLICATE_API_KEY) {
+              result = await withTimeout(
                 withRateLimitRetry(
                   () => callIDMVTON(avatarImageUrl, garmentImageUrl, category, REPLICATE_API_KEY),
                   "IDM-VTON"
                 ),
                 MODEL_TIMEOUT_MS + (MAX_RATE_LIMIT_RETRIES * RATE_LIMIT_RETRY_DELAY_MS),
                 "IDM-VTON"
-              ).catch(err => ({
-                model: "idm-vton",
-                status: "failed" as const,
-                cost: "$0.00",
-                error: err.message,
-              }))
-            );
-          } else {
-            promises.push(Promise.resolve({
-              model: "idm-vton",
-              status: "skipped" as const,
-              cost: "$0.00",
-              error: "REPLICATE_API_KEY not configured",
-            }));
-          }
-          break;
-        case "seedream-4.5":
-          if (REPLICATE_API_KEY) {
-            promises.push(
-              withTimeout(
+              );
+            } else {
+              result = { model: "idm-vton", status: "skipped", cost: "$0.00", error: "REPLICATE_API_KEY not configured" };
+            }
+            break;
+          case "seedream-4.5":
+            if (REPLICATE_API_KEY) {
+              result = await withTimeout(
                 withRateLimitRetry(
                   () => callSeedream45(avatarImageUrl, garmentImageUrl, category, REPLICATE_API_KEY),
                   "Seedream 4.5"
                 ),
                 MODEL_TIMEOUT_MS + (MAX_RATE_LIMIT_RETRIES * RATE_LIMIT_RETRY_DELAY_MS),
                 "Seedream 4.5"
-              ).catch(err => ({
-                model: "seedream-4.5",
-                status: "failed" as const,
-                cost: "$0.00",
-                error: err.message,
-              }))
-            );
-          } else {
-            promises.push(Promise.resolve({
-              model: "seedream-4.5",
-              status: "skipped" as const,
-              cost: "$0.00",
-              error: "REPLICATE_API_KEY not configured",
-            }));
-          }
-          break;
-        case "seedream-4.0":
-          if (REPLICATE_API_KEY) {
-            promises.push(
-              withTimeout(
+              );
+            } else {
+              result = { model: "seedream-4.5", status: "skipped", cost: "$0.00", error: "REPLICATE_API_KEY not configured" };
+            }
+            break;
+          case "seedream-4.0":
+            if (REPLICATE_API_KEY) {
+              result = await withTimeout(
                 withRateLimitRetry(
                   () => callSeedream40(avatarImageUrl, garmentImageUrl, category, REPLICATE_API_KEY),
                   "Seedream 4.0"
                 ),
                 MODEL_TIMEOUT_MS + (MAX_RATE_LIMIT_RETRIES * RATE_LIMIT_RETRY_DELAY_MS),
                 "Seedream 4.0"
-              ).catch(err => ({
-                model: "seedream-4.0",
-                status: "failed" as const,
-                cost: "$0.00",
-                error: err.message,
-              }))
-            );
-          } else {
-            promises.push(Promise.resolve({
-              model: "seedream-4.0",
-              status: "skipped" as const,
-              cost: "$0.00",
-              error: "REPLICATE_API_KEY not configured",
-            }));
-          }
-          break;
+              );
+            } else {
+              result = { model: "seedream-4.0", status: "skipped", cost: "$0.00", error: "REPLICATE_API_KEY not configured" };
+            }
+            break;
+          default:
+            result = { model: modelName, status: "skipped", cost: "$0.00", error: "Unknown Replicate model" };
+        }
+      } catch (err: any) {
+        result = { model: modelName, status: "failed", cost: "$0.00", error: err.message };
+      }
+      
+      allResults.push(result);
+      console.log(`[${modelName}] Completed:`, result.status);
+    }
+
+    // Execute other models in PARALLEL (no rate limit issues)
+    const parallelPromises: Promise<ModelResult>[] = [];
+    
+    for (const modelName of otherModels) {
+      switch (modelName) {
         case "gemini":
           if (LOVABLE_API_KEY) {
-            promises.push(
+            parallelPromises.push(
               withTimeout(
                 callGemini(avatarImageUrl, garmentImageUrl, category, LOVABLE_API_KEY),
                 MODEL_TIMEOUT_MS,
@@ -909,7 +911,7 @@ serve(async (req) => {
               }))
             );
           } else {
-            promises.push(Promise.resolve({
+            parallelPromises.push(Promise.resolve({
               model: "gemini",
               status: "skipped" as const,
               cost: "$0.00",
@@ -920,7 +922,7 @@ serve(async (req) => {
         case "vertex-ai":
           const vertexCredentials = Deno.env.get("GOOGLE_APPLICATION_CREDENTIALS_JSON");
           if (vertexCredentials) {
-            promises.push(
+            parallelPromises.push(
               withTimeout(
                 callVertexAI(avatarImageUrl, garmentImageUrl, category),
                 MODEL_TIMEOUT_MS,
@@ -933,7 +935,7 @@ serve(async (req) => {
               }))
             );
           } else {
-            promises.push(Promise.resolve({
+            parallelPromises.push(Promise.resolve({
               model: "vertex-ai",
               status: "skipped" as const,
               cost: "$0.00",
@@ -946,8 +948,12 @@ serve(async (req) => {
       }
     }
 
-    // Run all models in parallel with individual timeouts
-    const results = await Promise.all(promises);
+    // Run parallel models and combine results
+    const parallelResults = await Promise.all(parallelPromises);
+    allResults.push(...parallelResults);
+    
+    // Use allResults instead of results
+    const results = allResults;
 
     const totalTimeMs = Date.now() - totalStartTime;
 
