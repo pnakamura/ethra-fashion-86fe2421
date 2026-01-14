@@ -16,8 +16,30 @@ interface ModelResult {
   error?: string;
 }
 
+// Timeout for individual model processing (90 seconds)
+const MODEL_TIMEOUT_MS = 90000;
+
 // Helper to wait between polls
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Wrapper to add timeout to model calls
+const withTimeout = <T>(promise: Promise<T>, ms: number, modelName: string): Promise<T> => {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`Timeout: ${modelName} demorou mais de ${ms / 1000}s`));
+    }, ms);
+    
+    promise
+      .then((result) => {
+        clearTimeout(timer);
+        resolve(result);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+};
 
 // Get specialized prompt for Seedream models
 const getSeedreamPrompt = (category: string): string => {
@@ -499,7 +521,19 @@ serve(async (req) => {
       switch (modelName) {
         case "seedream-4.5":
           if (REPLICATE_API_KEY) {
-            promises.push(callSeedream45(avatarImageUrl, garmentImageUrl, category, REPLICATE_API_KEY));
+            // Wrap with timeout - if it takes more than 90s, fail gracefully
+            promises.push(
+              withTimeout(
+                callSeedream45(avatarImageUrl, garmentImageUrl, category, REPLICATE_API_KEY),
+                MODEL_TIMEOUT_MS,
+                "Seedream 4.5"
+              ).catch(err => ({
+                model: "seedream-4.5",
+                status: "failed" as const,
+                cost: "$0.00",
+                error: err.message,
+              }))
+            );
           } else {
             promises.push(Promise.resolve({
               model: "seedream-4.5",
@@ -511,7 +545,18 @@ serve(async (req) => {
           break;
         case "seedream-4.0":
           if (REPLICATE_API_KEY) {
-            promises.push(callSeedream40(avatarImageUrl, garmentImageUrl, category, REPLICATE_API_KEY));
+            promises.push(
+              withTimeout(
+                callSeedream40(avatarImageUrl, garmentImageUrl, category, REPLICATE_API_KEY),
+                MODEL_TIMEOUT_MS,
+                "Seedream 4.0"
+              ).catch(err => ({
+                model: "seedream-4.0",
+                status: "failed" as const,
+                cost: "$0.00",
+                error: err.message,
+              }))
+            );
           } else {
             promises.push(Promise.resolve({
               model: "seedream-4.0",
@@ -523,7 +568,18 @@ serve(async (req) => {
           break;
         case "gemini":
           if (LOVABLE_API_KEY) {
-            promises.push(callGemini(avatarImageUrl, garmentImageUrl, category, LOVABLE_API_KEY));
+            promises.push(
+              withTimeout(
+                callGemini(avatarImageUrl, garmentImageUrl, category, LOVABLE_API_KEY),
+                MODEL_TIMEOUT_MS,
+                "Gemini 3 Pro"
+              ).catch(err => ({
+                model: "gemini-3-pro-image-preview",
+                status: "failed" as const,
+                cost: "$0.00",
+                error: err.message,
+              }))
+            );
           } else {
             promises.push(Promise.resolve({
               model: "gemini-3-pro-image-preview",
@@ -538,7 +594,7 @@ serve(async (req) => {
       }
     }
 
-    // Run all models in parallel
+    // Run all models in parallel with individual timeouts
     const results = await Promise.all(promises);
 
     const totalTimeMs = Date.now() - totalStartTime;
