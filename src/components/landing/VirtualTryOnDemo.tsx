@@ -44,6 +44,7 @@ export function VirtualTryOnDemo() {
   const [avatarImage, setAvatarImage] = useState<string | null>(null);
   const [selectedGarment, setSelectedGarment] = useState<DemoGarment | null>(null);
   const [resultImage, setResultImage] = useState<string | null>(null);
+  const [imageRotation, setImageRotation] = useState(0);
   const [hasUsedDemo, setHasUsedDemo] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,6 +55,22 @@ export function VirtualTryOnDemo() {
       setHasUsedDemo(hoursSince < DEMO_COOLDOWN_HOURS);
     }
   }, []);
+
+  // Detect image orientation and set rotation if needed
+  useEffect(() => {
+    if (resultImage) {
+      const img = new Image();
+      img.onload = () => {
+        // If width > height * 1.2, image is in landscape (rotated)
+        if (img.width > img.height * 1.2) {
+          setImageRotation(90);
+        } else {
+          setImageRotation(0);
+        }
+      };
+      img.src = resultImage;
+    }
+  }, [resultImage]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -160,12 +177,19 @@ export function VirtualTryOnDemo() {
         </div>
 
         {/* Result image with partial lock */}
-        <div className="relative mb-6 rounded-2xl overflow-hidden">
-          <img 
-            src={resultImage} 
-            alt="Virtual try-on result" 
-            className="w-full aspect-[3/4] object-cover"
-          />
+        <div className="relative mb-6 rounded-2xl overflow-hidden bg-secondary/30">
+          <div className="w-full aspect-[3/4] flex items-center justify-center">
+            <img 
+              src={resultImage} 
+              alt="Virtual try-on result" 
+              className="max-w-full max-h-full object-contain"
+              style={imageRotation ? {
+                transform: `rotate(${imageRotation}deg)`,
+                maxWidth: imageRotation === 90 ? '133%' : '100%',
+                maxHeight: imageRotation === 90 ? '75%' : '100%',
+              } : undefined}
+            />
+          </div>
           
           {/* Partial blur/lock overlay */}
           <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-background/95 via-background/80 to-transparent flex items-end justify-center pb-6">
@@ -190,8 +214,13 @@ export function VirtualTryOnDemo() {
           </div>
           <ArrowRight className="w-5 h-5 text-muted-foreground" />
           <div className="text-center">
-            <div className="w-16 h-16 rounded-xl overflow-hidden shadow-soft mx-auto mb-1">
-              <img src={resultImage} alt="Depois" className="w-full h-full object-cover" />
+            <div className="w-16 h-16 rounded-xl overflow-hidden shadow-soft mx-auto mb-1 bg-secondary/30 flex items-center justify-center">
+              <img 
+                src={resultImage} 
+                alt="Depois" 
+                className="max-w-full max-h-full object-contain"
+                style={imageRotation ? { transform: `rotate(${imageRotation}deg)`, maxWidth: '80%', maxHeight: '80%' } : undefined}
+              />
             </div>
             <span className="text-xs text-muted-foreground">Depois</span>
           </div>
