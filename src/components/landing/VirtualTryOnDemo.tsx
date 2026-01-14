@@ -48,6 +48,8 @@ export function VirtualTryOnDemo() {
   const [isCorrectingImage, setIsCorrectingImage] = useState(false);
   const [hasUsedDemo, setHasUsedDemo] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSuspiciousImage, setIsSuspiciousImage] = useState(false);
+  const [allowRetry, setAllowRetry] = useState(false);
 
   useEffect(() => {
     const lastDemo = localStorage.getItem(DEMO_STORAGE_KEY);
@@ -70,16 +72,21 @@ export function VirtualTryOnDemo() {
     }
   };
 
-  // Correct image orientation via Canvas (instead of CSS rotation)
+  // Correct image orientation via Canvas and detect suspicious proportions
   useEffect(() => {
     if (resultImage) {
       setIsCorrectingImage(true);
       setCorrectedImage(null);
+      setIsSuspiciousImage(false);
       
       const img = new Image();
       img.crossOrigin = 'anonymous';
       
       img.onload = () => {
+        let finalWidth = img.width;
+        let finalHeight = img.height;
+        let imageToUse = resultImage;
+        
         // If width > height * 1.2, image is in landscape (needs rotation)
         if (img.width > img.height * 1.2) {
           try {
@@ -90,6 +97,8 @@ export function VirtualTryOnDemo() {
               // Swap dimensions for correct orientation
               canvas.width = img.height;
               canvas.height = img.width;
+              finalWidth = canvas.width;
+              finalHeight = canvas.height;
               
               // Rotate and draw
               ctx.translate(canvas.width / 2, canvas.height / 2);
@@ -97,20 +106,32 @@ export function VirtualTryOnDemo() {
               ctx.drawImage(img, -img.width / 2, -img.height / 2);
               
               // Convert to data URL
-              const correctedUrl = canvas.toDataURL('image/jpeg', 0.92);
-              setCorrectedImage(correctedUrl);
+              imageToUse = canvas.toDataURL('image/jpeg', 0.92);
               console.log('Image corrected via Canvas rotation');
-            } else {
-              setCorrectedImage(resultImage);
             }
           } catch (err) {
             console.error('Canvas correction failed:', err);
-            setCorrectedImage(resultImage);
           }
-        } else {
-          // Image already in correct orientation
-          setCorrectedImage(resultImage);
         }
+        
+        // Detect suspicious proportions (too wide, too square, or extreme)
+        const aspectRatio = finalWidth / finalHeight;
+        const isSuspicious = 
+          aspectRatio > 1.1 || // Still too wide after correction
+          aspectRatio < 0.4 || // Extremely narrow
+          (finalWidth < 300 && finalHeight < 300); // Too small
+        
+        if (isSuspicious) {
+          console.warn('Suspicious image detected:', { 
+            width: finalWidth, 
+            height: finalHeight, 
+            aspectRatio: aspectRatio.toFixed(2) 
+          });
+          setIsSuspiciousImage(true);
+          setAllowRetry(true); // Allow immediate retry for suspicious outputs
+        }
+        
+        setCorrectedImage(imageToUse);
         setIsCorrectingImage(false);
       };
       
@@ -118,11 +139,46 @@ export function VirtualTryOnDemo() {
         console.error('Failed to load image for correction');
         setCorrectedImage(resultImage);
         setIsCorrectingImage(false);
+        setIsSuspiciousImage(true);
+        setAllowRetry(true);
       };
       
       img.src = resultImage;
     }
   }, [resultImage]);
+  
+  // Retry handler for suspicious images (bypasses 24h cooldown)
+  const handleRetry = async () => {
+    if (!avatarImage || !selectedGarment) return;
+    
+    setAllowRetry(false);
+    setIsSuspiciousImage(false);
+    setResultImage(null);
+    setCorrectedImage(null);
+    setStep('processing');
+    
+    try {
+      const response = await supabase.functions.invoke('virtual-try-on', {
+        body: {
+          avatarImageUrl: avatarImage,
+          garmentImageUrl: selectedGarment.imageUrl,
+          category: selectedGarment.category,
+          demoMode: true,
+        },
+      });
+
+      if (response.error || !response.data?.success) {
+        throw new Error(response.data?.error || 'Falha ao processar');
+      }
+
+      setResultImage(response.data.resultImageUrl);
+      setStep('result');
+    } catch (err) {
+      console.error('Retry error:', err);
+      setError('Não foi possível gerar novamente. Tente mais tarde.');
+      setStep('select');
+    }
+  };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -252,6 +308,30 @@ export function VirtualTryOnDemo() {
           )}
         </div>
         
+        {/* Suspicious image warning + retry */}
+        {isSuspiciousImage && allowRetry && (
+          <div className="mb-4 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-4 h-4 text-amber-600" />
+                </div>
+                <p className="text-sm text-amber-700 dark:text-amber-400">
+                  A imagem pode ter ficado diferente do esperado
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleRetry}
+                className="shrink-0 border-amber-500/50 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10"
+              >
+                Gerar novamente
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* CTA lock section - separate from image */}
         <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-primary/5 to-gold/5 border border-border">
           <div className="flex items-center gap-3">
