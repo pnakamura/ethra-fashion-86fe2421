@@ -44,7 +44,8 @@ export function VirtualTryOnDemo() {
   const [avatarImage, setAvatarImage] = useState<string | null>(null);
   const [selectedGarment, setSelectedGarment] = useState<DemoGarment | null>(null);
   const [resultImage, setResultImage] = useState<string | null>(null);
-  const [imageRotation, setImageRotation] = useState(0);
+  const [correctedImage, setCorrectedImage] = useState<string | null>(null);
+  const [isCorrectingImage, setIsCorrectingImage] = useState(false);
   const [hasUsedDemo, setHasUsedDemo] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -69,18 +70,56 @@ export function VirtualTryOnDemo() {
     }
   };
 
-  // Detect image orientation and set rotation if needed
+  // Correct image orientation via Canvas (instead of CSS rotation)
   useEffect(() => {
     if (resultImage) {
+      setIsCorrectingImage(true);
+      setCorrectedImage(null);
+      
       const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
       img.onload = () => {
-        // If width > height * 1.2, image is in landscape (rotated)
+        // If width > height * 1.2, image is in landscape (needs rotation)
         if (img.width > img.height * 1.2) {
-          setImageRotation(90);
+          try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            if (ctx) {
+              // Swap dimensions for correct orientation
+              canvas.width = img.height;
+              canvas.height = img.width;
+              
+              // Rotate and draw
+              ctx.translate(canvas.width / 2, canvas.height / 2);
+              ctx.rotate((90 * Math.PI) / 180);
+              ctx.drawImage(img, -img.width / 2, -img.height / 2);
+              
+              // Convert to data URL
+              const correctedUrl = canvas.toDataURL('image/jpeg', 0.92);
+              setCorrectedImage(correctedUrl);
+              console.log('Image corrected via Canvas rotation');
+            } else {
+              setCorrectedImage(resultImage);
+            }
+          } catch (err) {
+            console.error('Canvas correction failed:', err);
+            setCorrectedImage(resultImage);
+          }
         } else {
-          setImageRotation(0);
+          // Image already in correct orientation
+          setCorrectedImage(resultImage);
         }
+        setIsCorrectingImage(false);
       };
+      
+      img.onerror = () => {
+        console.error('Failed to load image for correction');
+        setCorrectedImage(resultImage);
+        setIsCorrectingImage(false);
+      };
+      
       img.src = resultImage;
     }
   }, [resultImage]);
@@ -195,16 +234,17 @@ export function VirtualTryOnDemo() {
         {/* Result image with partial lock */}
         <div className="relative mb-6 rounded-2xl overflow-hidden bg-secondary/30">
           <div className="w-full aspect-[3/4] flex items-center justify-center">
-            <img 
-              src={resultImage} 
-              alt="Virtual try-on result" 
-              className="max-w-full max-h-full object-contain"
-              style={imageRotation ? {
-                transform: `rotate(${imageRotation}deg)`,
-                maxWidth: imageRotation === 90 ? '133%' : '100%',
-                maxHeight: imageRotation === 90 ? '75%' : '100%',
-              } : undefined}
-            />
+            {isCorrectingImage ? (
+              <div className="animate-pulse text-muted-foreground text-sm">
+                Otimizando imagem...
+              </div>
+            ) : (
+              <img 
+                src={correctedImage || resultImage} 
+                alt="Virtual try-on result" 
+                className="max-w-full max-h-full object-contain"
+              />
+            )}
           </div>
           
           {/* Partial blur/lock overlay */}
@@ -232,10 +272,9 @@ export function VirtualTryOnDemo() {
           <div className="text-center">
             <div className="w-16 h-16 rounded-xl overflow-hidden shadow-soft mx-auto mb-1 bg-secondary/30 flex items-center justify-center">
               <img 
-                src={resultImage} 
+                src={correctedImage || resultImage} 
                 alt="Depois" 
-                className="max-w-full max-h-full object-contain"
-                style={imageRotation ? { transform: `rotate(${imageRotation}deg)`, maxWidth: '80%', maxHeight: '80%' } : undefined}
+                className="w-full h-full object-cover"
               />
             </div>
             <span className="text-xs text-muted-foreground">Depois</span>

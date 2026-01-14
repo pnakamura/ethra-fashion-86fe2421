@@ -177,29 +177,26 @@ serve(async (req) => {
             "Content-Type": "application/json",
           },
       body: JSON.stringify({
-            model: "google/gemini-2.5-flash-image",
+            model: "google/gemini-3-pro-image-preview",
             messages: [
               {
                 role: "user",
                 content: [
                   {
                     type: "text",
-                    text: `You are a professional virtual try-on AI creating fashion photography.
+                    text: `You are an expert virtual try-on AI creating fashion photography.
 
-Task: Place the garment from the SECOND image onto the person in the FIRST image.
+TASK: Seamlessly dress the person in the FIRST image with the garment from the SECOND image.
 
-CRITICAL REQUIREMENTS:
-1. IMAGE ORIENTATION: Output MUST be VERTICAL/PORTRAIT orientation (taller than wide), matching the first image exactly
-2. FULL BODY FRAMING: Include the COMPLETE person from HEAD to FEET - do NOT crop the head, face, or any body part
-3. EXACT PROPORTIONS: Match the exact aspect ratio and dimensions of the first (person) image
-4. Keep the person's face, hair, body shape, skin tone, and pose EXACTLY the same as the original
-5. The garment should fit naturally on the person's body, replacing their current top/bottom
-6. Maintain realistic lighting and shadows from the original photo
-7. The result should look like a real professional fashion photograph
+ABSOLUTE REQUIREMENTS:
+1. OUTPUT MUST BE VERTICAL (PORTRAIT) - Same orientation as the person photo
+2. FULL BODY: Show complete person HEAD TO FEET - never crop head or face
+3. EXACT ASPECT RATIO: Match the first image dimensions precisely
+4. PRESERVE IDENTITY: Keep face, hair, skin tone, body shape, pose unchanged
+5. NATURAL FIT: The garment should look naturally worn, not pasted on
+6. PHOTOREALISTIC: Professional fashion photography quality
 
-IMPORTANT: The output image must have the same vertical orientation as the input person image. Never rotate the image.
-
-Output a single photorealistic image with the same dimensions and orientation as the first image.`,
+CRITICAL: Output a SINGLE image with VERTICAL orientation matching the input person photo.`,
                   },
                   {
                     type: "image_url",
