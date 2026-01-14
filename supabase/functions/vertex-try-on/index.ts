@@ -138,7 +138,7 @@ const fetchImageAsBase64 = async (url: string): Promise<string> => {
   return encoded;
 };
 
-// Call Vertex AI Virtual Try-On
+// Call Vertex AI Virtual Try-On (modelo oficial)
 const callVertexTryOn = async (
   avatarImageUrl: string,
   garmentImageUrl: string,
@@ -146,7 +146,7 @@ const callVertexTryOn = async (
   accessToken: string,
   projectId: string
 ): Promise<string> => {
-  console.log("[Vertex AI] Starting try-on process...");
+  console.log("[Vertex AI] Starting Virtual Try-On process...");
   console.log(`[Vertex AI] Category: ${category}`);
 
   // Fetch both images as base64
@@ -155,55 +155,36 @@ const callVertexTryOn = async (
     fetchImageAsBase64(garmentImageUrl),
   ]);
 
-  // Map category to Vertex AI format
-  const getVtoCategory = (cat: string): string => {
-    const normalized = (cat || "").toLowerCase();
-    if (["top", "tops", "upper_body", "upper", "shirt", "blouse"].includes(normalized)) {
-      return "TOPS";
-    }
-    if (["bottom", "bottoms", "lower_body", "lower", "pants", "skirt"].includes(normalized)) {
-      return "BOTTOMS";
-    }
-    if (["dress", "dresses", "full_body"].includes(normalized)) {
-      return "ONE_PIECES";
-    }
-    return "TOPS";
-  };
+  // Vertex AI Virtual Try-On endpoint (modelo oficial)
+  const endpoint = `${VERTEX_API_BASE}/projects/${projectId}/locations/us-central1/publishers/google/models/virtual-try-on-preview-08-04:predict`;
 
-  const vtoCategory = getVtoCategory(category);
-  console.log(`[Vertex AI] VTO category: ${vtoCategory}`);
-
-  // Vertex AI Virtual Try-On endpoint
-  // Note: The exact endpoint may vary based on region and API version
-  const endpoint = `${VERTEX_API_BASE}/projects/${projectId}/locations/us-central1/publishers/google/models/imagegeneration@006:predict`;
-
-  // Build the request for Virtual Try-On
-  // Using Imagen 3 with virtual try-on capabilities
+  // Build request no formato oficial da API Virtual Try-On
   const requestBody = {
     instances: [
       {
-        prompt: `Virtual try-on: Apply the garment to the person. Category: ${vtoCategory}. Preserve exact identity, face, body proportions, and pose. Output photorealistic fashion photography.`,
-        image: {
-          bytesBase64Encoded: avatarBase64,
+        personImage: {
+          image: {
+            bytesBase64Encoded: avatarBase64,
+          },
         },
-        referenceImage: {
-          bytesBase64Encoded: garmentBase64,
-        },
-        parameters: {
-          sampleCount: 1,
-          aspectRatio: "3:4",
-          negativePrompt: "distorted, deformed, extra limbs, missing limbs, blurry, low quality",
-          guidanceScale: 100,
-          seed: Math.floor(Math.random() * 1000000),
-        },
+        productImages: [
+          {
+            image: {
+              bytesBase64Encoded: garmentBase64,
+            },
+          },
+        ],
       },
     ],
     parameters: {
       sampleCount: 1,
+      baseSteps: 32,
+      personGeneration: "allow_adult",
+      safetySetting: "block_only_high",
     },
   };
 
-  console.log("[Vertex AI] Sending request to Imagen...");
+  console.log("[Vertex AI] Sending request to Virtual Try-On API...");
 
   const response = await fetch(endpoint, {
     method: "POST",
@@ -225,9 +206,7 @@ const callVertexTryOn = async (
       throw new Error("Vertex AI: Rate limit atingido. Aguarde e tente novamente.");
     }
     if (response.status === 400) {
-      // Try alternative approach with Imagen edit
-      console.log("[Vertex AI] Trying alternative Imagen edit approach...");
-      return await callVertexImagenEdit(avatarBase64, garmentBase64, vtoCategory, accessToken, projectId);
+      throw new Error(`Vertex AI: Requisição inválida - ${errorText}`);
     }
     throw new Error(`Vertex AI error: ${response.status}`);
   }
@@ -235,84 +214,15 @@ const callVertexTryOn = async (
   const data = await response.json();
   console.log("[Vertex AI] Response received");
 
-  // Extract the generated image
-  const predictions = data.predictions;
-  if (!predictions || predictions.length === 0) {
-    throw new Error("Vertex AI: Nenhuma imagem gerada");
-  }
-
-  const imageBase64 = predictions[0].bytesBase64Encoded;
-  if (!imageBase64) {
-    throw new Error("Vertex AI: Resposta sem imagem");
-  }
-
-  console.log("[Vertex AI] Image generated successfully");
-  return `data:image/png;base64,${imageBase64}`;
-};
-
-// Alternative approach using Imagen edit capabilities
-const callVertexImagenEdit = async (
-  avatarBase64: string,
-  garmentBase64: string,
-  category: string,
-  accessToken: string,
-  projectId: string
-): Promise<string> => {
-  console.log("[Vertex AI] Using Imagen edit approach...");
-
-  const endpoint = `${VERTEX_API_BASE}/projects/${projectId}/locations/us-central1/publishers/google/models/imagegeneration@006:predict`;
-
-  const categoryPrompts: Record<string, string> = {
-    TOPS: "Replace the shirt/top with the garment from the reference image. Keep exact face, body, and pose.",
-    BOTTOMS: "Replace the pants/bottom with the garment from the reference image. Keep exact face, body, and pose.",
-    ONE_PIECES: "Replace the outfit with the dress from the reference image. Keep exact face, body, and pose.",
-  };
-
-  const prompt = categoryPrompts[category] || categoryPrompts.TOPS;
-
-  const requestBody = {
-    instances: [
-      {
-        prompt: prompt,
-        image: {
-          bytesBase64Encoded: avatarBase64,
-        },
-      },
-    ],
-    parameters: {
-      sampleCount: 1,
-      editMode: "product-image",
-      editConfig: {
-        referenceImage: {
-          bytesBase64Encoded: garmentBase64,
-        },
-      },
-    },
-  };
-
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(requestBody),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error("[Vertex AI Edit] Error:", response.status, errorText);
-    throw new Error(`Vertex AI edit error: ${response.status}`);
-  }
-
-  const data = await response.json();
+  // Extract the generated image (formato da API Virtual Try-On)
   const imageBase64 = data.predictions?.[0]?.bytesBase64Encoded;
   
   if (!imageBase64) {
-    throw new Error("Vertex AI edit: Nenhuma imagem gerada");
+    console.error("[Vertex AI] Response structure:", JSON.stringify(data).substring(0, 500));
+    throw new Error("Vertex AI: Nenhuma imagem gerada na resposta");
   }
 
-  console.log("[Vertex AI Edit] Image generated successfully");
+  console.log("[Vertex AI] Image generated successfully");
   return `data:image/png;base64,${imageBase64}`;
 };
 
