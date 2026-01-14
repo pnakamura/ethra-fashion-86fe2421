@@ -634,7 +634,7 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
               <p className="text-xs text-muted-foreground">
                 {isPreprocessing 
                   ? 'Otimizando avatar para melhores resultados...'
-                  : 'Modelos Replicate executam em sequência (12s delay para evitar rate limits)'}
+                  : 'Execução sequencial: Replicate (12s) → Google (5s) — prioriza qualidade sobre velocidade'}
               </p>
               <p className="text-xs text-muted-foreground">
                 Timeout: {Math.max(0, Math.floor((BENCHMARK_TIMEOUT_MS - elapsedTime) / 1000))}s
@@ -883,6 +883,18 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
                               Base64
                             </Badge>
                           )}
+                          {/* Rate limit warning badge */}
+                          {!isSuccess && result.error?.toLowerCase().includes('rate limit') && (
+                            <Badge variant="outline" className="text-[9px] text-amber-500 border-amber-500/30 animate-pulse">
+                              Rate Limit
+                            </Badge>
+                          )}
+                          {/* Processing error badge */}
+                          {!isSuccess && result.error?.includes('list index') && (
+                            <Badge variant="outline" className="text-[9px] text-red-500 border-red-500/30">
+                              Erro Interno
+                            </Badge>
+                          )}
                           {!isSuccess && (
                             <Badge variant="destructive" className="text-xs">
                               <XCircle className="w-3 h-3 mr-1" />
@@ -933,11 +945,32 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
                             <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">
                               {result.error || 'Falha desconhecida'}
                             </p>
-                            {/* Rate limit specific message */}
+                            {/* Contextual error messages */}
                             {result.error?.toLowerCase().includes('rate limit') && (
                               <div className="mt-3 p-2 rounded-lg bg-amber-500/10 border border-amber-500/30">
                                 <p className="text-xs text-amber-600 dark:text-amber-400">
-                                  ⏳ Rate limit temporário do Replicate. O sistema tentou retry automático mas o limite persistiu. Tente novamente em alguns segundos.
+                                  ⏳ Rate limit temporário. O sistema executou retentativas automáticas, mas o limite persistiu. Aguarde alguns segundos e tente novamente.
+                                </p>
+                              </div>
+                            )}
+                            {result.error?.includes('list index') && (
+                              <div className="mt-3 p-2 rounded-lg bg-red-500/10 border border-red-500/30">
+                                <p className="text-xs text-red-600 dark:text-red-400">
+                                  🔄 Erro interno do modelo após múltiplas tentativas. Tente usar um avatar com pose mais simples ou fundo neutro.
+                                </p>
+                              </div>
+                            )}
+                            {result.error?.toLowerCase().includes('timeout') && (
+                              <div className="mt-3 p-2 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                                <p className="text-xs text-blue-600 dark:text-blue-400">
+                                  ⏱️ O processamento excedeu o limite de tempo. Os servidores podem estar sobrecarregados. Tente novamente em alguns minutos.
+                                </p>
+                              </div>
+                            )}
+                            {result.error?.includes('credits') && (
+                              <div className="mt-3 p-2 rounded-lg bg-purple-500/10 border border-purple-500/30">
+                                <p className="text-xs text-purple-600 dark:text-purple-400">
+                                  💳 Créditos insuficientes na API Replicate. Verifique seu saldo em replicate.com.
                                 </p>
                               </div>
                             )}

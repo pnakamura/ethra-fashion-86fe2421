@@ -209,6 +209,42 @@ const getReplicateLatestVersion = async (
 // ============================================
 // IDM-VTON via Replicate (Specialized VTO)
 // ============================================
+
+// Wrapper with retry for intermittent "list index out of range" errors
+const callIDMVTONWithRetry = async (
+  avatarUrl: string,
+  garmentUrl: string,
+  category: string,
+  apiKey: string,
+  maxRetries: number = 2
+): Promise<ModelResult> => {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const result = await callIDMVTON(avatarUrl, garmentUrl, category, apiKey);
+      
+      // Check for "list index out of range" error - retry if found
+      if (result.status === 'failed' && result.error?.includes('list index out of range')) {
+        console.warn(`[idm-vton] Attempt ${attempt + 1}/${maxRetries + 1} failed with index error`);
+        if (attempt < maxRetries) {
+          console.log(`[idm-vton] Retrying in 3s...`);
+          await sleep(3000);
+          continue;
+        }
+      }
+      
+      return result;
+    } catch (err: any) {
+      console.error(`[idm-vton] Attempt ${attempt + 1} error:`, err.message);
+      if (attempt === maxRetries) {
+        return { model: 'idm-vton', status: 'failed', cost: '$0.00', error: err.message };
+      }
+      await sleep(3000);
+    }
+  }
+  
+  return { model: 'idm-vton', status: 'failed', cost: '$0.00', error: 'Max retries exceeded' };
+};
+
 const callIDMVTON = async (
   avatarUrl: string,
   garmentUrl: string,
@@ -815,17 +851,21 @@ serve(async (req) => {
     const replicateModels = modelsToRun.filter((m: string) => 
       ['idm-vton', 'seedream-4.5', 'seedream-4.0'].includes(m)
     );
-    const otherModels = modelsToRun.filter((m: string) => 
-      !['idm-vton', 'seedream-4.5', 'seedream-4.0'].includes(m)
+    const googleModels = modelsToRun.filter((m: string) => 
+      ['vertex-ai', 'gemini'].includes(m)
     );
 
-    console.log("Replicate models (sequential with delay):", replicateModels);
-    console.log("Other models (parallel):", otherModels);
+    console.log("=== Execution Strategy ===");
+    console.log("Replicate models (sequential with 12s delay):", replicateModels);
+    console.log("Google models (sequential with 5s delay):", googleModels);
 
     const allResults: ModelResult[] = [];
 
-    // Execute Replicate models SEQUENTIALLY with delay to avoid rate limits
-    const REPLICATE_DELAY_MS = 12000; // 12 seconds between calls
+    // ============================================
+    // STEP 1: Execute Replicate models SEQUENTIALLY
+    // 12 seconds delay to avoid rate limits
+    // ============================================
+    const REPLICATE_DELAY_MS = 12000;
     
     for (let i = 0; i < replicateModels.length; i++) {
       const modelName = replicateModels[i];
@@ -835,17 +875,20 @@ serve(async (req) => {
         await sleep(REPLICATE_DELAY_MS);
       }
       
+      console.log(`[Replicate] Starting ${modelName} (${i + 1}/${replicateModels.length})...`);
       let result: ModelResult;
+      
       try {
         switch (modelName) {
           case "idm-vton":
             if (REPLICATE_API_KEY) {
+              // Use the retry wrapper for IDM-VTON to handle "list index" errors
               result = await withTimeout(
                 withRateLimitRetry(
-                  () => callIDMVTON(avatarImageUrl, garmentImageUrl, category, REPLICATE_API_KEY),
+                  () => callIDMVTONWithRetry(avatarImageUrl, garmentImageUrl, category, REPLICATE_API_KEY),
                   "IDM-VTON"
                 ),
-                MODEL_TIMEOUT_MS + (MAX_RATE_LIMIT_RETRIES * RATE_LIMIT_RETRY_DELAY_MS),
+                MODEL_TIMEOUT_MS + (MAX_RATE_LIMIT_RETRIES * RATE_LIMIT_RETRY_DELAY_MS) + 10000, // Extra time for internal retries
                 "IDM-VTON"
               );
             } else {
@@ -888,71 +931,63 @@ serve(async (req) => {
       }
       
       allResults.push(result);
-      console.log(`[${modelName}] Completed:`, result.status);
+      console.log(`[Replicate] ${modelName} completed: ${result.status} (${result.processingTimeMs || 0}ms)`);
     }
 
-    // Execute other models in PARALLEL (no rate limit issues)
-    const parallelPromises: Promise<ModelResult>[] = [];
+    // ============================================
+    // STEP 2: Execute Google models SEQUENTIALLY
+    // 5 seconds delay to avoid rate limits
+    // ============================================
+    const GOOGLE_DELAY_MS = 5000;
     
-    for (const modelName of otherModels) {
-      switch (modelName) {
-        case "gemini":
-          if (LOVABLE_API_KEY) {
-            parallelPromises.push(
-              withTimeout(
-                callGemini(avatarImageUrl, garmentImageUrl, category, LOVABLE_API_KEY),
-                MODEL_TIMEOUT_MS,
-                "Gemini 3 Pro"
-              ).catch(err => ({
-                model: "gemini",
-                status: "failed" as const,
-                cost: "$0.00",
-                error: err.message,
-              }))
-            );
-          } else {
-            parallelPromises.push(Promise.resolve({
-              model: "gemini",
-              status: "skipped" as const,
-              cost: "$0.00",
-              error: "LOVABLE_API_KEY not configured",
-            }));
-          }
-          break;
-        case "vertex-ai":
-          const vertexCredentials = Deno.env.get("GOOGLE_APPLICATION_CREDENTIALS_JSON");
-          if (vertexCredentials) {
-            parallelPromises.push(
-              withTimeout(
+    for (let i = 0; i < googleModels.length; i++) {
+      const modelName = googleModels[i];
+      
+      if (i > 0) {
+        console.log(`[Google] Waiting ${GOOGLE_DELAY_MS / 1000}s before ${modelName}...`);
+        await sleep(GOOGLE_DELAY_MS);
+      }
+      
+      console.log(`[Google] Starting ${modelName} (${i + 1}/${googleModels.length})...`);
+      let result: ModelResult;
+      
+      try {
+        switch (modelName) {
+          case "vertex-ai":
+            const vertexCredentials = Deno.env.get("GOOGLE_APPLICATION_CREDENTIALS_JSON");
+            if (vertexCredentials) {
+              result = await withTimeout(
                 callVertexAI(avatarImageUrl, garmentImageUrl, category),
                 MODEL_TIMEOUT_MS,
                 "Vertex AI"
-              ).catch(err => ({
-                model: "vertex-ai",
-                status: "failed" as const,
-                cost: "$0.00",
-                error: err.message,
-              }))
-            );
-          } else {
-            parallelPromises.push(Promise.resolve({
-              model: "vertex-ai",
-              status: "skipped" as const,
-              cost: "$0.00",
-              error: "GOOGLE_APPLICATION_CREDENTIALS_JSON not configured",
-            }));
-          }
-          break;
-        default:
-          console.log(`Unknown model: ${modelName}, skipping`);
+              );
+            } else {
+              result = { model: "vertex-ai", status: "skipped", cost: "$0.00", error: "GOOGLE_APPLICATION_CREDENTIALS_JSON not configured" };
+            }
+            break;
+          case "gemini":
+            if (LOVABLE_API_KEY) {
+              result = await withTimeout(
+                callGemini(avatarImageUrl, garmentImageUrl, category, LOVABLE_API_KEY),
+                MODEL_TIMEOUT_MS,
+                "Gemini 3 Pro"
+              );
+            } else {
+              result = { model: "gemini", status: "skipped", cost: "$0.00", error: "LOVABLE_API_KEY not configured" };
+            }
+            break;
+          default:
+            result = { model: modelName, status: "skipped", cost: "$0.00", error: "Unknown Google model" };
+        }
+      } catch (err: any) {
+        result = { model: modelName, status: "failed", cost: "$0.00", error: err.message };
       }
+      
+      allResults.push(result);
+      console.log(`[Google] ${modelName} completed: ${result.status} (${result.processingTimeMs || 0}ms)`);
     }
-
-    // Run parallel models and combine results
-    const parallelResults = await Promise.all(parallelPromises);
-    allResults.push(...parallelResults);
     
-    // Use allResults instead of results
+    // Use allResults for final processing
     const results = allResults;
 
     const totalTimeMs = Date.now() - totalStartTime;
