@@ -291,46 +291,63 @@ serve(async (req) => {
     // Gemini 3 Pro Image Preview (fallback)
     // ============================================
     const getTryOnPrompt = () => {
-      return `You are an expert virtual try-on AI creating fashion photography.
+      // Fixed dimensions matching frontend preprocessing
+      const WIDTH = 768;
+      const HEIGHT = 1024;
+      
+      return `You are an expert virtual fashion photography AI.
 
-TASK: Seamlessly dress the person in the FIRST image with the garment from the SECOND image.
+TASK: Create a single image showing the person from image 1 wearing the garment from image 2.
 
-===== CRITICAL BODY PROPORTION RULES (MUST FOLLOW) =====
-- DO NOT widen, stretch, or compress the body in ANY way
-- DO NOT shorten the legs or torso
-- DO NOT change the width-to-height ratio of the person
-- The person's body proportions must be PIXEL-PERFECT identical to the input
-- If the input person is slim, the output person must be equally slim
-- If the input person is tall, the output person must be equally tall
-- NEVER make the body look squashed, flattened, or widened
+===== MANDATORY OUTPUT SPECIFICATIONS =====
+OUTPUT DIMENSIONS: Exactly ${WIDTH} pixels wide by ${HEIGHT} pixels tall
+ASPECT RATIO: Exactly 3:4 portrait (0.75)
+ORIENTATION: Vertical/Portrait ONLY
 
-===== ASPECT RATIO LOCK (MANDATORY) =====
-- Input image aspect ratio MUST EXACTLY equal output aspect ratio
-- If input is 3:4 portrait (width < height), output MUST be 3:4 portrait
-- NEVER output a square or landscape image from a portrait input
-- Output dimensions should match input dimensions as closely as possible
+===== ABSOLUTE BODY PROPORTION RULES =====
+CRITICAL: The person's body must have IDENTICAL proportions to the input image.
 
-===== IDENTITY PRESERVATION =====
-1. EXACT same face, hair color, hairstyle, skin tone - unchanged
-2. EXACT same body shape, weight, and proportions - unchanged  
-3. EXACT same pose, arm positions, leg positions - unchanged
-4. EXACT same background and lighting conditions - unchanged
-5. The person should look 100% recognizable as the same individual
+DO NOT:
+- Widen the body horizontally
+- Compress or flatten the torso
+- Shorten or lengthen the legs
+- Change the shoulder width
+- Alter the hip width
+- Squash or stretch the person vertically
+- Change the head-to-body ratio
+
+THE OUTPUT BODY WIDTH IN PIXELS MUST EQUAL THE INPUT BODY WIDTH IN PIXELS.
+THE OUTPUT BODY HEIGHT IN PIXELS MUST EQUAL THE INPUT BODY HEIGHT IN PIXELS.
+
+===== IDENTITY PRESERVATION (NON-NEGOTIABLE) =====
+These must be PIXEL-PERFECT identical to input:
+- Face features, expression
+- Skin tone, skin texture
+- Hair color, hairstyle, hair position
+- Body shape, weight, curves
+- Pose (exact arm and leg positions)
+- Hand positions and gestures
 
 ===== GARMENT APPLICATION =====
-- Replace ONLY the garment while preserving everything else
-- The garment should drape naturally on the body
-- Maintain realistic fabric texture, wrinkles, and shadows
-- The fit should look natural, not pasted or floating
+- Replace ONLY the clothing on the upper body
+- The garment should drape naturally following the body's contours
+- Add natural fabric shadows and wrinkles
+- Maintain realistic lighting matching the original photo
+- The garment edges should blend seamlessly
 
-===== OUTPUT REQUIREMENTS =====
-- Single photorealistic image
-- VERTICAL (portrait) orientation matching input
-- Full body visible from head to feet
-- Professional fashion photography quality
-- No cropping of head, face, or feet
+===== BACKGROUND =====
+- Keep the EXACT same background as the input
+- Do not change lighting conditions
+- Do not add or remove any background elements
 
-CRITICAL: The output person must have IDENTICAL body proportions to the input. Any distortion is unacceptable.`;
+===== FINAL OUTPUT =====
+- One single photorealistic image
+- Dimensions: ${WIDTH}x${HEIGHT} pixels exactly
+- Full body visible (head to at least mid-thigh)
+- Fashion editorial quality
+- No text, watermarks, or artifacts
+
+CRITICAL REMINDER: Any body proportion distortion (widening, flattening, stretching) is a FAILURE. The person must look IDENTICAL except for the new garment.`;
     };
 
     const callGeminiPremium = async (): Promise<string | null> => {
