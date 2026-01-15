@@ -9,11 +9,12 @@ const LOVABLE_AI_GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
 interface ModelResult {
   model: string;
-  status: "success" | "failed" | "skipped";
+  status: "success" | "failed" | "skipped" | "processing";
   resultImageUrl?: string;
   processingTimeMs?: number;
   cost: string;
   error?: string;
+  requestId?: string; // For async jobs (FAL.AI)
 }
 
 // Timeout for individual model processing (90 seconds)
@@ -270,8 +271,8 @@ const callLeffa = async (
     const requestId = queueData.request_id;
     console.log(`[${model}] Request queued:`, requestId);
 
-    // Poll for result (max 3 minutes - Leffa can take longer)
-    const maxAttempts = 90;
+    // Poll for result (max 40 seconds to stay within Edge Function limits)
+    const maxAttempts = 20; // 20 x 2s = 40s (safe margin for 50-60s limit)
     for (let i = 0; i < maxAttempts; i++) {
       await sleep(2000);
 
@@ -316,7 +317,16 @@ const callLeffa = async (
       }
     }
 
-    throw new Error("Timeout waiting for result");
+    // If not completed within 40s, return "processing" status with requestId for manual check
+    console.log(`[${model}] Still processing after 40s, returning async status with requestId: ${requestId}`);
+    return {
+      model,
+      status: "processing",
+      processingTimeMs: Date.now() - startTime,
+      cost: "$0.03",
+      requestId: requestId,
+      error: "Ainda processando - clique para verificar o resultado",
+    };
   } catch (error: any) {
     console.error(`[${model}] Error:`, error.message);
     return {

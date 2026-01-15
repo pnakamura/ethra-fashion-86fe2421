@@ -44,11 +44,12 @@ interface BenchmarkModel {
 
 interface ModelResult {
   model: string;
-  status: "success" | "failed" | "skipped";
+  status: "success" | "failed" | "skipped" | "processing";
   error?: string;
   resultImageUrl?: string;
   processingTimeMs?: number;
   cost?: string;
+  requestId?: string; // For async jobs (FAL.AI)
 }
 
 interface BenchmarkResponse {
@@ -142,6 +143,7 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
     isPortrait: boolean;
   } | null>(null);
   const [isPreprocessing, setIsPreprocessing] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState<string | null>(null); // requestId being checked
   
   // Refs for cleanup
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -346,6 +348,50 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
         const cost = parseFloat((r.cost || '$0.00').replace('$', '').replace(' (included)', ''));
         return sum + (isNaN(cost) ? 0 : cost);
       }, 0);
+  };
+
+  // Check FAL.AI job status for async Leffa results
+  const checkLeffaStatus = async (requestId: string) => {
+    if (!requestId || checkingStatus === requestId) return;
+    
+    setCheckingStatus(requestId);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('check-fal-status', {
+        body: { requestId },
+      });
+      
+      if (error) throw error;
+      
+      if (data?.status === 'COMPLETED' && data?.imageUrl) {
+        // Update the result in state
+        setResults(prev => prev.map(r => 
+          r.requestId === requestId 
+            ? { 
+                ...r, 
+                status: 'success' as const, 
+                resultImageUrl: data.imageUrl,
+                error: undefined 
+              }
+            : r
+        ));
+        toast.success('Leffa concluído!');
+      } else if (data?.status === 'FAILED') {
+        setResults(prev => prev.map(r => 
+          r.requestId === requestId 
+            ? { ...r, status: 'failed' as const, error: data.error || 'Processing failed' }
+            : r
+        ));
+        toast.error('Processamento falhou');
+      } else {
+        toast.info('Ainda processando... Tente novamente em alguns segundos.');
+      }
+    } catch (error: any) {
+      console.error('Check status error:', error);
+      toast.error('Erro ao verificar status');
+    } finally {
+      setCheckingStatus(null);
+    }
   };
 
   // Download image (handles both URLs and base64)
@@ -905,7 +951,13 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
                               Erro Interno
                             </Badge>
                           )}
-                          {!isSuccess && (
+                          {result.status === 'processing' && (
+                            <Badge className="text-xs bg-cyan-500 text-white animate-pulse">
+                              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                              Processando
+                            </Badge>
+                          )}
+                          {result.status === 'failed' && (
                             <Badge variant="destructive" className="text-xs">
                               <XCircle className="w-3 h-3 mr-1" />
                               Falhou
@@ -947,6 +999,35 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
                                 <Download className="w-4 h-4" />
                               </Button>
                             </div>
+                          </div>
+                        ) : result.status === 'processing' ? (
+                          // Async processing state (Leffa)
+                          <div className="p-8 text-center">
+                            <Loader2 className="w-12 h-12 text-cyan-500 mx-auto mb-3 animate-spin" />
+                            <p className="text-sm text-cyan-500 font-medium">Ainda processando...</p>
+                            <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">
+                              O modelo Leffa está finalizando. Clique para verificar o resultado.
+                            </p>
+                            {result.requestId && (
+                              <Button
+                                onClick={() => checkLeffaStatus(result.requestId!)}
+                                disabled={checkingStatus === result.requestId}
+                                className="mt-4 bg-cyan-500 hover:bg-cyan-600 text-white"
+                                size="sm"
+                              >
+                                {checkingStatus === result.requestId ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Verificando...
+                                  </>
+                                ) : (
+                                  <>
+                                    <RotateCcw className="w-4 h-4 mr-2" />
+                                    Verificar Resultado
+                                  </>
+                                )}
+                              </Button>
+                            )}
                           </div>
                         ) : (
                           <div className="p-8 text-center">
