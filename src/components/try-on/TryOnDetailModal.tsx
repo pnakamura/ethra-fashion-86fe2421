@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Download, Share2, Trash2, RotateCcw, Clock, X } from 'lucide-react';
 import {
   Dialog,
@@ -154,11 +153,7 @@ export function TryOnDetailModal({
         </button>
 
         {/* Main Image - Fluid container for correct proportions */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="relative bg-secondary min-h-[300px]"
-        >
+        <div className="relative bg-secondary min-h-[300px] animate-in fade-in duration-300">
           {isCorrectingImage ? (
             <div className="flex items-center justify-center py-20">
               <p className="text-sm text-muted-foreground animate-pulse">
@@ -184,7 +179,7 @@ export function TryOnDetailModal({
               <Clock className="w-12 h-12 text-muted-foreground" />
             </div>
           )}
-        </motion.div>
+        </div>
 
         {/* Info and Actions */}
         <div className="p-4 space-y-4 border-t">
