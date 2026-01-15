@@ -270,8 +270,8 @@ const callLeffa = async (
     const requestId = queueData.request_id;
     console.log(`[${model}] Request queued:`, requestId);
 
-    // Poll for result (max 2 minutes)
-    const maxAttempts = 60;
+    // Poll for result (max 3 minutes - Leffa can take longer)
+    const maxAttempts = 90;
     for (let i = 0; i < maxAttempts; i++) {
       await sleep(2000);
 
@@ -982,15 +982,109 @@ serve(async (req) => {
       ['vertex-ai', 'gemini'].includes(m)
     );
 
-    console.log("=== Execution Strategy ===");
-    console.log("Replicate models (sequential with 12s delay):", replicateModels);
-    console.log("FAL.AI models (sequential with 5s delay):", falModels);
-    console.log("Google models (sequential with 5s delay):", googleModels);
+    console.log("=== Execution Strategy (Optimized Order) ===");
+    console.log("1. FAL.AI models FIRST (needs more time):", falModels);
+    console.log("2. Google models:", googleModels);
+    console.log("3. Replicate models (sequential with 12s delay):", replicateModels);
 
     const allResults: ModelResult[] = [];
 
     // ============================================
-    // STEP 1: Execute Replicate models SEQUENTIALLY
+    // STEP 1: Execute FAL.AI models FIRST (needs more time)
+    // Run these first to ensure they complete before function timeout
+    // ============================================
+    const FAL_DELAY_MS = 5000;
+    
+    for (let i = 0; i < falModels.length; i++) {
+      const modelName = falModels[i];
+      
+      if (i > 0) {
+        console.log(`[FAL.AI] Waiting ${FAL_DELAY_MS / 1000}s before ${modelName}...`);
+        await sleep(FAL_DELAY_MS);
+      }
+      
+      console.log(`[FAL.AI] Starting ${modelName} (${i + 1}/${falModels.length})...`);
+      let result: ModelResult;
+      
+      try {
+        switch (modelName) {
+          case "leffa":
+            if (FAL_API_KEY) {
+              result = await withTimeout(
+                callLeffa(avatarImageUrl, garmentImageUrl, category, FAL_API_KEY),
+                MODEL_TIMEOUT_MS * 2, // 3 minutes for Leffa
+                "Leffa"
+              );
+            } else {
+              result = { model: "leffa", status: "skipped", cost: "$0.00", error: "FAL_API_KEY not configured" };
+            }
+            break;
+          default:
+            result = { model: modelName, status: "skipped", cost: "$0.00", error: "Unknown FAL.AI model" };
+        }
+      } catch (err: any) {
+        result = { model: modelName, status: "failed", cost: "$0.00", error: err.message };
+      }
+      
+      allResults.push(result);
+      console.log(`[FAL.AI] ${modelName} completed: ${result.status} (${result.processingTimeMs || 0}ms)`);
+    }
+
+    // ============================================
+    // STEP 2: Execute Google models
+    // 5 seconds delay to avoid rate limits
+    // ============================================
+    const GOOGLE_DELAY_MS = 5000;
+    
+    for (let i = 0; i < googleModels.length; i++) {
+      const modelName = googleModels[i];
+      
+      if (i > 0 || falModels.length > 0) {
+        console.log(`[Google] Waiting ${GOOGLE_DELAY_MS / 1000}s before ${modelName}...`);
+        await sleep(GOOGLE_DELAY_MS);
+      }
+      
+      console.log(`[Google] Starting ${modelName} (${i + 1}/${googleModels.length})...`);
+      let result: ModelResult;
+      
+      try {
+        switch (modelName) {
+          case "vertex-ai":
+            const vertexCredentials = Deno.env.get("GOOGLE_APPLICATION_CREDENTIALS_JSON");
+            if (vertexCredentials) {
+              result = await withTimeout(
+                callVertexAI(avatarImageUrl, garmentImageUrl, category),
+                MODEL_TIMEOUT_MS,
+                "Vertex AI"
+              );
+            } else {
+              result = { model: "vertex-ai", status: "skipped", cost: "$0.00", error: "GOOGLE_APPLICATION_CREDENTIALS_JSON not configured" };
+            }
+            break;
+          case "gemini":
+            if (LOVABLE_API_KEY) {
+              result = await withTimeout(
+                callGemini(avatarImageUrl, garmentImageUrl, category, LOVABLE_API_KEY),
+                MODEL_TIMEOUT_MS,
+                "Gemini 3 Pro"
+              );
+            } else {
+              result = { model: "gemini", status: "skipped", cost: "$0.00", error: "LOVABLE_API_KEY not configured" };
+            }
+            break;
+          default:
+            result = { model: modelName, status: "skipped", cost: "$0.00", error: "Unknown Google model" };
+        }
+      } catch (err: any) {
+        result = { model: modelName, status: "failed", cost: "$0.00", error: err.message };
+      }
+      
+      allResults.push(result);
+      console.log(`[Google] ${modelName} completed: ${result.status} (${result.processingTimeMs || 0}ms)`);
+    }
+
+    // ============================================
+    // STEP 3: Execute Replicate models SEQUENTIALLY
     // 12 seconds delay to avoid rate limits
     // ============================================
     const REPLICATE_DELAY_MS = 12000;
@@ -998,7 +1092,7 @@ serve(async (req) => {
     for (let i = 0; i < replicateModels.length; i++) {
       const modelName = replicateModels[i];
       
-      if (i > 0) {
+      if (i > 0 || falModels.length > 0 || googleModels.length > 0) {
         console.log(`[Replicate] Waiting ${REPLICATE_DELAY_MS / 1000}s before ${modelName}...`);
         await sleep(REPLICATE_DELAY_MS);
       }
@@ -1010,13 +1104,12 @@ serve(async (req) => {
         switch (modelName) {
           case "idm-vton":
             if (REPLICATE_API_KEY) {
-              // Use the retry wrapper for IDM-VTON to handle "list index" errors
               result = await withTimeout(
                 withRateLimitRetry(
                   () => callIDMVTONWithRetry(avatarImageUrl, garmentImageUrl, category, REPLICATE_API_KEY),
                   "IDM-VTON"
                 ),
-                MODEL_TIMEOUT_MS + (MAX_RATE_LIMIT_RETRIES * RATE_LIMIT_RETRY_DELAY_MS) + 10000, // Extra time for internal retries
+                MODEL_TIMEOUT_MS + (MAX_RATE_LIMIT_RETRIES * RATE_LIMIT_RETRY_DELAY_MS) + 10000,
                 "IDM-VTON"
               );
             } else {
@@ -1063,98 +1156,8 @@ serve(async (req) => {
     }
 
     // ============================================
-    // STEP 2: Execute FAL.AI models SEQUENTIALLY
-    // 5 seconds delay to avoid rate limits
+    // Results Processing
     // ============================================
-    const FAL_DELAY_MS = 5000;
-    
-    for (let i = 0; i < falModels.length; i++) {
-      const modelName = falModels[i];
-      
-      if (i > 0 || replicateModels.length > 0) {
-        console.log(`[FAL.AI] Waiting ${FAL_DELAY_MS / 1000}s before ${modelName}...`);
-        await sleep(FAL_DELAY_MS);
-      }
-      
-      console.log(`[FAL.AI] Starting ${modelName} (${i + 1}/${falModels.length})...`);
-      let result: ModelResult;
-      
-      try {
-        switch (modelName) {
-          case "leffa":
-            if (FAL_API_KEY) {
-              result = await withTimeout(
-                callLeffa(avatarImageUrl, garmentImageUrl, category, FAL_API_KEY),
-                MODEL_TIMEOUT_MS,
-                "Leffa"
-              );
-            } else {
-              result = { model: "leffa", status: "skipped", cost: "$0.00", error: "FAL_API_KEY not configured" };
-            }
-            break;
-          default:
-            result = { model: modelName, status: "skipped", cost: "$0.00", error: "Unknown FAL.AI model" };
-        }
-      } catch (err: any) {
-        result = { model: modelName, status: "failed", cost: "$0.00", error: err.message };
-      }
-      
-      allResults.push(result);
-      console.log(`[FAL.AI] ${modelName} completed: ${result.status} (${result.processingTimeMs || 0}ms)`);
-    }
-
-    // ============================================
-    // STEP 3: Execute Google models SEQUENTIALLY
-    // 5 seconds delay to avoid rate limits
-    // ============================================
-    const GOOGLE_DELAY_MS = 5000;
-    
-    for (let i = 0; i < googleModels.length; i++) {
-      const modelName = googleModels[i];
-      
-      if (i > 0) {
-        console.log(`[Google] Waiting ${GOOGLE_DELAY_MS / 1000}s before ${modelName}...`);
-        await sleep(GOOGLE_DELAY_MS);
-      }
-      
-      console.log(`[Google] Starting ${modelName} (${i + 1}/${googleModels.length})...`);
-      let result: ModelResult;
-      
-      try {
-        switch (modelName) {
-          case "vertex-ai":
-            const vertexCredentials = Deno.env.get("GOOGLE_APPLICATION_CREDENTIALS_JSON");
-            if (vertexCredentials) {
-              result = await withTimeout(
-                callVertexAI(avatarImageUrl, garmentImageUrl, category),
-                MODEL_TIMEOUT_MS,
-                "Vertex AI"
-              );
-            } else {
-              result = { model: "vertex-ai", status: "skipped", cost: "$0.00", error: "GOOGLE_APPLICATION_CREDENTIALS_JSON not configured" };
-            }
-            break;
-          case "gemini":
-            if (LOVABLE_API_KEY) {
-              result = await withTimeout(
-                callGemini(avatarImageUrl, garmentImageUrl, category, LOVABLE_API_KEY),
-                MODEL_TIMEOUT_MS,
-                "Gemini 3 Pro"
-              );
-            } else {
-              result = { model: "gemini", status: "skipped", cost: "$0.00", error: "LOVABLE_API_KEY not configured" };
-            }
-            break;
-          default:
-            result = { model: modelName, status: "skipped", cost: "$0.00", error: "Unknown Google model" };
-        }
-      } catch (err: any) {
-        result = { model: modelName, status: "failed", cost: "$0.00", error: err.message };
-      }
-      
-      allResults.push(result);
-      console.log(`[Google] ${modelName} completed: ${result.status} (${result.processingTimeMs || 0}ms)`);
-    }
     
     // Use allResults for final processing
     const results = allResults;

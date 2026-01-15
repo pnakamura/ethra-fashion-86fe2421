@@ -977,10 +977,17 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
                                 </p>
                               </div>
                             )}
-                            {result.error?.includes('credits') && (
+                            {(result.error?.includes('credits') || result.error?.includes('402')) && (
                               <div className="mt-3 p-2 rounded-lg bg-purple-500/10 border border-purple-500/30">
                                 <p className="text-xs text-purple-600 dark:text-purple-400">
-                                  💳 Créditos insuficientes na API Replicate. Verifique seu saldo em replicate.com.
+                                  💳 Créditos insuficientes na API. Verifique seu saldo em replicate.com ou fal.ai.
+                                </p>
+                              </div>
+                            )}
+                            {result.error?.includes('FAL') && (
+                              <div className="mt-3 p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/30">
+                                <p className="text-xs text-cyan-600 dark:text-cyan-400">
+                                  🔑 Problema com a API FAL.AI. Verifique se a chave está configurada corretamente.
                                 </p>
                               </div>
                             )}
