@@ -31,7 +31,7 @@ serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get('Authorization');
+    const authHeader = req.headers.get('Authorization') || req.headers.get('authorization');
     if (!authHeader) {
       return new Response(
         JSON.stringify({ error: 'Authorization required' }),
@@ -42,16 +42,22 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey, {
-      global: { headers: { Authorization: authHeader } }
+      global: { headers: { Authorization: authHeader } },
+      auth: { persistSession: false }
     });
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const jwt = authHeader.replace(/^Bearer\s+/i, '');
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(jwt);
     if (authError || !user) {
+      console.error('auth.getUser failed:', authError);
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const userId = user.id;
 
     const { title, eventDate, eventTime, eventType, dressCode, location, notes } = await req.json();
 
@@ -61,14 +67,14 @@ serve(async (req) => {
     const { data: profile } = await supabase
       .from('profiles')
       .select('color_season, color_analysis')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single();
 
     // Fetch wardrobe items prioritizing compatible ones
     const { data: items } = await supabase
       .from('wardrobe_items')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .order('chromatic_compatibility', { ascending: true });
 
     if (!items || items.length < 2) {
