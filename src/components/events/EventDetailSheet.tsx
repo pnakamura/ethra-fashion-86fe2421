@@ -69,8 +69,16 @@ export function EventDetailSheet({ event, isOpen, onClose, onDelete, onEventUpda
     setIsAnalyzing(true);
     
     try {
-      const { data: session } = await supabase.auth.getSession();
-      if (!session?.session?.access_token) {
+      // Refresh session to ensure valid token
+      const { error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        console.error('Session refresh failed:', refreshError);
+      }
+      
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      
+      if (!accessToken) {
         toast.error('Sessão expirada. Faça login novamente.');
         setIsAnalyzing(false);
         return;
@@ -87,7 +95,7 @@ export function EventDetailSheet({ event, isOpen, onClose, onDelete, onEventUpda
           notes: event.notes
         },
         headers: {
-          Authorization: `Bearer ${session.session.access_token}`
+          Authorization: `Bearer ${accessToken}`
         }
       });
 
