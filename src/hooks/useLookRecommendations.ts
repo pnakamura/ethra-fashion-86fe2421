@@ -47,6 +47,12 @@ export function useLookRecommendations() {
     setError(null);
 
     try {
+      // Ensure session is fresh before calling edge function
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        throw new Error('Sessão expirada. Por favor, faça login novamente.');
+      }
+
       const { data, error: fnError } = await supabase.functions.invoke('suggest-looks', {
         body: { occasion, count }
       });
@@ -105,7 +111,7 @@ export function useLookRecommendations() {
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (data?.look_data) {
         const lookData = data.look_data as unknown as { looks: RecommendedLook[] };
