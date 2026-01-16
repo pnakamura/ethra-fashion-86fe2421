@@ -260,7 +260,7 @@ export default function VirtualTryOn() {
   };
 
   // Handle batch try-on from LookSelector
-  const handleTryAllPieces = async (pieces: SelectedGarment[]) => {
+  const handleTryAllPieces = async (pieces: SelectedGarment[], composeMode: boolean = false) => {
     if (!primaryAvatar) {
       toast.error('Configure um avatar primeiro');
       return;
@@ -275,11 +275,27 @@ export default function VirtualTryOn() {
       pieces,
       primaryAvatar.image_url,
       primaryAvatar.id,
-      'Look Selecionado'
+      'Look Selecionado',
+      composeMode
     );
   };
 
   const handleCloseBatchProgress = () => {
+    // If composition completed, show the result in the canvas
+    if (batchState.isComposing && batchState.finalResultUrl) {
+      const composedResult: TryOnResult = {
+        id: `composed-${Date.now()}`,
+        result_image_url: batchState.finalResultUrl,
+        garment_image_url: '',
+        status: 'completed',
+        processing_time_ms: null,
+        created_at: new Date().toISOString(),
+        model_used: `composed-${batchState.totalPieces}pieces`,
+      };
+      setGeneratedResults([composedResult]);
+      setSelectedResultIndex(0);
+    }
+    
     setShowBatchProgress(false);
     resetBatch();
   };

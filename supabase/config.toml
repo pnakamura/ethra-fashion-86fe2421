@@ -6,6 +6,9 @@ verify_jwt = false
 [functions.virtual-try-on]
 verify_jwt = false
 
+[functions.compose-look-tryon]
+verify_jwt = false
+
 [functions.get-trip-weather]
 verify_jwt = false
 

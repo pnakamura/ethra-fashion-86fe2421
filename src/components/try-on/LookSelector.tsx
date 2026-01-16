@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { ComposeLookWarning } from './ComposeLookWarning';
 
 interface WardrobeItem {
   id: string;
@@ -37,13 +38,15 @@ interface LookSelectorProps {
     imageUrl: string;
     category: string | null;
   }) => void;
-  onTryAllPieces: (pieces: SelectedGarment[]) => void;
+  onTryAllPieces: (pieces: SelectedGarment[], composeMode: boolean) => void;
 }
 
 export function LookSelector({ onSelectGarment, onTryAllPieces }: LookSelectorProps) {
   const { user } = useAuth();
   const [expandedLookId, setExpandedLookId] = useState<string | null>(null);
   const [loadedPieces, setLoadedPieces] = useState<Record<string, WardrobeItem[]>>({});
+  const [showWarning, setShowWarning] = useState(false);
+  const [pendingLookId, setPendingLookId] = useState<string | null>(null);
 
   // Fetch user's saved looks
   const { data: looks, isLoading: isLoadingLooks } = useQuery({
@@ -103,8 +106,19 @@ export function LookSelector({ onSelectGarment, onTryAllPieces }: LookSelectorPr
     });
   };
 
-  const handleTryAllPieces = (lookId: string) => {
+  const handleTryAllPiecesClick = (lookId: string) => {
     const pieces = loadedPieces[lookId];
+    if (!pieces || pieces.length === 0) return;
+
+    // Show warning before proceeding
+    setPendingLookId(lookId);
+    setShowWarning(true);
+  };
+
+  const handleConfirmCompose = () => {
+    if (!pendingLookId) return;
+
+    const pieces = loadedPieces[pendingLookId];
     if (!pieces || pieces.length === 0) return;
 
     const garments: SelectedGarment[] = pieces.map((piece) => ({
@@ -115,8 +129,20 @@ export function LookSelector({ onSelectGarment, onTryAllPieces }: LookSelectorPr
       category: piece.category,
     }));
 
-    onTryAllPieces(garments);
+    setShowWarning(false);
+    setPendingLookId(null);
+    
+    // Call with composeMode = true
+    onTryAllPieces(garments, true);
   };
+
+  const handleCancelWarning = () => {
+    setShowWarning(false);
+    setPendingLookId(null);
+  };
+
+  const pendingLook = pendingLookId ? looks?.find(l => l.id === pendingLookId) : null;
+  const pendingPieces = pendingLookId ? loadedPieces[pendingLookId] : [];
 
   if (isLoadingLooks) {
     return (
@@ -263,12 +289,12 @@ export function LookSelector({ onSelectGarment, onTryAllPieces }: LookSelectorPr
                         </div>
 
                         <Button
-                          onClick={() => handleTryAllPieces(expandedLookId)}
+                          onClick={() => handleTryAllPiecesClick(expandedLookId)}
                           className="w-full gradient-primary text-primary-foreground"
                           size="sm"
                         >
-                          <Sparkles className="w-4 h-4 mr-2" />
-                          Provar Todas ({pieces.length} peças)
+                          <Layers className="w-4 h-4 mr-2" />
+                          Provar Look Completo ({pieces.length} peças)
                         </Button>
 
                         <p className="text-[10px] text-muted-foreground text-center mt-2">
@@ -283,6 +309,15 @@ export function LookSelector({ onSelectGarment, onTryAllPieces }: LookSelectorPr
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Compose Warning Modal */}
+      <ComposeLookWarning
+        isOpen={showWarning}
+        pieceCount={pendingPieces?.length || 0}
+        lookName={pendingLook?.name || 'Look'}
+        onConfirm={handleConfirmCompose}
+        onCancel={handleCancelWarning}
+      />
     </div>
   );
 }
