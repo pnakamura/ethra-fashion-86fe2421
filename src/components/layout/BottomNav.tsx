@@ -46,7 +46,7 @@ export function BottomNav() {
               .from('profiles')
               .select('*')
               .eq('user_id', user.id)
-              .single();
+              .maybeSingle();
             return data;
           },
           staleTime: 1000 * 60 * 5,

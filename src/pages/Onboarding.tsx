@@ -108,12 +108,8 @@ export default function Onboarding() {
     }
   };
 
+  // handleBack is now just a wrapper for prevStep - removing confusing logic
   const handleBack = () => {
-    if (currentStep === 'style' && data.styleArchetypes.length > 0) {
-      // If on style step with selections, allow navigation
-      nextStep();
-      return;
-    }
     prevStep();
   };
 

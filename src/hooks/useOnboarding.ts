@@ -40,11 +40,17 @@ export function useOnboarding() {
         return;
       }
 
-      const { data: profile } = await supabase
+      const { data: profile, error } = await supabase
         .from('profiles')
         .select('onboarding_complete, username, style_archetype, style_preferences')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking onboarding status:', error);
+        setIsLoading(false);
+        return;
+      }
 
       if (profile) {
         setIsCompleted(profile.onboarding_complete || false);
