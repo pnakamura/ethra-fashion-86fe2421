@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Layers, ChevronDown, ChevronUp, Sparkles, Image as ImageIcon } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -144,6 +144,26 @@ export function LookSelector({ onSelectGarment, onTryAllPieces }: LookSelectorPr
   const pendingLook = pendingLookId ? looks?.find(l => l.id === pendingLookId) : null;
   const pendingPieces = pendingLookId ? loadedPieces[pendingLookId] : [];
 
+  // Detect dress conflict - vestidos cover entire body, incompatible with tops/bottoms
+  const hasDressConflict = useMemo(() => {
+    if (!pendingPieces || pendingPieces.length === 0) return false;
+    
+    const dressCategories = ['vestido', 'dress', 'dresses'];
+    const topBottomCategories = [
+      'top', 'tops', 'blusa', 'camisa', 'camiseta', 'upper_body', 'shirt', 'blouse',
+      'calca', 'calça', 'saia', 'shorts', 'bermuda', 'lower_body', 'bottoms', 'pants', 'skirt'
+    ];
+    
+    const hasDress = pendingPieces.some(p => 
+      dressCategories.includes(p.category?.toLowerCase() || '')
+    );
+    const hasTopOrBottom = pendingPieces.some(p => 
+      topBottomCategories.includes(p.category?.toLowerCase() || '')
+    );
+    
+    return hasDress && hasTopOrBottom;
+  }, [pendingPieces]);
+
   if (isLoadingLooks) {
     return (
       <Card className="p-4 shadow-soft">
@@ -197,7 +217,11 @@ export function LookSelector({ onSelectGarment, onTryAllPieces }: LookSelectorPr
           >
             {look.thumbnail_url ? (
               <img
-                src={`${look.thumbnail_url}?width=120&height=120&resize=cover&quality=60`}
+                src={
+                  look.thumbnail_url.startsWith('data:')
+                    ? look.thumbnail_url
+                    : `${look.thumbnail_url}?width=120&height=120&resize=cover&quality=60`
+                }
                 alt={look.name}
                 loading="lazy"
                 className="w-full h-full object-cover"
@@ -273,7 +297,11 @@ export function LookSelector({ onSelectGarment, onTryAllPieces }: LookSelectorPr
                               whileTap={{ scale: 0.97 }}
                             >
                               <img
-                                src={`${piece.image_url}?width=100&height=133&resize=cover&quality=60`}
+                                src={
+                                  piece.image_url.startsWith('data:')
+                                    ? piece.image_url
+                                    : `${piece.image_url}?width=100&height=133&resize=cover&quality=60`
+                                }
                                 alt={piece.name || 'Peça'}
                                 loading="lazy"
                                 className="w-full h-full object-cover"
@@ -315,6 +343,7 @@ export function LookSelector({ onSelectGarment, onTryAllPieces }: LookSelectorPr
         isOpen={showWarning}
         pieceCount={pendingPieces?.length || 0}
         lookName={pendingLook?.name || 'Look'}
+        hasDressConflict={hasDressConflict}
         onConfirm={handleConfirmCompose}
         onCancel={handleCancelWarning}
       />

@@ -8,21 +8,40 @@ const corsHeaders = {
 
 // Layer order for garment composition (bottom to top)
 const LAYER_ORDER: Record<string, number> = {
+  // English - Lower body
   'lower_body': 1,
   'bottoms': 1,
   'pants': 1,
   'skirt': 1,
   'shorts': 1,
+  // English - Upper body
   'upper_body': 2,
   'tops': 2,
+  'top': 2,
   'shirt': 2,
   'blouse': 2,
+  // English - Dresses
   'dress': 3,
   'dresses': 3,
+  // English - Outerwear
   'outerwear': 4,
   'jacket': 4,
   'coat': 4,
   'blazer': 4,
+  // Portuguese - Lower body
+  'calca': 1,
+  'calça': 1,
+  'saia': 1,
+  'bermuda': 1,
+  // Portuguese - Upper body
+  'blusa': 2,
+  'camisa': 2,
+  'camiseta': 2,
+  // Portuguese - Dresses
+  'vestido': 3,
+  // Portuguese - Outerwear
+  'jaqueta': 4,
+  'casaco': 4,
 };
 
 const getLayerOrder = (category: string | null): number => {
@@ -89,6 +108,27 @@ serve(async (req) => {
       order: getLayerOrder(g.category)
     })));
 
+    // Check for dress conflict - dresses cover the entire body
+    // so we should not combine them with tops or bottoms
+    const hasDress = sortedGarments.some(g => getLayerOrder(g.category) === 3);
+    
+    const filteredGarments = hasDress
+      ? sortedGarments.filter(g => {
+          const order = getLayerOrder(g.category);
+          // Keep only dresses (3) and outerwear (4)
+          return order === 3 || order === 4;
+        })
+      : sortedGarments;
+
+    if (hasDress && filteredGarments.length < sortedGarments.length) {
+      console.log("Dress conflict detected - filtering out tops and bottoms");
+      console.log("Filtered garments:", filteredGarments.map(g => ({
+        name: g.name,
+        category: g.category,
+        order: getLayerOrder(g.category)
+      })));
+    }
+
     const startTime = Date.now();
     let currentAvatarUrl = avatarImageUrl;
     const stepResults: Array<{
@@ -99,12 +139,12 @@ serve(async (req) => {
       processingTimeMs: number;
     }> = [];
 
-    // Process each garment sequentially
-    for (let i = 0; i < sortedGarments.length; i++) {
-      const garment = sortedGarments[i];
+    // Process each garment sequentially (using filtered list)
+    for (let i = 0; i < filteredGarments.length; i++) {
+      const garment = filteredGarments[i];
       const stepStart = Date.now();
 
-      console.log(`Processing step ${i + 1}/${sortedGarments.length}: ${garment.name || 'Peça'}`);
+      console.log(`Processing step ${i + 1}/${filteredGarments.length}: ${garment.name || 'Peça'}`);
 
       try {
         // Call the virtual-try-on function
@@ -189,7 +229,7 @@ serve(async (req) => {
       }
     }
 
-    console.log(`Composition completed: ${completedCount}/${sortedGarments.length} pieces in ${totalProcessingTime}ms`);
+    console.log(`Composition completed: ${completedCount}/${filteredGarments.length} pieces in ${totalProcessingTime}ms`);
 
     return new Response(
       JSON.stringify({

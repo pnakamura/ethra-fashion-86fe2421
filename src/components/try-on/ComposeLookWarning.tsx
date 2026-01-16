@@ -6,6 +6,7 @@ interface ComposeLookWarningProps {
   isOpen: boolean;
   pieceCount: number;
   lookName: string;
+  hasDressConflict?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -14,6 +15,7 @@ export function ComposeLookWarning({
   isOpen,
   pieceCount,
   lookName,
+  hasDressConflict = false,
   onConfirm,
   onCancel,
 }: ComposeLookWarningProps) {
@@ -66,6 +68,17 @@ export function ComposeLookWarning({
                 Ao provar um look completo, cada peça será aplicada sequencialmente 
                 sobre a imagem anterior, criando uma composição final.
               </p>
+
+              {/* Dress Conflict Warning */}
+              {hasDressConflict && (
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
+                  <p className="text-amber-600 dark:text-amber-400 text-sm">
+                    <strong>Nota:</strong> Este look contém um vestido junto com outras peças 
+                    superiores/inferiores. O vestido será priorizado na composição final, 
+                    pois cobre o corpo inteiro.
+                  </p>
+                </div>
+              )}
 
               {/* Implications */}
               <div className="space-y-3">
