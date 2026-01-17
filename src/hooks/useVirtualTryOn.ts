@@ -210,7 +210,7 @@ export function useVirtualTryOn() {
       if (error) throw error;
     },
     onSuccess: (_, { feedback }) => {
-      queryClient.invalidateQueries({ queryKey: ['try-on-history'] });
+      queryClient.invalidateQueries({ queryKey: ['try-on-history', user?.id], refetchType: 'active' });
       toast.success(feedback === 'like' ? 'Obrigado pelo feedback positivo!' : 'Vamos melhorar na próxima!');
     },
     onError: (error) => {
@@ -367,7 +367,7 @@ export function useVirtualTryOn() {
     },
     onSuccess: () => {
       setIsProcessing(false);
-      queryClient.invalidateQueries({ queryKey: ['try-on-history'] });
+      queryClient.invalidateQueries({ queryKey: ['try-on-history', user?.id], refetchType: 'active' });
       toast.success('Prova virtual concluída!');
     },
      onError: (error) => {

@@ -50,9 +50,15 @@ export function useWardrobeItems(options: UseWardrobeItemsOptions = {}) {
     gcTime: 1000 * 60 * 30, // 30 minutes in cache
   });
 
-  // Helper to invalidate cache
+  // Helper to invalidate cache with forced refetch
   const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ['wardrobe-items', user?.id] });
+    queryClient.invalidateQueries({ 
+      queryKey: ['wardrobe-items', user?.id],
+      refetchType: 'active'
+    });
+    // Also invalidate legacy keys for backward compatibility
+    queryClient.invalidateQueries({ queryKey: ['wardrobe-items-for-tryon'] });
+    queryClient.invalidateQueries({ queryKey: ['wardrobe-count'] });
   };
 
   // Derived data - count from cached data
