@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.generate-event-reminders]
 verify_jwt = false
+
+[functions.cleanup-expired-tryons]
+verify_jwt = false
