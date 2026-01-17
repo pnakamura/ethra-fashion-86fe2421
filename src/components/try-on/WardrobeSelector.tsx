@@ -4,9 +4,7 @@ import { Search, Shirt, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useWardrobeItems } from '@/hooks/useWardrobeItems';
 
 interface WardrobeSelectorProps {
   onSelect: (item: {
@@ -19,25 +17,11 @@ interface WardrobeSelectorProps {
 }
 
 export function WardrobeSelector({ onSelect, selectedId }: WardrobeSelectorProps) {
-  const { user } = useAuth();
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const { data: items, isLoading } = useQuery({
-    queryKey: ['wardrobe-items-for-tryon', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      const { data, error } = await supabase
-        .from('wardrobe_items')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
+  // Use centralized hook for consistent cache
+  const { items, isLoading } = useWardrobeItems();
 
   const categories = items
     ? [...new Set(items.map((item) => item.category).filter(Boolean))]
