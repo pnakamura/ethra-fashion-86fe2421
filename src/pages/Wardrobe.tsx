@@ -5,6 +5,7 @@ import { BottomNav } from '@/components/layout/BottomNav';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { WardrobeGrid } from '@/components/wardrobe/WardrobeGrid';
 import { AddItemSheet } from '@/components/wardrobe/AddItemSheet';
+import { EditItemSheet } from '@/components/wardrobe/EditItemSheet';
 import { Button } from '@/components/ui/button';
 import { UsageIndicator } from '@/components/subscription/UsageIndicator';
 import { usePermission } from '@/hooks/usePermission';
@@ -13,7 +14,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { useWardrobeItems } from '@/hooks/useWardrobeItems';
+import { useWardrobeItems, WardrobeItem } from '@/hooks/useWardrobeItems';
 import { useProfile } from '@/hooks/useProfile';
 import { getFirstName } from '@/lib/greeting';
 import {
@@ -25,8 +26,15 @@ import {
 
 type CompatibilityFilter = 'all' | 'ideal' | 'neutral' | 'avoid';
 
+interface DominantColor {
+  hex: string;
+  name: string;
+  percentage: number;
+}
+
 export default function Wardrobe() {
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<WardrobeItem | null>(null);
   const [compatibilityFilter, setCompatibilityFilter] = useState<CompatibilityFilter>('all');
   const { user } = useAuth();
   const { profile } = useProfile();
@@ -44,12 +52,6 @@ export default function Wardrobe() {
     if (compatibilityFilter === 'all') return true;
     return item.chromatic_compatibility === compatibilityFilter;
   });
-
-  interface DominantColor {
-    hex: string;
-    name: string;
-    percentage: number;
-  }
 
   const addMutation = useMutation({
     mutationFn: async (item: { 
@@ -81,6 +83,56 @@ export default function Wardrobe() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, updates }: { 
+      id: string;
+      updates: { 
+        name: string; 
+        category: string; 
+        color_code: string; 
+        season_tag: string; 
+        occasion: string; 
+        image_url: string;
+        dominant_colors?: DominantColor[];
+      }
+    }) => {
+      if (!user) throw new Error('Not authenticated');
+      const { error } = await supabase.from('wardrobe_items')
+        .update({
+          name: updates.name,
+          category: updates.category,
+          color_code: updates.color_code,
+          season_tag: updates.season_tag,
+          occasion: updates.occasion,
+          image_url: updates.image_url,
+          dominant_colors: updates.dominant_colors ? JSON.parse(JSON.stringify(updates.dominant_colors)) : null,
+        })
+        .eq('id', id)
+        .eq('user_id', user.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidate();
+      toast({ title: 'Peça atualizada!', description: 'As alterações foram salvas.' });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      if (!user) throw new Error('Not authenticated');
+      const { error } = await supabase.from('wardrobe_items')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      invalidate();
+      queryClient.invalidateQueries({ queryKey: ['wardrobe-count'] });
+      toast({ title: 'Peça excluída', description: 'A peça foi removida do seu closet.' });
+    },
+  });
+
   const toggleFavorite = useMutation({
     mutationFn: async (id: string) => {
       const item = items.find((i) => i.id === id);
@@ -89,6 +141,27 @@ export default function Wardrobe() {
     },
     onSuccess: () => invalidate(),
   });
+
+  const handleEdit = (item: WardrobeItem) => {
+    setEditingItem(item);
+  };
+
+  const handleSaveEdit = (id: string, updates: {
+    name: string;
+    category: string;
+    color_code: string;
+    season_tag: string;
+    occasion: string;
+    image_url: string;
+    dominant_colors?: DominantColor[];
+  }) => {
+    updateMutation.mutate({ id, updates });
+    setEditingItem(null);
+  };
+
+  const handleDelete = (id: string) => {
+    deleteMutation.mutate(id);
+  };
 
   const filterOptions = [
     { value: 'all', label: 'Todas', icon: null },
@@ -171,12 +244,23 @@ export default function Wardrobe() {
               )}
             </div>
           ) : (
-            <WardrobeGrid items={filteredItems} onToggleFavorite={(id) => toggleFavorite.mutate(id)} />
+            <WardrobeGrid 
+              items={filteredItems} 
+              onToggleFavorite={(id) => toggleFavorite.mutate(id)}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
           )}
         </div>
       </PageContainer>
       <BottomNav />
       <AddItemSheet isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} onAdd={(item) => addMutation.mutate(item)} />
+      <EditItemSheet 
+        isOpen={!!editingItem} 
+        item={editingItem} 
+        onClose={() => setEditingItem(null)} 
+        onSave={handleSaveEdit} 
+      />
     </>
   );
 }

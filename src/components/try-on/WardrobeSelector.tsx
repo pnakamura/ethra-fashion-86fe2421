@@ -44,7 +44,8 @@ export function WardrobeSelector({ onSelect, selectedId }: WardrobeSelectorProps
     : [];
 
   const filteredItems = items?.filter((item) => {
-    const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = !search || (item.name || '').toLowerCase().includes(search.toLowerCase()) || 
+      (item.category || '').toLowerCase().includes(search.toLowerCase());
     const matchesCategory = !selectedCategory || item.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
