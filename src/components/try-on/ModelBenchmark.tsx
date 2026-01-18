@@ -1039,6 +1039,15 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
                               Erro Interno
                             </Badge>
                           )}
+                          {/* Content filter badge */}
+                          {!isSuccess && (result.error?.includes('CONTENT_FILTER') ||
+                            result.error?.toLowerCase().includes('prohibited') ||
+                            result.error?.toLowerCase().includes('sexual') ||
+                            result.error?.toLowerCase().includes('flagged')) && (
+                            <Badge variant="outline" className="text-[9px] text-pink-500 border-pink-500/30">
+                              Filtro de Segurança
+                            </Badge>
+                          )}
                           {result.status === 'processing' && (
                             <Badge className="text-xs bg-cyan-500 text-white animate-pulse">
                               <Loader2 className="w-3 h-3 mr-1 animate-spin" />
@@ -1158,6 +1167,30 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
                                 <p className="text-xs text-cyan-600 dark:text-cyan-400">
                                   🔑 Problema com a API FAL.AI. Verifique se a chave está configurada corretamente.
                                 </p>
+                              </div>
+                            )}
+                            {/* Content filter error - swimwear/lingerie blocked */}
+                            {(result.error?.includes('CONTENT_FILTER') || 
+                              result.error?.toLowerCase().includes('prohibited') ||
+                              result.error?.toLowerCase().includes('sexual') ||
+                              result.error?.toLowerCase().includes('flagged')) && (
+                              <div className="mt-3 p-3 rounded-lg bg-pink-500/10 border border-pink-500/30">
+                                <div className="flex items-start gap-2">
+                                  <AlertTriangle className="w-4 h-4 text-pink-500 mt-0.5 shrink-0" />
+                                  <div>
+                                    <p className="text-xs font-medium text-pink-600 dark:text-pink-400">
+                                      Peça bloqueada pelo filtro de segurança
+                                    </p>
+                                    <p className="text-xs text-pink-600/80 dark:text-pink-400/80 mt-1">
+                                      Modelos de IA como {getModelInfo(result.model).name} possuem filtros que 
+                                      podem bloquear peças de swimwear, lingerie ou roupas reveladoras.
+                                    </p>
+                                    <p className="text-xs text-muted-foreground mt-2">
+                                      💡 <strong>Dica:</strong> Experimente usar os modelos IDM-VTON ou Vertex AI, 
+                                      que costumam ser mais flexíveis com estas categorias.
+                                    </p>
+                                  </div>
+                                </div>
                               </div>
                             )}
                           </div>
