@@ -1,0 +1,2 @@
+-- Add background_settings column to profiles table for persistent background customization
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS background_settings jsonb DEFAULT '{"dark": {"variant": "abstract", "opacity": 0.30}, "light": {"variant": "none", "opacity": 0.15}}'::jsonb;

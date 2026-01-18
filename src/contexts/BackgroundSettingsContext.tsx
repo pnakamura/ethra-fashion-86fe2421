@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -47,8 +47,10 @@ export function BackgroundSettingsProvider({ children }: { children: React.React
   const [settings, setSettings] = useState<BackgroundSettings>(defaultSettings);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasLoadedFromDb = useRef(false);
 
-  // Load settings from localStorage (persists without needing auth)
+  // Load settings from localStorage first (instant), then from database (source of truth)
   useEffect(() => {
     const stored = localStorage.getItem('ethra-bg-settings-v2');
     if (stored) {
@@ -95,12 +97,85 @@ export function BackgroundSettingsProvider({ children }: { children: React.React
     setIsLoading(false);
   }, []);
 
-  // Save to localStorage whenever settings change
+  // Load settings from database when user is authenticated (source of truth)
   useEffect(() => {
-    if (!isLoading) {
-      localStorage.setItem('ethra-bg-settings-v2', JSON.stringify(settings));
+    if (!user || hasLoadedFromDb.current) return;
+
+    const loadFromDatabase = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('background_settings')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error loading background settings:', error);
+          return;
+        }
+
+        if (data?.background_settings) {
+          const dbSettings = data.background_settings as unknown as BackgroundSettings;
+          const mergedSettings: BackgroundSettings = {
+            dark: {
+              variant: dbSettings.dark?.variant || 'abstract',
+              opacity: dbSettings.dark?.opacity ?? 0.30,
+              customImageUrl: dbSettings.dark?.customImageUrl || undefined,
+            },
+            light: {
+              variant: dbSettings.light?.variant || 'none',
+              opacity: dbSettings.light?.opacity ?? 0.15,
+              customImageUrl: dbSettings.light?.customImageUrl || undefined,
+            },
+          };
+          setSettings(mergedSettings);
+          // Sync localStorage with database
+          localStorage.setItem('ethra-bg-settings-v2', JSON.stringify(mergedSettings));
+        }
+        hasLoadedFromDb.current = true;
+      } catch (error) {
+        console.error('Error loading background settings:', error);
+      }
+    };
+
+    loadFromDatabase();
+  }, [user]);
+
+  // Debounced save to database
+  const saveToDatabase = useCallback(async (newSettings: BackgroundSettings) => {
+    if (!user) return;
+
+    try {
+      await supabase
+        .from('profiles')
+        .update({ background_settings: JSON.parse(JSON.stringify(newSettings)) })
+        .eq('user_id', user.id);
+    } catch (error) {
+      console.error('Error saving background settings:', error);
     }
-  }, [settings, isLoading]);
+  }, [user]);
+
+  // Save to localStorage and database whenever settings change
+  useEffect(() => {
+    if (isLoading) return;
+
+    // Always save to localStorage immediately
+    localStorage.setItem('ethra-bg-settings-v2', JSON.stringify(settings));
+
+    // Debounced save to database (1 second delay)
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    saveTimeoutRef.current = setTimeout(() => {
+      saveToDatabase(settings);
+    }, 1000);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [settings, isLoading, saveToDatabase]);
 
   const setVariant = (mode: ThemeMode, variant: BackgroundVariant) => {
     setSettings(prev => ({
