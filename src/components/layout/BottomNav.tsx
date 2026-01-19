@@ -1,4 +1,4 @@
-import { Home, Shirt, Palette, Layers, Calendar } from 'lucide-react';
+import { Home, Shirt, Palette, Sparkles, Layers } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
@@ -8,9 +8,9 @@ import { supabase } from '@/integrations/supabase/client';
 const navItems = [
   { path: '/', icon: Home, label: 'Início' },
   { path: '/wardrobe', icon: Shirt, label: 'Closet' },
+  { path: '/provador', icon: Sparkles, label: 'Provador' },
   { path: '/chromatic', icon: Palette, label: 'Cores' },
   { path: '/canvas', icon: Layers, label: 'Looks' },
-  { path: '/events', icon: Calendar, label: 'Agenda' },
 ];
 
 export function BottomNav() {

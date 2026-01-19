@@ -49,7 +49,9 @@ serve(async (req) => {
       userId = user.id;
     }
 
-    console.log("Virtual Try-On request:", {
+    // Structured logging for better debugging
+    const logContext = {
+      timestamp: new Date().toISOString(),
       userId,
       category,
       tryOnResultId,
@@ -58,7 +60,8 @@ serve(async (req) => {
       strategy,
       hasAvatar: !!avatarImageUrl,
       hasGarment: !!garmentImageUrl,
-    });
+    };
+    console.log("[VTO] Request started:", JSON.stringify(logContext));
 
     if (!avatarImageUrl || !garmentImageUrl) {
       return new Response(
@@ -113,8 +116,36 @@ serve(async (req) => {
       validateImageUrl(garmentImageUrl, 'peça'),
     ]);
 
-    // Helper to wait between retries (for rate limiting)
+    // Helper to wait between retries (with exponential backoff)
     const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+    
+    const withRetry = async <T>(
+      fn: () => Promise<T>, 
+      maxRetries: number = 3, 
+      baseDelay: number = 1000
+    ): Promise<T> => {
+      let lastError: Error | null = null;
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          return await fn();
+        } catch (error) {
+          lastError = error instanceof Error ? error : new Error(String(error));
+          const isRetryable = !lastError.message.includes('Rate limit') && 
+                              !lastError.message.includes('credits') &&
+                              !lastError.message.includes('401') &&
+                              !lastError.message.includes('Unauthorized');
+          
+          if (!isRetryable || attempt === maxRetries - 1) {
+            throw lastError;
+          }
+          
+          const delay = baseDelay * Math.pow(2, attempt);
+          console.log(`[VTO] Retry ${attempt + 1}/${maxRetries} after ${delay}ms: ${lastError.message}`);
+          await sleep(delay);
+        }
+      }
+      throw lastError;
+    };
 
     // ============================================
     // IDM-VTON via Replicate (specialized model)

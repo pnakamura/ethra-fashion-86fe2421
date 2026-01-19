@@ -90,9 +90,9 @@ export default function Settings() {
         .from('notification_preferences')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error) throw error;
       return data;
     },
     enabled: !!user,

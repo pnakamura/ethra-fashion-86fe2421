@@ -34,7 +34,7 @@ export function useProfile() {
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
       if (error) {
         console.error('Error fetching profile:', error);
@@ -85,7 +85,7 @@ export function usePrefetchProfile() {
           .from('profiles')
           .select('*')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
         return data;
       },
       staleTime: 1000 * 60 * 5,
