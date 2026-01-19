@@ -96,7 +96,7 @@
 
     /* Muted - Azul acinzentado */
     --muted: 238 30% 18%;
-    --muted-foreground: 240 15% 68%;
+    --muted-foreground: 240 15% 75%;
 
     /* Accent - Violeta suave */
     --accent: 240 35% 25%;
@@ -115,7 +115,7 @@
     --champagne: 235 30% 18%;
     --ivory: 235 25% 12%;
     --charcoal: 45 15% 92%;
-    --warm-gray: 240 15% 50%;
+    --warm-gray: 240 15% 58%;
 
     /* Neon glow tokens - Violeta + Âmbar */
     --neon-gold: 42 85% 55%;
@@ -382,7 +382,17 @@
 
   /* Texto muted mais brilhante */
   .dark .text-muted-bright {
-    color: hsl(240 15% 72%);
+    color: hsl(240 15% 78%);
+  }
+
+  /* Texto secundário ultra-legível */
+  .dark .text-secondary-bright {
+    color: hsl(45 20% 85%);
+  }
+
+  /* Texto claro sem glow */
+  .dark .text-bright {
+    color: hsl(45 25% 92%);
   }
 
   /* Dark mode card styles */
