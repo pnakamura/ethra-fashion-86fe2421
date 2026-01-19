@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Sparkles, ChevronRight, Shirt, Star, AlertTriangle, Wand2 } from 'lucide-react';
+import { Sparkles, ChevronRight, Shirt, Star, AlertTriangle, Wand2, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { getSeasonById, type SeasonData } from '@/data/chromatic-seasons';
@@ -45,45 +45,12 @@ export function ChromaticHero({
   const gradientColors = getGradientColors();
 
   if (!analysis && !isUsingTemporary) {
-    // Empty state - CTA to analyze
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-gold/5 to-secondary/30 p-6 border border-border/50"
-      >
-        <div className="relative z-10 text-center">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', delay: 0.2 }}
-            className="w-20 h-20 mx-auto mb-4 rounded-full gradient-primary flex items-center justify-center shadow-glow"
-          >
-            <Sparkles className="w-10 h-10 text-primary-foreground" />
-          </motion.div>
-          
-          <h2 className="font-display text-2xl font-semibold mb-2">
-            Descubra sua paleta ideal
-          </h2>
-          <p className="text-muted-foreground text-sm mb-6 max-w-xs mx-auto">
-            Faça uma análise cromática com IA e receba recomendações personalizadas de cores
-          </p>
-          
-          <Button 
-            onClick={onNewAnalysis}
-            className="gradient-primary shadow-glow"
-          >
-            <Sparkles className="w-4 h-4 mr-2" />
-            Analisar minhas cores
-          </Button>
-        </div>
-        
-        {/* Decorative background elements */}
-        <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute -bottom-10 -left-10 w-32 h-32 rounded-full bg-gold/10 blur-3xl" />
-      </motion.div>
-    );
+    return null; // Let onboarding handle empty state
   }
+
+  const compatibilityPercent = wardrobeStats && wardrobeStats.total > 0
+    ? Math.round((wardrobeStats.ideal / wardrobeStats.total) * 100)
+    : 0;
 
   return (
     <motion.div
@@ -103,37 +70,40 @@ export function ChromaticHero({
         }}
       />
       
-      <div className="relative z-10 p-6">
+      <div className="relative z-10 p-5">
         <div className="flex items-start gap-4">
           {/* Season palette circle */}
-          <motion.div
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: 'spring', delay: 0.2 }}
-            className="relative flex-shrink-0"
+          <motion.button
+            onClick={onExploreClick}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="relative flex-shrink-0 group"
           >
             <div
-              className={`w-20 h-20 rounded-full shadow-elevated ${
+              className={`w-16 h-16 rounded-full shadow-elevated transition-shadow group-hover:shadow-glow ${
                 isUsingTemporary ? 'ring-2 ring-amber-500/50' : ''
               }`}
               style={{
                 background: `conic-gradient(from 0deg, ${gradientColors.join(', ')})`,
               }}
             />
-            <div className="absolute inset-2 rounded-full bg-card flex items-center justify-center">
-              <span className="text-2xl">{displaySeason?.seasonIcon || '🎨'}</span>
+            <div className="absolute inset-1.5 rounded-full bg-card flex items-center justify-center">
+              <span className="text-xl">{displaySeason?.seasonIcon || '🎨'}</span>
             </div>
-          </motion.div>
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-card border border-border flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <ExternalLink className="w-2.5 h-2.5 text-muted-foreground" />
+            </div>
+          </motion.button>
           
           {/* Season info */}
           <div className="flex-1 min-w-0">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
+              transition={{ delay: 0.2 }}
             >
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="font-display text-2xl font-semibold text-gradient">
+                <h2 className="font-display text-xl font-semibold text-gradient">
                   {displaySeason?.name || analysis?.season_name}
                 </h2>
                 {isUsingTemporary && (
@@ -143,18 +113,12 @@ export function ChromaticHero({
                     className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 text-xs font-medium"
                   >
                     <Wand2 className="w-3 h-3" />
-                    <span className="animate-pulse">Experimentando</span>
+                    <span className="animate-pulse">Preview</span>
                   </motion.span>
                 )}
               </div>
-              <p className="text-lg text-foreground/80 font-display">
+              <p className="text-base text-foreground/80 font-display">
                 {displaySeason?.subtype || analysis?.subtype}
-              </p>
-              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                {isUsingTemporary 
-                  ? 'Preview visual - não é sua paleta salva' 
-                  : (displaySeason?.shortDescription || analysis?.explanation)
-                }
               </p>
             </motion.div>
           </div>
@@ -164,80 +128,37 @@ export function ChromaticHero({
             variant="ghost"
             size="icon"
             onClick={onExploreClick}
-            className="flex-shrink-0"
+            className="flex-shrink-0 hover:bg-primary/10"
           >
             <ChevronRight className="w-5 h-5" />
           </Button>
         </div>
         
-        {/* Quick stats - only show for saved analysis */}
-        {!isUsingTemporary && wardrobeStats && wardrobeStats.total > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="mt-5 grid grid-cols-3 gap-3"
-          >
-            <button
-              onClick={() => navigate('/wardrobe?filter=ideal')}
-              className="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors"
-            >
-              <Star className="w-4 h-4 text-emerald-600" />
-              <div className="text-left">
-                <p className="text-lg font-semibold text-emerald-600">{wardrobeStats.ideal}</p>
-                <p className="text-xs text-muted-foreground">Ideais</p>
-              </div>
-            </button>
-            
-            <button
-              onClick={() => navigate('/wardrobe?filter=neutral')}
-              className="flex items-center gap-2 p-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 transition-colors"
-            >
-              <Shirt className="w-4 h-4 text-amber-600" />
-              <div className="text-left">
-                <p className="text-lg font-semibold text-amber-600">{wardrobeStats.neutral}</p>
-                <p className="text-xs text-muted-foreground">Neutras</p>
-              </div>
-            </button>
-            
-            <button
-              onClick={() => navigate('/wardrobe?filter=avoid')}
-              className="flex items-center gap-2 p-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 transition-colors"
-            >
-              <AlertTriangle className="w-4 h-4 text-rose-600" />
-              <div className="text-left">
-                <p className="text-lg font-semibold text-rose-600">{wardrobeStats.avoid}</p>
-                <p className="text-xs text-muted-foreground">Evitar</p>
-              </div>
-            </button>
-          </motion.div>
-        )}
-        
         {/* Color swatches preview */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="mt-5 flex items-center gap-2"
+          transition={{ delay: 0.3 }}
+          className="mt-4 flex items-center gap-3"
         >
-          <div className="flex -space-x-1">
-            {displaySeason?.colors.primary.slice(0, 6).map((color, i) => (
+          <div className="flex -space-x-1.5">
+            {displaySeason?.colors.primary.slice(0, 8).map((color, i) => (
               <motion.div
                 key={color.hex}
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ delay: 0.5 + i * 0.05 }}
-                className="w-6 h-6 rounded-full border-2 border-card shadow-sm"
+                transition={{ delay: 0.3 + i * 0.03 }}
+                className="w-5 h-5 rounded-full border-2 border-card shadow-sm"
                 style={{ backgroundColor: color.hex }}
                 title={color.name}
               />
-            )) || analysis?.recommended_colors.slice(0, 6).map((color, i) => (
+            )) || analysis?.recommended_colors.slice(0, 8).map((color, i) => (
               <motion.div
                 key={color.hex}
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ delay: 0.5 + i * 0.05 }}
-                className="w-6 h-6 rounded-full border-2 border-card shadow-sm"
+                transition={{ delay: 0.3 + i * 0.03 }}
+                className="w-5 h-5 rounded-full border-2 border-card shadow-sm"
                 style={{ backgroundColor: color.hex }}
                 title={color.name}
               />
@@ -245,11 +166,73 @@ export function ChromaticHero({
           </div>
           <span className="text-xs text-muted-foreground">
             {displaySeason 
-              ? `+${Math.max(0, displaySeason.colors.primary.length - 6)} cores`
-              : `+${Math.max(0, (analysis?.recommended_colors.length || 0) - 6)} cores`
+              ? `${displaySeason.colors.primary.length} cores principais`
+              : `${analysis?.recommended_colors.length || 0} cores`
             }
           </span>
         </motion.div>
+        
+        {/* Quick stats - only show for saved analysis */}
+        {!isUsingTemporary && wardrobeStats && wardrobeStats.total > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="mt-4 p-3 rounded-xl bg-secondary/50"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs text-muted-foreground">Compatibilidade do closet</p>
+              <span className="text-sm font-semibold text-primary">{compatibilityPercent}%</span>
+            </div>
+            
+            {/* Progress bar */}
+            <div className="h-2 bg-secondary rounded-full overflow-hidden flex">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${(wardrobeStats.ideal / wardrobeStats.total) * 100}%` }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+                className="h-full bg-emerald-500"
+              />
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${(wardrobeStats.neutral / wardrobeStats.total) * 100}%` }}
+                transition={{ duration: 0.5, delay: 0.6 }}
+                className="h-full bg-amber-500"
+              />
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${(wardrobeStats.avoid / wardrobeStats.total) * 100}%` }}
+                transition={{ duration: 0.5, delay: 0.7 }}
+                className="h-full bg-rose-500"
+              />
+            </div>
+            
+            {/* Legend */}
+            <div className="flex items-center justify-between mt-2 text-xs">
+              <button
+                onClick={() => navigate('/wardrobe?filter=ideal')}
+                className="flex items-center gap-1 text-emerald-600 hover:underline"
+              >
+                <Star className="w-3 h-3" />
+                {wardrobeStats.ideal} ideais
+              </button>
+              <button
+                onClick={() => navigate('/wardrobe?filter=neutral')}
+                className="flex items-center gap-1 text-amber-600 hover:underline"
+              >
+                <Shirt className="w-3 h-3" />
+                {wardrobeStats.neutral} neutras
+              </button>
+              <button
+                onClick={() => navigate('/wardrobe?filter=avoid')}
+                className="flex items-center gap-1 text-rose-600 hover:underline"
+              >
+                <AlertTriangle className="w-3 h-3" />
+                {wardrobeStats.avoid} evitar
+              </button>
+            </div>
+          </motion.div>
+        )}
       </div>
     </motion.div>
   );

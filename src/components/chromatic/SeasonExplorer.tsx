@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, Users, Info, Wand2 } from 'lucide-react';
+import { Search, Filter, Info, Sun, Snowflake, Thermometer, Droplets } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { chromaticSeasons, type SeasonData } from '@/data/chromatic-seasons';
 import { SeasonDetailModal } from './SeasonDetailModal';
+import { EnhancedSeasonCard } from './EnhancedSeasonCard';
 import { useTemporarySeason } from '@/contexts/TemporarySeasonContext';
 
 interface SeasonExplorerProps {
@@ -15,19 +17,19 @@ interface SeasonExplorerProps {
 
 type FilterType = 'all' | 'primavera' | 'verão' | 'outono' | 'inverno' | 'warm' | 'cool' | 'light' | 'deep';
 
-const mainSeasonFilters = [
-  { value: 'all', label: 'Todas' },
-  { value: 'primavera', label: '🌸 Primavera' },
-  { value: 'verão', label: '🌷 Verão' },
-  { value: 'outono', label: '🍂 Outono' },
-  { value: 'inverno', label: '❄️ Inverno' },
+const seasonFilters = [
+  { value: 'all', label: 'Todas', icon: null, count: 12 },
+  { value: 'primavera', label: 'Primavera', icon: '🌸', count: 3 },
+  { value: 'verão', label: 'Verão', icon: '🌷', count: 3 },
+  { value: 'outono', label: 'Outono', icon: '🍂', count: 3 },
+  { value: 'inverno', label: 'Inverno', icon: '❄️', count: 3 },
 ];
 
 const characteristicFilters = [
-  { value: 'warm', label: 'Quentes' },
-  { value: 'cool', label: 'Frias' },
-  { value: 'light', label: 'Claras' },
-  { value: 'deep', label: 'Profundas' },
+  { value: 'warm', label: 'Quentes', icon: Sun, description: 'Tons dourados e terrosos' },
+  { value: 'cool', label: 'Frias', icon: Snowflake, description: 'Tons rosados e prateados' },
+  { value: 'light', label: 'Claras', icon: Droplets, description: 'Alta luminosidade' },
+  { value: 'deep', label: 'Profundas', icon: Thermometer, description: 'Cores intensas' },
 ];
 
 export function SeasonExplorer({ onSelectSeason, userSeasonId, onTryPalette }: SeasonExplorerProps) {
@@ -69,13 +71,31 @@ export function SeasonExplorer({ onSelectSeason, userSeasonId, onTryPalette }: S
     return true;
   });
 
+  // Group seasons by temperature for better organization
+  const warmSeasons = filteredSeasons.filter(s => 
+    s.characteristics.temperature === 'warm' || s.characteristics.temperature === 'neutral-warm'
+  );
+  const coolSeasons = filteredSeasons.filter(s => 
+    s.characteristics.temperature === 'cool' || s.characteristics.temperature === 'neutral-cool'
+  );
+
   const handleSeasonClick = (season: SeasonData) => {
     setSelectedSeason(season);
     setShowModal(true);
   };
 
+  const showGrouped = activeFilter === 'all' && !searchQuery;
+
   return (
     <div className="space-y-5">
+      {/* Header */}
+      <div className="text-center">
+        <h3 className="font-display text-lg font-semibold mb-1">Explore as 12 estações</h3>
+        <p className="text-sm text-muted-foreground">
+          Descubra as características de cada paleta cromática
+        </p>
+      </div>
+
       {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -87,9 +107,9 @@ export function SeasonExplorer({ onSelectSeason, userSeasonId, onTryPalette }: S
         />
       </div>
 
-      {/* Main season filters */}
+      {/* Season filters - horizontal scroll */}
       <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
-        {mainSeasonFilters.map((filter) => (
+        {seasonFilters.map((filter) => (
           <Button
             key={filter.value}
             variant={activeFilter === filter.value ? 'default' : 'outline'}
@@ -97,57 +117,156 @@ export function SeasonExplorer({ onSelectSeason, userSeasonId, onTryPalette }: S
             onClick={() => setActiveFilter(filter.value as FilterType)}
             className="rounded-full whitespace-nowrap flex-shrink-0"
           >
+            {filter.icon && <span className="mr-1">{filter.icon}</span>}
             {filter.label}
+            {activeFilter === filter.value && (
+              <Badge variant="secondary" className="ml-1.5 h-4 px-1.5 text-[10px]">
+                {filter.value === 'all' ? filteredSeasons.length : filter.count}
+              </Badge>
+            )}
           </Button>
         ))}
       </div>
 
       {/* Characteristic filters */}
-      <div className="flex gap-2 flex-wrap">
-        <Filter className="w-4 h-4 text-muted-foreground self-center" />
+      <div className="grid grid-cols-4 gap-2">
         {characteristicFilters.map((filter) => (
-          <Button
+          <motion.button
             key={filter.value}
-            variant={activeFilter === filter.value ? 'secondary' : 'ghost'}
-            size="sm"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => setActiveFilter(prev => prev === filter.value ? 'all' : filter.value as FilterType)}
-            className="rounded-full text-xs h-7"
+            className={`p-2 rounded-xl border text-center transition-all ${
+              activeFilter === filter.value
+                ? 'border-primary bg-primary/5 shadow-soft'
+                : 'border-border bg-card hover:border-primary/30'
+            }`}
           >
-            {filter.label}
-          </Button>
+            <filter.icon className={`w-4 h-4 mx-auto mb-1 ${
+              activeFilter === filter.value ? 'text-primary' : 'text-muted-foreground'
+            }`} />
+            <p className="text-xs font-medium">{filter.label}</p>
+          </motion.button>
         ))}
       </div>
 
       {/* Results count */}
-      <p className="text-sm text-muted-foreground">
-        {filteredSeasons.length} {filteredSeasons.length === 1 ? 'paleta encontrada' : 'paletas encontradas'}
-      </p>
-
-      {/* Season cards grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <AnimatePresence mode="popLayout">
-          {filteredSeasons.map((season, index) => (
-            <motion.div
-              key={season.id}
-              layout
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ delay: index * 0.03 }}
-            >
-              <SeasonCard
-                season={season}
-                isUserSeason={season.id === userSeasonId}
-                isExperimenting={season.id === temporarySeason?.id}
-                onClick={() => handleSeasonClick(season)}
-              />
-            </motion.div>
-          ))}
-        </AnimatePresence>
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {filteredSeasons.length} {filteredSeasons.length === 1 ? 'paleta' : 'paletas'}
+        </p>
+        {activeFilter !== 'all' && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setActiveFilter('all');
+              setSearchQuery('');
+            }}
+            className="text-xs"
+          >
+            Limpar filtros
+          </Button>
+        )}
       </div>
 
+      {/* Season cards - grouped or flat */}
+      {showGrouped ? (
+        <div className="space-y-6">
+          {/* Warm Seasons */}
+          {warmSeasons.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Sun className="w-4 h-4 text-amber-500" />
+                <h4 className="text-sm font-medium">Paletas Quentes</h4>
+                <Badge variant="secondary" className="text-xs">{warmSeasons.length}</Badge>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <AnimatePresence mode="popLayout">
+                  {warmSeasons.map((season, index) => (
+                    <motion.div
+                      key={season.id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ delay: index * 0.03 }}
+                    >
+                      <EnhancedSeasonCard
+                        season={season}
+                        isUserSeason={season.id === userSeasonId}
+                        isExperimenting={season.id === temporarySeason?.id}
+                        onClick={() => handleSeasonClick(season)}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            </div>
+          )}
+
+          {/* Cool Seasons */}
+          {coolSeasons.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Snowflake className="w-4 h-4 text-blue-500" />
+                <h4 className="text-sm font-medium">Paletas Frias</h4>
+                <Badge variant="secondary" className="text-xs">{coolSeasons.length}</Badge>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <AnimatePresence mode="popLayout">
+                  {coolSeasons.map((season, index) => (
+                    <motion.div
+                      key={season.id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ delay: index * 0.03 }}
+                    >
+                      <EnhancedSeasonCard
+                        season={season}
+                        isUserSeason={season.id === userSeasonId}
+                        isExperimenting={season.id === temporarySeason?.id}
+                        onClick={() => handleSeasonClick(season)}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <AnimatePresence mode="popLayout">
+            {filteredSeasons.map((season, index) => (
+              <motion.div
+                key={season.id}
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ delay: index * 0.03 }}
+              >
+                <EnhancedSeasonCard
+                  season={season}
+                  isUserSeason={season.id === userSeasonId}
+                  isExperimenting={season.id === temporarySeason?.id}
+                  onClick={() => handleSeasonClick(season)}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
+
       {filteredSeasons.length === 0 && (
-        <div className="text-center py-12">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center py-12"
+        >
           <Info className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <p className="text-muted-foreground">Nenhuma paleta encontrada</p>
           <Button
@@ -160,7 +279,7 @@ export function SeasonExplorer({ onSelectSeason, userSeasonId, onTryPalette }: S
           >
             Limpar filtros
           </Button>
-        </div>
+        </motion.div>
       )}
 
       {/* Detail Modal */}
@@ -173,91 +292,5 @@ export function SeasonExplorer({ onSelectSeason, userSeasonId, onTryPalette }: S
         onTryPalette={onTryPalette}
       />
     </div>
-  );
-}
-
-interface SeasonCardProps {
-  season: SeasonData;
-  isUserSeason: boolean;
-  isExperimenting?: boolean;
-  onClick: () => void;
-}
-
-function SeasonCard({ season, isUserSeason, isExperimenting = false, onClick }: SeasonCardProps) {
-  // Determine card styling based on state
-  const getCardClasses = () => {
-    if (isUserSeason) {
-      return 'border-primary bg-primary/5 shadow-glow';
-    }
-    if (isExperimenting) {
-      return 'border-amber-500 border-dashed bg-amber-500/5 ring-2 ring-amber-500/20';
-    }
-    return 'border-border bg-card hover:border-primary/30 hover:shadow-soft';
-  };
-
-  return (
-    <motion.button
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      onClick={onClick}
-      className={`w-full text-left p-4 rounded-2xl border-2 transition-all ${getCardClasses()}`}
-    >
-      {/* Header with colors */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex -space-x-2">
-          {season.colors.primary.slice(0, 4).map((color, i) => (
-            <div
-              key={color.hex}
-              className="w-8 h-8 rounded-full border-2 border-card shadow-sm"
-              style={{ backgroundColor: color.hex }}
-            />
-          ))}
-        </div>
-        <span className="text-2xl">{season.seasonIcon}</span>
-      </div>
-
-      {/* Name and subtype */}
-      <h3 className="font-display text-lg font-semibold text-foreground">
-        {season.name} {season.subtype}
-      </h3>
-      
-      {/* Badge for user season or experimenting */}
-      {isUserSeason && (
-        <span className="inline-block mt-1 text-xs text-primary font-medium px-2 py-0.5 rounded-full bg-primary/10">
-          Sua paleta
-        </span>
-      )}
-      {isExperimenting && !isUserSeason && (
-        <span className="inline-flex items-center gap-1 mt-1 text-xs text-amber-600 dark:text-amber-400 font-medium px-2 py-0.5 rounded-full bg-amber-500/10">
-          <Wand2 className="w-3 h-3" />
-          <span className="animate-pulse">Experimentando</span>
-        </span>
-      )}
-
-      {/* Short description */}
-      <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-        {season.shortDescription}
-      </p>
-
-      {/* Keywords */}
-      <div className="flex flex-wrap gap-1 mt-3">
-        {season.keywords.slice(0, 3).map((keyword) => (
-          <span
-            key={keyword}
-            className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground"
-          >
-            {keyword}
-          </span>
-        ))}
-      </div>
-
-      {/* Celebrities preview */}
-      <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
-        <Users className="w-3 h-3" />
-        <span className="line-clamp-1">
-          {season.celebrities.slice(0, 2).join(', ')}
-        </span>
-      </div>
-    </motion.button>
   );
 }
