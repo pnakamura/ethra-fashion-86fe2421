@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -38,6 +38,7 @@ export function useMissions(): UseMissionsReturn {
   const { profile, hasChromaticAnalysis, hasCompletedOnboarding } = useProfile();
   const { items: wardrobeItems, idealItems } = useWardrobeItems();
   const queryClient = useQueryClient();
+  const pendingCompletionsRef = useRef<Set<string>>(new Set());
 
   // Fetch additional counts from database
   const { data: counts, isLoading: countsLoading } = useQuery({
@@ -113,7 +114,7 @@ export function useMissions(): UseMissionsReturn {
     return progressMap;
   }, [hasCompletedOnboarding, hasChromaticAnalysis, wardrobeItems, idealItems, counts, achievements.completed_missions.length]);
 
-  // Get completed missions
+  // Get completed missions (missions where progress is 100%)
   const completedMissions = useMemo(() => {
     return MISSIONS.filter(mission => {
       const missionProgress = progress.get(mission.id);
@@ -145,7 +146,7 @@ export function useMissions(): UseMissionsReturn {
 
       // Check if already completed
       if (achievements.completed_missions.includes(missionId)) {
-        return;
+        return null;
       }
 
       const newAchievements = {
@@ -181,14 +182,24 @@ export function useMissions(): UseMissionsReturn {
     await completeMissionMutation.mutateAsync(missionId);
   }, [completeMissionMutation]);
 
-  // Auto-complete missions when progress reaches 100%
-  useMemo(() => {
-    completedMissions.forEach(mission => {
-      if (!achievements.completed_missions.includes(mission.id)) {
-        completeMission(mission.id);
-      }
+  // Auto-complete missions when progress reaches 100% - using useEffect instead of useMemo
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const missionsToComplete = completedMissions.filter(mission => 
+      !achievements.completed_missions.includes(mission.id) &&
+      !pendingCompletionsRef.current.has(mission.id)
+    );
+
+    missionsToComplete.forEach(mission => {
+      pendingCompletionsRef.current.add(mission.id);
+      completeMissionMutation.mutate(mission.id, {
+        onSettled: () => {
+          pendingCompletionsRef.current.delete(mission.id);
+        }
+      });
     });
-  }, [completedMissions, achievements.completed_missions, completeMission]);
+  }, [completedMissions, achievements.completed_missions, user?.id, completeMissionMutation]);
 
   const completionPercentage = useMemo(() => {
     return Math.round((completedMissions.length / MISSIONS.length) * 100);
