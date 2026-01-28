@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.cleanup-expired-tryons]
 verify_jwt = false
+
+[functions.delete-user-data]
+verify_jwt = false

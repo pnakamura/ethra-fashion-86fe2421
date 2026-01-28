@@ -21,13 +21,13 @@ export function Footer() {
 
           {/* Links */}
           <div className="flex items-center gap-8 text-sm text-muted-foreground">
-            <a href="#" className="hover:text-foreground transition-colors">
+            <a href="/terms" className="hover:text-foreground transition-colors">
               Termos de Uso
             </a>
-            <a href="#" className="hover:text-foreground transition-colors">
+            <a href="/privacy-policy" className="hover:text-foreground transition-colors">
               Privacidade
             </a>
-            <a href="#" className="hover:text-foreground transition-colors">
+            <a href="mailto:contato@ethra.app" className="hover:text-foreground transition-colors">
               Contato
             </a>
           </div>

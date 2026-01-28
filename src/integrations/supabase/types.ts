@@ -202,6 +202,8 @@ export type Database = {
       profiles: {
         Row: {
           achievements: Json | null
+          age_confirmed: boolean | null
+          age_confirmed_at: string | null
           avatar_url: string | null
           background_settings: Json | null
           color_analysis: Json | null
@@ -210,10 +212,12 @@ export type Database = {
           font_size: string | null
           id: string
           onboarding_complete: boolean | null
+          privacy_accepted_at: string | null
           style_archetype: string | null
           style_preferences: Json | null
           subscription_expires_at: string | null
           subscription_plan_id: string | null
+          terms_accepted_at: string | null
           theme_preference: string | null
           updated_at: string
           user_id: string
@@ -221,6 +225,8 @@ export type Database = {
         }
         Insert: {
           achievements?: Json | null
+          age_confirmed?: boolean | null
+          age_confirmed_at?: string | null
           avatar_url?: string | null
           background_settings?: Json | null
           color_analysis?: Json | null
@@ -229,10 +235,12 @@ export type Database = {
           font_size?: string | null
           id?: string
           onboarding_complete?: boolean | null
+          privacy_accepted_at?: string | null
           style_archetype?: string | null
           style_preferences?: Json | null
           subscription_expires_at?: string | null
           subscription_plan_id?: string | null
+          terms_accepted_at?: string | null
           theme_preference?: string | null
           updated_at?: string
           user_id: string
@@ -240,6 +248,8 @@ export type Database = {
         }
         Update: {
           achievements?: Json | null
+          age_confirmed?: boolean | null
+          age_confirmed_at?: string | null
           avatar_url?: string | null
           background_settings?: Json | null
           color_analysis?: Json | null
@@ -248,10 +258,12 @@ export type Database = {
           font_size?: string | null
           id?: string
           onboarding_complete?: boolean | null
+          privacy_accepted_at?: string | null
           style_archetype?: string | null
           style_preferences?: Json | null
           subscription_expires_at?: string | null
           subscription_plan_id?: string | null
+          terms_accepted_at?: string | null
           theme_preference?: string | null
           updated_at?: string
           user_id?: string

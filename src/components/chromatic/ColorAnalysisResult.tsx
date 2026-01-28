@@ -4,6 +4,7 @@ import { Check, RotateCcw, Sparkles, X, Lock, Crown, Gem, ChevronRight, Copy } f
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { SeasonDetailModal } from './SeasonDetailModal';
+import { AIDisclaimer } from '@/components/legal/AIDisclaimer';
 import { chromaticSeasons } from '@/data/chromatic-seasons';
 import { toast } from 'sonner';
 import type { ColorAnalysisResult as AnalysisType } from '@/hooks/useColorAnalysis';
@@ -60,6 +61,8 @@ export function ColorAnalysisResult({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
+      {/* AI Disclaimer */}
+      {!demoMode && <AIDisclaimer variant="banner" />}
       {/* Header with result */}
       <div className="text-center">
         <motion.div

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { ConsentCheckbox, AgeConfirmationCheckbox } from '@/components/legal/ConsentCheckbox';
 import { z } from 'zod';
 
 const authSchema = z.object({
@@ -22,6 +23,9 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [showConsentErrors, setShowConsentErrors] = useState(false);
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -37,6 +41,19 @@ export default function Auth() {
         variant: 'destructive',
       });
       return;
+    }
+
+    // Validate consent for signup
+    if (!isLogin) {
+      if (!acceptedTerms || !ageConfirmed) {
+        setShowConsentErrors(true);
+        toast({
+          title: 'Consentimento necessário',
+          description: 'Aceite os termos e confirme sua idade para criar uma conta.',
+          variant: 'destructive',
+        });
+        return;
+      }
     }
 
     setLoading(true);
@@ -149,6 +166,30 @@ export default function Auth() {
             </button>
             <p className="text-xs text-muted-foreground mt-1.5">Mínimo de 6 caracteres</p>
           </div>
+
+          {/* Consent Checkboxes - Only show for signup */}
+          {!isLogin && (
+            <div className="space-y-3 pt-2">
+              <ConsentCheckbox
+                id="consent-terms"
+                checked={acceptedTerms}
+                onCheckedChange={(checked) => {
+                  setAcceptedTerms(checked as boolean);
+                  if (checked) setShowConsentErrors(false);
+                }}
+                error={showConsentErrors && !acceptedTerms}
+              />
+              <AgeConfirmationCheckbox
+                id="consent-age"
+                checked={ageConfirmed}
+                onCheckedChange={(checked) => {
+                  setAgeConfirmed(checked as boolean);
+                  if (checked) setShowConsentErrors(false);
+                }}
+                error={showConsentErrors && !ageConfirmed}
+              />
+            </div>
+          )}
 
           <Button
             type="submit"
