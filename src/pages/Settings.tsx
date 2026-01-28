@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { 
   Sun, Moon, Monitor, Type, Bell, MapPin, Clock, 
   LogOut, CreditCard, User, ChevronRight, Sparkles,
-  Calendar, CloudSun, Image, EyeOff, Palette, Upload, Trash2, Loader2, Mail, Shield
+  Calendar, CloudSun, Image, EyeOff, Palette, Upload, Trash2, Loader2, Mail, Shield, AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,17 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -642,6 +653,89 @@ export default function Settings() {
                 </div>
                 <span className="text-sm font-medium">Sair da Conta</span>
               </button>
+
+              <Separator />
+
+              {/* Delete Account */}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <button
+                    className="w-full flex items-center gap-3 p-4 hover:bg-destructive/5 transition-colors text-destructive"
+                  >
+                    <div className="p-2 rounded-full bg-destructive/10">
+                      <Trash2 className="w-4 h-4" />
+                    </div>
+                    <div className="text-left">
+                      <span className="text-sm font-medium">Excluir minha conta</span>
+                      <p className="text-xs opacity-70">Remover todos os dados (LGPD)</p>
+                    </div>
+                  </button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-3 rounded-full bg-destructive/10">
+                        <AlertTriangle className="w-6 h-6 text-destructive" />
+                      </div>
+                      <AlertDialogTitle>Excluir conta permanentemente?</AlertDialogTitle>
+                    </div>
+                    <AlertDialogDescription className="space-y-3">
+                      <p>
+                        Esta ação <strong>não pode ser desfeita</strong>. Todos os seus dados serão 
+                        excluídos permanentemente, incluindo:
+                      </p>
+                      <ul className="list-disc list-inside text-sm space-y-1">
+                        <li>Perfil e preferências</li>
+                        <li>Análise cromática</li>
+                        <li>Guarda-roupa digital</li>
+                        <li>Looks salvos</li>
+                        <li>Histórico de provas virtuais</li>
+                        <li>Avatares</li>
+                      </ul>
+                      <p className="text-sm">
+                        Conforme a LGPD, você tem o direito de solicitar a exclusão dos seus dados 
+                        pessoais. Este processo é irreversível.
+                      </p>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={async () => {
+                        try {
+                          const { data: { session } } = await supabase.auth.getSession();
+                          if (!session?.access_token) {
+                            toast.error('Sessão expirada. Faça login novamente.');
+                            return;
+                          }
+
+                          toast.loading('Excluindo sua conta e dados...', { id: 'delete-account' });
+
+                          const response = await supabase.functions.invoke('delete-user-data', {
+                            headers: { Authorization: `Bearer ${session.access_token}` },
+                          });
+
+                          if (response.error) {
+                            throw new Error(response.error.message);
+                          }
+
+                          toast.success('Conta excluída com sucesso.', { id: 'delete-account' });
+                          
+                          // Sign out and redirect
+                          await signOut();
+                          navigate('/welcome');
+                        } catch (error) {
+                          console.error('Error deleting account:', error);
+                          toast.error('Erro ao excluir conta. Tente novamente.', { id: 'delete-account' });
+                        }
+                      }}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Sim, excluir minha conta
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </motion.section>
 
