@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Sparkles, ExternalLink, Palette } from 'lucide-react';
+import { memo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CompatibilityBadge } from '@/components/wardrobe/CompatibilityBadge';
@@ -13,7 +14,7 @@ interface LookCardProps {
   onOpenInCanvas?: (look: RecommendedLook) => void;
 }
 
-export function LookCard({ look, index, onOpenInCanvas }: LookCardProps) {
+export const LookCard = memo(function LookCard({ look, index, onOpenInCanvas }: LookCardProps) {
   // Calculate chromatic stats
   const chromaticItems = look.items.map(item => ({
     chromatic_compatibility: item.chromatic_compatibility,
@@ -107,4 +108,4 @@ export function LookCard({ look, index, onOpenInCanvas }: LookCardProps) {
       </Card>
     </motion.div>
   );
-}
+});

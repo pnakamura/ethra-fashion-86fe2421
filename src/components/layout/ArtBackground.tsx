@@ -2,8 +2,8 @@ import { useTheme } from 'next-themes';
 import { useBackgroundSettings, BackgroundVariant, ThemeMode } from '@/contexts/BackgroundSettingsContext';
 
 const defaultBackgroundImages: Record<Exclude<BackgroundVariant, 'none' | 'custom'>, string> = {
-  abstract: '/images/backgrounds/art-background-2.png',
-  portrait: '/images/backgrounds/art-background-1.png',
+  abstract: '/images/backgrounds/art-background-2.jpeg',
+  portrait: '/images/backgrounds/art-background-1.jpeg',
 };
 
 export function ArtBackground() {

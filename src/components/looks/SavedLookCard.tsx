@@ -1,6 +1,7 @@
 import { Heart, Share2, Trash2, Palette } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { memo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
@@ -54,7 +55,7 @@ function calculateHarmonyStats(items: WardrobeItem[]) {
   return { ...stats, score, total };
 }
 
-export function SavedLookCard({
+export const SavedLookCard = memo(function SavedLookCard({
   outfit,
   items,
   onOpen,
@@ -219,4 +220,4 @@ export function SavedLookCard({
       </div>
     </Card>
   );
-}
+});
