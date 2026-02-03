@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { 
   Sun, Moon, Monitor, Type, Bell, MapPin, Clock, 
   LogOut, CreditCard, User, ChevronRight, Sparkles,
-  Calendar, CloudSun, Image, EyeOff, Palette, Upload, Trash2, Loader2, Mail, Shield, AlertTriangle
+  Calendar, CloudSun, Image, EyeOff, Palette, Upload, Trash2, Loader2, Mail, Shield, AlertTriangle, Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -91,6 +91,45 @@ export default function Settings() {
     event_reminder_hours: 2,
     city: '',
   });
+  const [isExporting, setIsExporting] = useState(false);
+
+  // Export user data (LGPD Art. 18)
+  const handleExportData = async () => {
+    try {
+      setIsExporting(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        toast.error('Sessão expirada. Faça login novamente.');
+        return;
+      }
+
+      const response = await supabase.functions.invoke('export-user-data', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      // Create and download the JSON file
+      const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ethra-meus-dados-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success('Dados exportados com sucesso!');
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Erro ao exportar dados. Tente novamente.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   // Fetch notification preferences
   const { data: savedPrefs, isLoading: prefsLoading } = useQuery({
@@ -637,6 +676,30 @@ export default function Settings() {
                   <div className="text-left">
                     <p className="text-sm font-medium">Privacidade e Permissões</p>
                     <p className="text-xs text-muted-foreground">Câmera, notificações e localização</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-muted-foreground" />
+              </button>
+
+              <Separator />
+
+              {/* Export Data (LGPD Art. 18) */}
+              <button
+                onClick={handleExportData}
+                disabled={isExporting}
+                className="w-full flex items-center justify-between p-4 hover:bg-secondary/50 transition-colors disabled:opacity-50"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-full bg-primary/10">
+                    {isExporting ? (
+                      <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                    ) : (
+                      <Download className="w-4 h-4 text-primary" />
+                    )}
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-medium">Exportar meus dados</p>
+                    <p className="text-xs text-muted-foreground">Baixar em formato JSON (LGPD)</p>
                   </div>
                 </div>
                 <ChevronRight className="w-5 h-5 text-muted-foreground" />

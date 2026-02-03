@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, ChevronRight, RefreshCw } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -24,7 +24,7 @@ export function LookOfTheDay() {
   const canGenerateLooks = hasChromaticAnalysis && hasEnoughItems;
 
   // Auto-load looks if conditions are met
-  useState(() => {
+  useEffect(() => {
     if (canGenerateLooks && !hasLoaded && looks.length === 0) {
       setHasLoaded(true);
       loadCachedLooks().then(cached => {
@@ -33,7 +33,7 @@ export function LookOfTheDay() {
         }
       });
     }
-  });
+  }, [canGenerateLooks, hasLoaded, looks.length, loadCachedLooks, generateLooks]);
 
   const todayLook = looks[0];
 
