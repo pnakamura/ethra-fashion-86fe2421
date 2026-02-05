@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Smile,
-  Shield,
-  Frown,
-  Zap,
-  CloudRain,
-  XCircle,
-  Flame,
-  Eye,
+  Sparkles,
+  Crown,
+  Ghost,
+  Lightbulb,
+  Cloud,
+  ShieldX,
+  Swords,
+  Telescope,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -23,14 +23,14 @@ import {
 } from '@/components/ui/sheet';
 
 const moods = [
-  { id: 'alegria', label: 'Alegria', icon: Smile, color: 'text-amber-500' },
-  { id: 'confianca', label: 'Confiança', icon: Shield, color: 'text-blue-500' },
-  { id: 'medo', label: 'Medo', icon: Frown, color: 'text-purple-500' },
-  { id: 'surpresa', label: 'Surpresa', icon: Zap, color: 'text-yellow-500' },
-  { id: 'tristeza', label: 'Tristeza', icon: CloudRain, color: 'text-slate-500' },
-  { id: 'aversao', label: 'Aversão', icon: XCircle, color: 'text-green-500' },
-  { id: 'raiva', label: 'Raiva', icon: Flame, color: 'text-red-500' },
-  { id: 'antecipacao', label: 'Antecipação', icon: Eye, color: 'text-indigo-500' },
+  { id: 'alegria', label: 'Alegria', icon: Sparkles, color: 'text-amber-500' },
+  { id: 'confianca', label: 'Confiança', icon: Crown, color: 'text-blue-500' },
+  { id: 'medo', label: 'Medo', icon: Ghost, color: 'text-purple-500' },
+  { id: 'surpresa', label: 'Surpresa', icon: Lightbulb, color: 'text-yellow-500' },
+  { id: 'tristeza', label: 'Tristeza', icon: Cloud, color: 'text-slate-500' },
+  { id: 'aversao', label: 'Aversão', icon: ShieldX, color: 'text-green-500' },
+  { id: 'raiva', label: 'Raiva', icon: Swords, color: 'text-red-500' },
+  { id: 'antecipacao', label: 'Antecipação', icon: Telescope, color: 'text-indigo-500' },
 ];
 
 interface MoodSelectorProps {
