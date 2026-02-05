@@ -1,5 +1,16 @@
 import { motion } from 'framer-motion';
-import { Sparkles, Quote } from 'lucide-react';
+import {
+  Sparkles,
+  Quote,
+  Palmtree,
+  Snowflake,
+  Sun,
+  CloudSun,
+  Wind,
+  CloudRain,
+  Rainbow,
+  type LucideIcon,
+} from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
 interface TripBriefProps {
@@ -8,14 +19,24 @@ interface TripBriefProps {
   climateVibe: string;
 }
 
-const vibeEmojis: Record<string, string> = {
-  tropical_beach: '🏝️',
-  winter_wonderland: '❄️',
-  warm_vibes: '☀️',
-  mild_comfort: '🌤️',
-  cozy_layers: '🧣',
-  rainy_adventure: '🌧️',
-  versatile_weather: '🌈',
+const vibeIcons: Record<string, LucideIcon> = {
+  tropical_beach: Palmtree,
+  winter_wonderland: Snowflake,
+  warm_vibes: Sun,
+  mild_comfort: CloudSun,
+  cozy_layers: Wind,
+  rainy_adventure: CloudRain,
+  versatile_weather: Rainbow,
+};
+
+const vibeColors: Record<string, string> = {
+  tropical_beach: 'text-teal-500',
+  winter_wonderland: 'text-blue-400',
+  warm_vibes: 'text-amber-500',
+  mild_comfort: 'text-sky-400',
+  cozy_layers: 'text-slate-500',
+  rainy_adventure: 'text-indigo-500',
+  versatile_weather: 'text-violet-500',
 };
 
 const vibeLabels: Record<string, string> = {
@@ -29,7 +50,8 @@ const vibeLabels: Record<string, string> = {
 };
 
 export function TripBrief({ tripBrief, packingMood, climateVibe }: TripBriefProps) {
-  const emoji = vibeEmojis[climateVibe] || '✨';
+  const VibeIcon = vibeIcons[climateVibe] || Sparkles;
+  const vibeColor = vibeColors[climateVibe] || 'text-primary';
   const label = vibeLabels[climateVibe] || 'Clima Variado';
 
   return (
@@ -57,15 +79,15 @@ export function TripBrief({ tripBrief, packingMood, climateVibe }: TripBriefProp
       </Card>
 
       {/* Climate Vibe Badge */}
-      <div className="flex items-center justify-center gap-2">
-        <motion.span
+      <div className="flex items-center justify-center gap-3">
+        <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 300, delay: 0.3 }}
-          className="text-2xl"
+          className="w-10 h-10 rounded-xl bg-secondary/50 flex items-center justify-center"
         >
-          {emoji}
-        </motion.span>
+          <VibeIcon className={`w-5 h-5 ${vibeColor}`} />
+        </motion.div>
         <span className="text-sm font-medium text-muted-foreground">{label}</span>
       </div>
 
