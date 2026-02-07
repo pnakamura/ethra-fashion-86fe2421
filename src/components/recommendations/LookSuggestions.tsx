@@ -1,10 +1,9 @@
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useEffect, useState } from 'react';
 import { Sparkles, RefreshCw, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LookCard } from './LookCard';
 import { useLookRecommendations, RecommendedLook } from '@/hooks/useLookRecommendations';
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
 
 interface LookSuggestionsProps {
   autoLoad?: boolean;

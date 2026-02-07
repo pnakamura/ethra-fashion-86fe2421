@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react';
+import { memo, useCallback } from 'react';
 import { Plus, Sparkles, Palette, Plane } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -17,8 +17,7 @@ export const QuickActions = memo(function QuickActions() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  // Prefetch data on hover
-  const handlePrefetch = (path: string) => {
+  const handlePrefetch = useCallback((path: string) => {
     if (!user) return;
 
     switch (path) {
@@ -65,34 +64,29 @@ export const QuickActions = memo(function QuickActions() {
         });
         break;
     }
-  };
-
-  // Memoize rendered actions to avoid recalculating on every render
-  const renderedActions = useMemo(() => (
-    actions.map((action) => {
-      const Icon = action.icon;
-      return (
-        <button
-          key={action.label}
-          onClick={() => navigate(action.path)}
-          onMouseEnter={() => handlePrefetch(action.path)}
-          onTouchStart={() => handlePrefetch(action.path)}
-          className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-card border border-border dark:border-[hsl(238_45%_55%_/_0.12)] shadow-soft hover:shadow-elevated transition-all dark:hover:border-[hsl(238_45%_55%_/_0.25)] dark:hover:shadow-[0_0_15px_hsl(238_45%_55%_/_0.1)]"
-        >
-          <div className={`p-2.5 rounded-xl ${action.color}`}>
-            <Icon className="w-5 h-5" />
-          </div>
-          <span className="text-xs font-medium text-muted-foreground">
-            {action.label}
-          </span>
-        </button>
-      );
-    })
-  ), [navigate, user?.id]);
+  }, [user, queryClient]);
 
   return (
     <div className="grid grid-cols-4 gap-3">
-      {renderedActions}
+      {actions.map((action) => {
+        const Icon = action.icon;
+        return (
+          <button
+            key={action.label}
+            onClick={() => navigate(action.path)}
+            onMouseEnter={() => handlePrefetch(action.path)}
+            onTouchStart={() => handlePrefetch(action.path)}
+            className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-card border border-border dark:border-[hsl(238_45%_55%_/_0.12)] shadow-soft hover:shadow-elevated transition-all dark:hover:border-[hsl(238_45%_55%_/_0.25)] dark:hover:shadow-[0_0_15px_hsl(238_45%_55%_/_0.1)]"
+          >
+            <div className={`p-2.5 rounded-xl ${action.color}`}>
+              <Icon className="w-5 h-5" />
+            </div>
+            <span className="text-xs font-medium text-muted-foreground">
+              {action.label}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 });
