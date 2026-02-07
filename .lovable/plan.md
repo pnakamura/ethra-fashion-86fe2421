@@ -1,85 +1,80 @@
-# ETHRA - Plano de Desenvolvimento
 
-## Última Atualização: 2026-02-07
+## Plano de Correção: Erro "Component is not a function" no Login
 
----
+### Problema Identificado
 
-## ✅ Implementações Concluídas
-
-### Performance (2026-02-07)
-- ✅ `OptimizedImage.tsx` - IntersectionObserver para lazy loading real + blur placeholder
-- ✅ `WardrobeItemCard.tsx` - Componente memoizado para itens do closet
-- ✅ `WardrobeGrid.tsx` - React.memo + useCallback para evitar re-renders
-- ✅ `QuickActions.tsx` - React.memo + prefetch no hover
-- ✅ `MissionCard.tsx` - React.memo + useMemo para cálculos de progresso
-- ✅ `AchievementsPanel.tsx` - React.memo + memoização do grid de badges
-- ✅ `LookOfTheDay.tsx` - React.memo + Skeleton loaders + prioridade de imagens
-- ✅ `LookSuggestions.tsx` - React.memo + useMemo para looks exibidos
-- ✅ Prefetch inteligente no BottomNav e QuickActions
-
-### Bug Fixes
-- ✅ `LookOfTheDay.tsx` - Corrigido uso incorreto de useState → useEffect
-
-### LGPD Compliance  
-- ✅ Edge Function `export-user-data` criada para exportação de dados
-- ✅ Botão "Exportar meus dados" adicionado em Settings
-- ✅ `EmptyState.tsx` criado com ilustrações SVG animadas
+O erro "Component is not a function" ocorre após o login quando a página Index.tsx tenta renderizar os componentes do dashboard. A análise do stack trace e do código revelou dois problemas principais:
 
 ---
 
-## Próximas Melhorias
+### 1. Problema no QuickActions.tsx
 
-### 🟠 Prioridade Média
+**Localização:** `src/components/dashboard/QuickActions.tsx`
 
-#### 1. Warning de forwardRef no TryOnDetailModal
-**Arquivo:** `src/components/try-on/TryOnDetailModal.tsx`
-**Solução:** Encapsular o componente Dialog com `React.forwardRef`
+**Problema:** A função `handlePrefetch` é usada dentro do `useMemo` que renderiza os botões, mas NÃO está incluída no array de dependências. Além disso, a função depende de `user` e `queryClient` que podem mudar.
 
-#### 2. Virtualização para closets grandes (100+ itens)
-**Arquivo:** `src/components/wardrobe/WardrobeGrid.tsx`
-**Solução:** Usar react-window para renderizar apenas itens visíveis
+**Código atual (problemático):**
+```text
+const handlePrefetch = (path: string) => {
+  if (!user) return;
+  // ... usa queryClient e user
+};
 
-#### 3. Empty States Melhorados
-- Integrar `EmptyState.tsx` em todas as páginas que precisam
-- Adicionar CTAs contextuais
+const renderedActions = useMemo(() => (
+  actions.map((action) => {
+    // ...
+    onMouseEnter={() => handlePrefetch(action.path)}
+    // ...
+  })
+), [navigate, user?.id]);  // handlePrefetch NÃO está nas deps!
+```
 
----
-
-### 🟡 Prioridade Baixa
-
-#### 4. Onboarding Melhorado
-- Tour guiado opcional para novos usuários (`FeatureTour.tsx`)
-- Tooltips de orientação na primeira vez
-
-#### 5. Novas Features
-- Comparação de looks lado a lado (`LookCompare.tsx`)
-- Histórico de looks usados
-- Modo offline básico (Service Worker + IndexedDB)
-
-#### 6. Acessibilidade
-- Skip links
-- Melhorar aria-labels em ícones
-- Focus rings consistentes
+**Solução:** Mover a lógica de prefetch para fora do useMemo ou incluir corretamente nas dependências.
 
 ---
 
-## Arquivos Criados
+### 2. Problema no LookSuggestions.tsx
 
-| Arquivo | Descrição |
-|---------|-----------|
-| `src/components/ui/EmptyState.tsx` | Estados vazios reutilizáveis |
-| `src/components/wardrobe/WardrobeItemCard.tsx` | Card memoizado para itens |
-| `supabase/functions/export-user-data/index.ts` | Exportação LGPD |
+**Localização:** `src/components/recommendations/LookSuggestions.tsx`
+
+**Problema:** Importações duplicadas de React que podem causar problemas com alguns bundlers.
+
+**Código atual:**
+```text
+import { memo, useMemo } from 'react';
+// ... outras importações
+import { useEffect, useState } from 'react';
+```
+
+**Solução:** Consolidar as importações do React em uma única linha.
 
 ---
 
-## Métricas de Sucesso
+### Arquivos a Modificar
 
-- ✅ Lazy loading com IntersectionObserver
-- ✅ React.memo em componentes pesados
-- ✅ Prefetch inteligente no hover
-- ✅ Skeleton loaders contextuais
-- 🔄 Zero warnings no console (parcial)
-- 🔄 Tempo de carregamento < 2s
-- 🔄 Lighthouse score > 90
-- ✅ Conformidade total com LGPD
+| Arquivo | Mudança |
+|---------|---------|
+| `src/components/dashboard/QuickActions.tsx` | Corrigir o useMemo e suas dependências |
+| `src/components/recommendations/LookSuggestions.tsx` | Consolidar importações do React |
+
+---
+
+### Implementação Detalhada
+
+#### QuickActions.tsx
+1. Remover o useMemo desnecessário para os botões
+2. Usar uma abordagem mais simples que não requer memoização manual
+3. Manter a funcionalidade de prefetch intacta
+
+#### LookSuggestions.tsx
+1. Consolidar as importações do React em uma única linha
+2. Manter toda a funcionalidade existente
+
+---
+
+### Benefícios da Correção
+
+- Eliminação do erro "Component is not a function"
+- Código mais limpo e manutenível
+- Prefetch funcionando corretamente sem closures obsoletas
+- Compatibilidade melhorada com o bundler Vite
