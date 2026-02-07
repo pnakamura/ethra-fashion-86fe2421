@@ -1,16 +1,16 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { memo, useState, useEffect, useMemo } from 'react';
 import { Sparkles, ChevronRight, RefreshCw } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useLookRecommendations } from '@/hooks/useLookRecommendations';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useProfile } from '@/hooks/useProfile';
 import { useWardrobeItems } from '@/hooks/useWardrobeItems';
 
-export function LookOfTheDay() {
+export const LookOfTheDay = memo(function LookOfTheDay() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { looks, isLoading, generateLooks, loadCachedLooks } = useLookRecommendations();
@@ -20,8 +20,11 @@ export function LookOfTheDay() {
   const { profile, hasChromaticAnalysis } = useProfile();
   const { count: itemCount } = useWardrobeItems();
 
-  const hasEnoughItems = itemCount >= 3;
-  const canGenerateLooks = hasChromaticAnalysis && hasEnoughItems;
+  // Memoize derived state
+  const { hasEnoughItems, canGenerateLooks } = useMemo(() => ({
+    hasEnoughItems: itemCount >= 3,
+    canGenerateLooks: hasChromaticAnalysis && itemCount >= 3,
+  }), [itemCount, hasChromaticAnalysis]);
 
   // Auto-load looks if conditions are met
   useEffect(() => {
@@ -44,130 +47,6 @@ export function LookOfTheDay() {
   // Not ready state
   if (!canGenerateLooks) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.5 }}
-      >
-        <Card className="overflow-hidden border border-border dark:border-primary/12">
-          <div className="relative h-64 gradient-soft flex items-center justify-center">
-            <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-            <div className="text-center z-10 px-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 dark:bg-primary/20 text-primary text-xs font-medium mb-4">
-                <Sparkles className="w-3 h-3" />
-                Look do Dia
-              </div>
-              <h3 className="text-2xl font-display font-semibold text-foreground mb-2">
-                {!hasChromaticAnalysis ? 'Descubra sua paleta' : 'Adicione mais peças'}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {!hasChromaticAnalysis 
-                  ? 'Faça sua análise cromática para receber looks personalizados'
-                  : `Você tem ${itemCount} peças. Adicione pelo menos 3 para receber sugestões.`}
-              </p>
-            </div>
-          </div>
-          <div className="p-4">
-            <button 
-              onClick={() => navigate(!hasChromaticAnalysis ? '/chromatic' : '/wardrobe')}
-              className="w-full flex items-center justify-between py-3 px-4 rounded-xl bg-secondary dark:bg-secondary/50 hover:bg-accent dark:hover:bg-primary/10 transition-colors border border-transparent dark:border-primary/10"
-            >
-              <span className="text-sm font-medium text-secondary-foreground">
-                {!hasChromaticAnalysis ? 'Fazer análise cromática' : 'Adicionar peças'}
-              </span>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </button>
-          </div>
-        </Card>
-      </motion.div>
-    );
-  }
-
-  // Loading state
-  if (isLoading && !todayLook) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.5 }}
-      >
-        <Card className="overflow-hidden border border-border dark:border-primary/12">
-          <div className="h-64 bg-muted dark:bg-muted/30 animate-pulse flex items-center justify-center">
-            <RefreshCw className="w-8 h-8 text-muted-foreground animate-spin" />
-          </div>
-        </Card>
-      </motion.div>
-    );
-  }
-
-  // Has look state
-  if (todayLook) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.5 }}
-      >
-        <Card className="overflow-hidden border border-border dark:border-primary/12">
-          {/* Look preview */}
-          <div className="relative h-64 bg-muted dark:bg-muted/30">
-            <div className="absolute inset-0 grid grid-cols-2 gap-0.5">
-              {todayLook.items.slice(0, 4).map((item) => (
-                <div key={item.id} className="overflow-hidden">
-                  <OptimizedImage
-                    src={item.image_url}
-                    alt={item.name || item.category}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/20 dark:bg-primary/30 backdrop-blur-sm text-primary text-xs font-medium mb-2">
-                <Sparkles className="w-3 h-3" />
-                Look do Dia
-              </div>
-              <h3 className="text-xl font-display font-semibold text-foreground">
-                {todayLook.name}
-              </h3>
-              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                {todayLook.color_harmony}
-              </p>
-            </div>
-          </div>
-          <div className="p-4 flex gap-2">
-            <button 
-              onClick={() => navigate('/recommendations')}
-              className="flex-1 flex items-center justify-between py-3 px-4 rounded-xl bg-secondary dark:bg-secondary/50 hover:bg-accent dark:hover:bg-primary/10 transition-colors border border-transparent dark:border-primary/10"
-            >
-              <span className="text-sm font-medium text-secondary-foreground">
-                Ver mais looks
-              </span>
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleRefresh}
-              disabled={isLoading}
-              className="rounded-xl dark:border-primary/20 dark:hover:bg-primary/10"
-            >
-              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-            </Button>
-          </div>
-        </Card>
-      </motion.div>
-    );
-  }
-
-  // Fallback - generate looks
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1, duration: 0.5 }}
-    >
       <Card className="overflow-hidden border border-border dark:border-primary/12">
         <div className="relative h-64 gradient-soft flex items-center justify-center">
           <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
@@ -177,26 +56,128 @@ export function LookOfTheDay() {
               Look do Dia
             </div>
             <h3 className="text-2xl font-display font-semibold text-foreground mb-2">
-              Pronto para sugestões!
+              {!hasChromaticAnalysis ? 'Descubra sua paleta' : 'Adicione mais peças'}
             </h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Gere seu primeiro look personalizado
+            <p className="text-sm text-muted-foreground">
+              {!hasChromaticAnalysis 
+                ? 'Faça sua análise cromática para receber looks personalizados'
+                : `Você tem ${itemCount} peças. Adicione pelo menos 3 para receber sugestões.`}
             </p>
-            <Button 
-              onClick={handleRefresh} 
-              className="rounded-xl gradient-primary dark:shadow-[0_0_15px_hsl(45_100%_55%_/_0.2)]"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Sparkles className="w-4 h-4 mr-2" />
-              )}
-              Gerar Look
-            </Button>
           </div>
         </div>
+        <div className="p-4">
+          <button 
+            onClick={() => navigate(!hasChromaticAnalysis ? '/chromatic' : '/wardrobe')}
+            className="w-full flex items-center justify-between py-3 px-4 rounded-xl bg-secondary dark:bg-secondary/50 hover:bg-accent dark:hover:bg-primary/10 transition-colors border border-transparent dark:border-primary/10"
+          >
+            <span className="text-sm font-medium text-secondary-foreground">
+              {!hasChromaticAnalysis ? 'Fazer análise cromática' : 'Adicionar peças'}
+            </span>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </button>
+        </div>
       </Card>
-    </motion.div>
+    );
+  }
+
+  // Loading state
+  if (isLoading && !todayLook) {
+    return (
+      <Card className="overflow-hidden border border-border dark:border-primary/12">
+        <Skeleton className="h-64 w-full" />
+        <div className="p-4">
+          <Skeleton className="h-10 w-full rounded-xl" />
+        </div>
+      </Card>
+    );
+  }
+
+  // Has look state
+  if (todayLook) {
+    return (
+      <Card className="overflow-hidden border border-border dark:border-primary/12">
+        {/* Look preview */}
+        <div className="relative h-64 bg-muted dark:bg-muted/30">
+          <div className="absolute inset-0 grid grid-cols-2 gap-0.5">
+            {todayLook.items.slice(0, 4).map((item, index) => (
+              <div key={item.id} className="overflow-hidden">
+                <OptimizedImage
+                  src={item.image_url}
+                  alt={item.name || item.category}
+                  className="w-full h-full object-cover"
+                  priority={index < 2}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/20 dark:bg-primary/30 backdrop-blur-sm text-primary text-xs font-medium mb-2">
+              <Sparkles className="w-3 h-3" />
+              Look do Dia
+            </div>
+            <h3 className="text-xl font-display font-semibold text-foreground">
+              {todayLook.name}
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+              {todayLook.color_harmony}
+            </p>
+          </div>
+        </div>
+        <div className="p-4 flex gap-2">
+          <button 
+            onClick={() => navigate('/recommendations')}
+            className="flex-1 flex items-center justify-between py-3 px-4 rounded-xl bg-secondary dark:bg-secondary/50 hover:bg-accent dark:hover:bg-primary/10 transition-colors border border-transparent dark:border-primary/10"
+          >
+            <span className="text-sm font-medium text-secondary-foreground">
+              Ver mais looks
+            </span>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleRefresh}
+            disabled={isLoading}
+            className="rounded-xl dark:border-primary/20 dark:hover:bg-primary/10"
+          >
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
+      </Card>
+    );
+  }
+
+  // Fallback - generate looks
+  return (
+    <Card className="overflow-hidden border border-border dark:border-primary/12">
+      <div className="relative h-64 gradient-soft flex items-center justify-center">
+        <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
+        <div className="text-center z-10 px-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 dark:bg-primary/20 text-primary text-xs font-medium mb-4">
+            <Sparkles className="w-3 h-3" />
+            Look do Dia
+          </div>
+          <h3 className="text-2xl font-display font-semibold text-foreground mb-2">
+            Pronto para sugestões!
+          </h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Gere seu primeiro look personalizado
+          </p>
+          <Button 
+            onClick={handleRefresh} 
+            className="rounded-xl gradient-primary dark:shadow-[0_0_15px_hsl(45_100%_55%_/_0.2)]"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4 mr-2" />
+            )}
+            Gerar Look
+          </Button>
+        </div>
+      </div>
+    </Card>
   );
-}
+});
