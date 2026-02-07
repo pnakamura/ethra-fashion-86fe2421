@@ -8,7 +8,7 @@ const defaultBackgroundImages: Record<ThemeMode, Record<Exclude<BackgroundVarian
     portrait: '/images/backgrounds/art-background-1.jpeg',
   },
   dark: {
-    abstract: '/images/backgrounds/art-background-2.jpeg',
+    abstract: '/images/backgrounds/abstract-dark.png',
     portrait: '/images/backgrounds/portrait-dark.png',
   },
 };
