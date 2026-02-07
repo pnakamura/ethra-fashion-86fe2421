@@ -215,8 +215,8 @@ Retorne APENAS JSON válido:
               // VIP uses Premium model for superior reasoning
               model: 'google/gemini-2.5-pro',
               messages: [{ role: 'user', content: prompt }],
-              max_tokens: 4000,
-              temperature: 0.75,
+              max_tokens: 8000,
+              temperature: 0.7,
             }),
           });
 
@@ -280,16 +280,34 @@ Retorne APENAS JSON válido:
 
     let result;
     try {
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      // Strip markdown code fences if present
+      let cleanContent = content.trim();
+      if (cleanContent.startsWith('```')) {
+        cleanContent = cleanContent.replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         result = JSON.parse(jsonMatch[0]);
       } else {
         throw new Error('No JSON found');
       }
+      
+      // Validate the response has the expected structure
+      if (!result.looks || !Array.isArray(result.looks) || result.looks.length === 0) {
+        throw new Error('Invalid looks structure');
+      }
     } catch (parseError) {
-      console.error('Failed to parse AI response:', content);
+      console.error('Failed to parse AI response:', content.substring(0, 500));
+      
+      // Check if response was truncated
+      const finishReason = data.choices?.[0]?.finish_reason;
+      if (finishReason === 'length') {
+        console.error('Response was truncated due to max_tokens limit');
+      }
+      
       return new Response(
-        JSON.stringify({ error: 'Falha ao processar sugestões VIP' }),
+        JSON.stringify({ error: 'Falha ao processar sugestões VIP. Tente novamente.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
