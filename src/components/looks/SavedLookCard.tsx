@@ -9,7 +9,6 @@ import { cn } from '@/lib/utils';
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
@@ -119,32 +118,30 @@ export const SavedLookCard = memo(function SavedLookCard({
             </div>
           )}
 
-          {/* Chromatic Harmony Badge - NEW */}
+          {/* Chromatic Harmony Badge - uses TooltipProvider from parent */}
           {items.length > 0 && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className={cn(
-                    "absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1",
-                    harmonyStyle.bg,
-                    harmonyStyle.text
-                  )}>
-                    <Palette className="w-3 h-3" />
-                    {harmonyStats.score}%
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="text-xs">
-                  <p className="font-medium mb-1">Harmonia Cromática</p>
-                  <div className="flex gap-2">
-                    <span>{harmonyStats.ideal} ideais</span>
-                    <span>{harmonyStats.neutral} neutras</span>
-                    {harmonyStats.avoid > 0 && (
-                      <span className="text-rose-500">{harmonyStats.avoid} evitar</span>
-                    )}
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className={cn(
+                  "absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1",
+                  harmonyStyle.bg,
+                  harmonyStyle.text
+                )}>
+                  <Palette className="w-3 h-3" />
+                  {harmonyStats.score}%
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">
+                <p className="font-medium mb-1">Harmonia Cromática</p>
+                <div className="flex gap-2">
+                  <span>{harmonyStats.ideal} ideais</span>
+                  <span>{harmonyStats.neutral} neutras</span>
+                  {harmonyStats.avoid > 0 && (
+                    <span className="text-rose-500">{harmonyStats.avoid} evitar</span>
+                  )}
+                </div>
+              </TooltipContent>
+            </Tooltip>
           )}
 
           {/* Favorite button */}
@@ -191,8 +188,8 @@ export const SavedLookCard = memo(function SavedLookCard({
           })}
         </p>
 
-        {/* Actions - visible on hover */}
-        <div className="flex gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        {/* Actions - always visible on mobile, hover on desktop */}
+        <div className="flex gap-1 mt-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
           <Button
             size="sm"
             variant="ghost"
