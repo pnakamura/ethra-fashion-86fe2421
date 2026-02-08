@@ -1,108 +1,170 @@
 
-# Plano: Mostrar LocationPicker Apenas Quando Há Real Ambiguidade
 
-## Problema Identificado
+# Plano: Tema Claro como Padrão e Modo Escuro Exclusivo para Usuários Logados
 
-O sistema atual sempre mostra o modal de seleção de destinos quando a API retorna mais de 1 resultado. Isso acontece porque a API Open-Meteo Geocoding retorna até 5 resultados por padrão, mesmo quando:
-- O usuário digitou um destino específico como "Paris, França"
-- Os resultados adicionais são variações irrelevantes (ex: "Paris Esquina" no Uruguai)
+## Resumo da Mudança
 
-## Solução
+A solicitação envolve duas alterações fundamentais:
 
-Implementar lógica de **desambiguação inteligente** que só mostra o picker quando há **dúvida real** sobre o destino pretendido.
+1. **Tema claro como padrão universal** - Independente da configuração do sistema do usuário, o app sempre iniciará em modo claro
+2. **Modo escuro exclusivo para usuários cadastrados** - O toggle/opção de tema escuro só será visível e funcional para usuários autenticados
 
 ---
 
-## Critérios para Mostrar o Picker
+## Arquivos a Modificar
 
-O modal de seleção será exibido apenas quando:
-
-1. **Múltiplos países diferentes** - Ex: "Paris" → França vs EUA
-2. **Múltiplos estados/regiões diferentes no mesmo país** - Ex: "Springfield" → Illinois, Missouri, Ohio
-3. **Os nomes são exatamente iguais** mas em locais distintos
-
-O modal **NÃO** será exibido quando:
-- Há apenas 1 resultado
-- O primeiro resultado é muito mais provável (cidade principal vs vilarejo obscuro)
-- O usuário já especificou país ou estado na busca
-
----
-
-## Implementação
-
-### 1) Atualizar `TripPlanner.tsx`
-
-Modificar a função `handleSearchLocation` para analisar os resultados antes de decidir:
+### 1. `src/App.tsx`
+Alterar o `ThemeProvider` para usar `defaultTheme="light"` em vez de `"system"`:
 
 ```typescript
-const handleSearchLocation = async () => {
-  if (!destination || !startDate || !endDate) return;
-  
-  const locations = await geocode(destination);
-  
-  if (!locations || locations.length === 0) {
-    return; // Erro já tratado pelo hook
-  }
-  
-  // Verificar se há ambiguidade real
-  const needsDisambiguation = checkAmbiguity(locations);
-  
-  if (locations.length === 1 || !needsDisambiguation) {
-    // Resultado único ou sem ambiguidade - prosseguir direto
-    await handleSelectLocation(locations[0]);
-  } else {
-    // Múltiplos resultados ambíguos - mostrar picker
-    setLocationOptions(locations);
-    setStep('location');
-  }
-};
+<ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
 ```
 
-### 2) Criar função de verificação de ambiguidade
+Isso garante que todos os visitantes iniciam no tema claro.
+
+---
+
+### 2. `src/contexts/AccessibilityContext.tsx`
+Modificar a lógica de carregamento de tema para:
+
+- **Usuários não logados**: Forçar tema claro, ignorar localStorage
+- **Usuários logados**: Carregar preferência salva (localStorage → banco)
 
 ```typescript
-function checkAmbiguity(locations: LocationOption[]): boolean {
-  if (locations.length <= 1) return false;
-  
-  // Verificar se há países diferentes
-  const countries = new Set(locations.map(l => l.country_code));
-  if (countries.size > 1) return true;
-  
-  // Verificar se há estados/regiões diferentes no mesmo país
-  const regions = new Set(locations.map(l => l.admin1 || ''));
-  if (regions.size > 1) return true;
-  
-  // Se todos os resultados são do mesmo país e região, não há ambiguidade
-  return false;
+// Dentro de loadPreferences:
+if (!user) {
+  // Usuário não logado - forçar tema claro
+  setTheme('light');
+  setThemePreferenceState('light');
+} else {
+  // Usuário logado - carregar preferência salva
+  const savedTheme = localStorage.getItem(THEME_KEY) as ThemePreference;
+  if (savedTheme) {
+    setThemePreferenceState(savedTheme);
+    setTheme(savedTheme);
+  }
+  // ... resto da lógica de sync com banco
 }
 ```
 
+Também modificar `setThemePreference` para só permitir mudança se houver usuário:
+
+```typescript
+const setThemePreference = async (theme: ThemePreference) => {
+  if (!user) {
+    // Silenciosamente ignorar - usuário não pode mudar tema
+    return;
+  }
+  // ... resto da lógica
+};
+```
+
 ---
 
-## Lógica Detalhada
+### 3. `src/components/landing/HeroSection.tsx`
+**Remover o botão de toggle de tema** da landing page, já que usuários não logados não podem alterar o tema:
 
-| Cenário | Países | Estados | Ação |
-|---------|--------|---------|------|
-| "Curitiba" | 1 (BR) | 1 (PR) | Direto ✅ |
-| "Paris" | 2+ (FR, US, CA) | - | Picker 🔍 |
-| "Springfield" | 1 (US) | 3+ (IL, MO, OH) | Picker 🔍 |
-| "Rio de Janeiro" | 1 (BR) | 1 (RJ) | Direto ✅ |
-| "Londres" | 2 (UK, CA) | - | Picker 🔍 |
-| "São Paulo" | 1 (BR) | 1 (SP) | Direto ✅ |
+```typescript
+// REMOVER completamente o bloco:
+{/* Theme toggle */}
+<div className="absolute top-6 right-6 z-20">
+  <Button ... />
+</div>
+```
 
 ---
 
-## Arquivo a Modificar
+### 4. `src/pages/Settings.tsx`
+Adicionar condição para **ocultar as opções de tema** para usuários não logados (embora esta página já requer login, é uma proteção adicional):
 
-**`src/components/voyager/TripPlanner.tsx`**
-- Adicionar função `checkAmbiguity()`
-- Modificar `handleSearchLocation()` para usar a nova lógica
+A página de Settings já exige autenticação, então as opções de tema continuarão visíveis normalmente para usuários logados.
+
+---
+
+## Lógica Resumida
+
+| Estado do Usuário | Tema Aplicado | Pode Alterar Tema? |
+|-------------------|---------------|-------------------|
+| Não logado | Claro (fixo) | ❌ Não |
+| Logado (sem preferência) | Claro (padrão) | ✅ Sim |
+| Logado (preferência dark) | Escuro | ✅ Sim |
+| Logado (preferência system) | Depende do SO | ✅ Sim |
+
+---
+
+## Fluxo de Experiência
+
+```text
+1. Visitante acessa /welcome
+         ↓
+2. Tema é forçado para CLARO
+   (botão de toggle não aparece)
+         ↓
+3. Visitante faz login/cadastro
+         ↓
+4. Sistema carrega preferência do banco
+   (ou mantém claro se primeira vez)
+         ↓
+5. Em /settings, usuário pode:
+   - Escolher "Sistema", "Claro" ou "Escuro"
+   - Preferência é salva no banco
+```
+
+---
+
+## Seção Técnica
+
+### Alteração no ThemeProvider (App.tsx)
+
+```typescript
+// ANTES:
+<ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+
+// DEPOIS:
+<ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+```
+
+A mudança de `enableSystem={false}` previne que o tema do sistema operacional seja aplicado automaticamente.
+
+### Alteração no AccessibilityContext
+
+```typescript
+useEffect(() => {
+  const loadPreferences = async () => {
+    // Para usuários não logados, sempre forçar tema claro
+    if (!user) {
+      setTheme('light');
+      setThemePreferenceState('light');
+      setIsLoading(false);
+      return;
+    }
+
+    // Apenas para usuários logados: carregar preferências
+    const savedFontSize = localStorage.getItem(FONT_SIZE_KEY) as FontSize;
+    const savedTheme = localStorage.getItem(THEME_KEY) as ThemePreference;
+    // ... resto do código
+  };
+  
+  loadPreferences();
+}, [user, setTheme]);
+```
+
+### Alteração na HeroSection
+
+```typescript
+// Remover completamente:
+// - import do useTheme
+// - const { resolvedTheme, setTheme } = useTheme();
+// - const toggleTheme = () => { ... };
+// - O JSX do botão de toggle
+```
 
 ---
 
 ## Benefícios
 
-1. **UX mais fluida** - Usuários não precisam confirmar destinos óbvios
-2. **Menos cliques** - A maioria das buscas vai direto para análise
-3. **Precisão mantida** - Locais ambíguos ainda exigem seleção manual
-4. **Sem invenção de locais** - Apenas resultados reais da API são mostrados
+1. **Consistência visual** - Todos os visitantes veem a mesma experiência inicial
+2. **Performance** - Sem flash de tema incorreto no carregamento
+3. **Exclusividade** - Modo escuro como "feature" para usuários cadastrados
+4. **Simplicidade** - Landing page mais limpa sem toggle de tema
+
