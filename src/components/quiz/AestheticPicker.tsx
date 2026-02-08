@@ -58,12 +58,14 @@ function AestheticCard({
     >
       {/* Background image with gradient fallback */}
       {aesthetic.imageUrl ? (
-        <OptimizedImage
-          src={aesthetic.imageUrl}
-          alt={aesthetic.name}
-          className="absolute inset-0 w-full h-full object-cover"
-          aspectRatio="auto"
-        />
+        <div className="absolute inset-0">
+          <OptimizedImage
+            src={aesthetic.imageUrl}
+            alt={aesthetic.name}
+            className="w-full h-full object-cover"
+            priority
+          />
+        </div>
       ) : (
         <div
           className={cn(

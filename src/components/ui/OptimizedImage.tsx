@@ -10,6 +10,7 @@ interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 
   showPlaceholder?: boolean;
   aspectRatio?: 'square' | 'portrait' | 'landscape' | 'auto';
   priority?: boolean; // Skip lazy loading for above-the-fold images
+  containerClassName?: string; // Additional classes for the wrapper div
 }
 
 export const OptimizedImage = forwardRef<HTMLImageElement, OptimizedImageProps>(
@@ -23,6 +24,7 @@ export const OptimizedImage = forwardRef<HTMLImageElement, OptimizedImageProps>(
       showPlaceholder = true,
       aspectRatio = 'auto',
       priority = false,
+      containerClassName,
       ...props
     },
     ref
@@ -106,7 +108,7 @@ export const OptimizedImage = forwardRef<HTMLImageElement, OptimizedImageProps>(
     return (
       <div 
         ref={containerRef}
-        className={cn('relative overflow-hidden', aspectClasses[aspectRatio])}
+        className={cn('relative overflow-hidden', aspectClasses[aspectRatio], containerClassName)}
       >
         {/* Blur placeholder skeleton */}
         {showPlaceholder && isLoading && (
