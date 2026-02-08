@@ -1,158 +1,228 @@
 
-# Plano: Otimização dos Menus de Navegação
+# Plano: Melhorias no Voyager - Desambiguação de Locais, Navegação de Looks e Persistência de Dados
 
-## Diagnóstico
+## Resumo das Melhorias
 
-Analisei os três componentes de navegação principais:
-
-| Componente | Itens Atuais | Problema |
-|------------|--------------|----------|
-| **BottomNav** (mobile) | Home, Closet, Looks, Cores, Provador (5) | Falta Voyager e Agenda |
-| **Header** (desktop) | Home, Closet, Looks, Cores, Provador, Agenda (6) | Falta Voyager |
-| **QuickActions** (dashboard) | Nova Peça, Provador, Paleta, Planejar (4) | Única entrada para Voyager |
-
-### Funcionalidades "escondidas":
-- **Voyager** (`/voyager`) - Só acessível via QuickActions no dashboard
-- **Agenda** (`/events`) - Só no Header desktop, invisível no mobile
-- **Canvas** (`/canvas`) - Não está em nenhum menu
+Após análise detalhada do fluxo do Voyager, identifiquei 3 problemas principais que precisam ser corrigidos:
 
 ---
 
-## Solução Proposta
+## 1. Desambiguação de Destinos
 
-### Estratégia: Menu "Mais" com Dropdown/Sheet
+### Problema Atual
+Quando o usuário digita "Paris", a API retorna apenas o primeiro resultado do geocoding (Paris, França), mas podem existir:
+- Paris, Texas (EUA)
+- Paris, Tennessee (EUA)  
+- Paris, Ontário (Canadá)
 
-Para manter o limite de 5 itens no mobile (UX best practice), substituir o item menos frequente por um menu "Mais" que agrupa funcionalidades secundárias.
+O usuário não tem como escolher ou especificar melhor.
 
-### Hierarquia de Prioridades (baseada no uso esperado):
-1. **Início** - Ponto central
-2. **Closet** - Core feature
-3. **Looks/Recomendações** - Discovery
-4. **Provador** - Feature premium
-5. **Mais** → Cores, Voyager, Agenda
+### Solução Proposta
 
----
+Modificar o fluxo em 2 partes:
 
-## Implementação
+**A) Edge Function (`get-trip-weather/index.ts`)**
+- Retornar os 5 primeiros resultados do geocoding com metadados (nome, país, região/estado, coordenadas)
+- Adicionar um novo endpoint/modo "geocode-only" que retorna apenas as opções de locais
 
-### 1) Atualizar `BottomNav.tsx`
-
-Substituir o 5º item ("Provador" ou "Cores") por um menu "Mais" que abre um Sheet com:
-- Cores (Paleta)
-- Provador
-- Voyager (Viagens)
-- Agenda
+**B) TripPlanner.tsx**
+- Após digitar o destino e clicar "Analisar", se houver múltiplos resultados:
+  - Exibir um modal/sheet com as opções de localização
+  - Mostrar cada opção com nome, região, país e bandeira
+  - Usuário seleciona a localização correta
+  - Só então prosseguir com a análise de clima
 
 ```text
 ┌─────────────────────────────────────────────┐
-│  🏠    👗    ✨    📷    •••              │
-│ Início Closet Looks Provador Mais           │
-└─────────────────────────────────────────────┘
-
-Ao clicar "Mais":
-┌─────────────────────────────────────────────┐
-│            Mais Opções                      │
+│     Qual "Paris" você quis dizer?          │
 ├─────────────────────────────────────────────┤
-│  🎨  Minha Paleta                          │
-│  ✈️  Voyager                                │
-│  📅  Agenda                                 │
-│  ⚙️  Configurações                          │
+│  🇫🇷  Paris, Île-de-France, França        │
+│  🇺🇸  Paris, Texas, Estados Unidos        │
+│  🇺🇸  Paris, Tennessee, Estados Unidos    │
+│  🇨🇦  Paris, Ontário, Canadá              │
 └─────────────────────────────────────────────┘
 ```
 
-### 2) Atualizar `Header.tsx` (Desktop)
-
-Adicionar Voyager à navegação principal:
-
-```text
-Início | Closet | Looks | Cores | Provador | Voyager | Agenda
-```
-
-Ou agrupar em dropdown se ficar muito longo:
-- Opção A: Todos os 7 links visíveis
-- Opção B: Agrupar "Voyager + Agenda" em "Planejamento"
-
-### 3) Melhorar `QuickActions.tsx`
-
-Adicionar atalho para Agenda:
-
-```text
-┌────────┬────────┬────────┬────────┐
-│Nova    │Provador│Paleta  │Viagens │
-│Peça    │        │        │        │
-├────────┼────────┼────────┼────────┤
-│Agenda  │        │        │        │
-│        │        │        │        │
-└────────┴────────┴────────┴────────┘
-```
-
-Ou manter 4 itens e rotacionar baseado em contexto (ex: se tem evento próximo, mostrar Agenda).
+### Arquivos a Modificar
+1. `supabase/functions/get-trip-weather/index.ts` - Adicionar modo de geocoding múltiplo
+2. `src/components/voyager/TripPlanner.tsx` - Adicionar modal de seleção de local
+3. Criar novo componente `LocationPicker.tsx` - Modal de desambiguação
 
 ---
 
-## Arquivos a Modificar
+## 2. Navegação de Looks Sugeridos
 
-1. **`src/components/layout/BottomNav.tsx`**
-   - Reduzir para 4 itens fixos + 1 "Mais"
-   - Adicionar Sheet/Dropdown com links secundários
-   - Importar ícones: `Plane`, `Calendar`, `MoreHorizontal`
+### Problema Atual
+O componente `SuggestedLooks` usa um scroll horizontal com cards de 208px (w-52). Quando há muitos looks (3+), a navegação pode ficar confusa e não há indicadores visuais claros.
 
-2. **`src/components/layout/Header.tsx`**
-   - Adicionar Voyager ao array `navLinks`
-   - Opcionalmente reorganizar ordem
+### Solução Proposta
 
-3. **`src/components/dashboard/QuickActions.tsx`**
-   - Adicionar Agenda ou manter como está (já tem 4 itens bem distribuídos)
+**A) Adicionar indicadores de scroll**
+- Bullets/dots indicando quantidade de looks
+- Setas de navegação (prev/next) nos extremos
+
+**B) Melhorar layout para muitos itens**
+- Se > 4 looks: usar carousel com paginação
+- Adicionar contador "2 de 6"
+- Snap scroll para melhor UX mobile
+
+**C) Opcional: View expandida**
+- Botão "Ver todos" que abre sheet com grid de looks
+
+### Arquivos a Modificar
+1. `src/components/voyager/SuggestedLooks.tsx` - Adicionar navegação e indicadores
 
 ---
 
-## Considerações Técnicas
+## 3. Persistência Completa de Dados da Viagem
 
-### Prefetch para novas rotas
-Adicionar prefetch para `/voyager` e `/events`:
+### Problema Atual
+O banco de dados `trips` armazena apenas:
+- destination, start_date, end_date, trip_type
+- packed_items (array de IDs)
+- packing_list (JSON categorizado)
+
+**Não são persistidos:**
+- `weather` (summary, temps, conditions)
+- `trip_brief` (texto editorial)
+- `recommendations.tips` (dicas categorizadas)
+- `recommendations.suggested_looks` (looks sugeridos)
+
+Isso significa que ao visualizar uma viagem criada, perdemos:
+- Resumo do clima
+- Mantra/mood
+- Dicas locais
+- Looks sugeridos
+
+### Solução Proposta
+
+**A) Modificar schema do banco**
+Adicionar nova coluna JSONB para armazenar todos os metadados da análise:
+
+```sql
+ALTER TABLE trips 
+ADD COLUMN trip_analysis jsonb DEFAULT NULL;
+```
+
+O campo `trip_analysis` armazenará:
+```json
+{
+  "weather": {
+    "summary": "...",
+    "climate_vibe": "tropical_beach",
+    "packing_mood": "...",
+    "temp_min": 22,
+    "temp_max": 30,
+    "rain_probability": 30,
+    "conditions": ["sunny", "partly_cloudy"]
+  },
+  "trip_brief": "...",
+  "tips": {
+    "essentials": [...],
+    "local_culture": [...],
+    "avoid": [...],
+    "pro_tips": [...]
+  },
+  "suggested_looks": [...]
+}
+```
+
+**B) Atualizar criação de viagem**
+Modificar `TripPlanner` para salvar os dados completos:
 
 ```typescript
-case '/voyager':
-  queryClient.prefetchQuery({
-    queryKey: ['trips', user.id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('trips')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('start_date', { ascending: false });
-      return data || [];
-    },
-    staleTime: 1000 * 60 * 5,
-  });
-  break;
-case '/events':
-  queryClient.prefetchQuery({
-    queryKey: ['user-events', user.id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('user_events')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('event_date', { ascending: true });
-      return data || [];
-    },
-    staleTime: 1000 * 60 * 5,
-  });
-  break;
+onCreateTrip({
+  destination,
+  start_date: startDate,
+  end_date: endDate,
+  trip_type: tripType,
+  packed_items: packedItems,
+  packing_list: weatherData?.packing_list,
+  trip_analysis: {
+    weather: weatherData?.weather,
+    trip_brief: weatherData?.trip_brief,
+    tips: weatherData?.recommendations.tips,
+    suggested_looks: weatherData?.recommendations.suggested_looks,
+  },
+});
 ```
 
-### Componente do Menu "Mais"
-Usar `Sheet` do shadcn para mobile (mais touch-friendly) ou `DropdownMenu` para desktop.
+**C) Atualizar TripDetailSheet**
+Exibir os dados completos no relatório da viagem:
+- Seção de clima (WeatherPreview)
+- Trip Brief
+- Dicas categorizadas
+- Looks sugeridos
+
+**D) Atualizar PDF Generator**
+Incluir no PDF todas as informações:
+- Resumo climático
+- Trip brief editorial
+- Dicas de viagem (essenciais, cultura local, evitar, pro tips)
+- Looks sugeridos com descrições
+
+### Arquivos a Modificar
+1. **Migração SQL** - Adicionar coluna `trip_analysis`
+2. `src/pages/Voyager.tsx` - Ajustar tipagem do Trip
+3. `src/components/voyager/TripPlanner.tsx` - Salvar dados completos
+4. `src/components/voyager/TripDetailSheet.tsx` - Exibir relatório completo
+5. `src/lib/pdf-generator.ts` - Gerar PDF com todos os dados
 
 ---
 
-## Resumo das Mudanças
+## Resumo de Arquivos
 
-| Menu | Antes | Depois |
-|------|-------|--------|
-| **BottomNav** | 5 itens fixos | 4 fixos + "Mais" (agrupa Cores, Voyager, Agenda, Config) |
-| **Header** | 6 links | 7 links (+ Voyager) |
-| **QuickActions** | 4 atalhos | Manter ou adicionar Agenda |
+| Arquivo | Modificação |
+|---------|-------------|
+| **Migração SQL** | Nova coluna `trip_analysis` |
+| `get-trip-weather/index.ts` | Retornar múltiplos resultados geocoding |
+| `TripPlanner.tsx` | Modal de seleção de local + salvar dados completos |
+| **LocationPicker.tsx** (novo) | Componente de desambiguação de local |
+| `SuggestedLooks.tsx` | Navegação melhorada com indicadores |
+| `TripDetailSheet.tsx` | Exibir relatório completo com clima, dicas, looks |
+| `pdf-generator.ts` | Incluir clima, trip brief, dicas, looks no PDF |
+| `Voyager.tsx` | Atualizar tipagem e mutação |
 
-Resultado: Todas as funcionalidades principais ficam acessíveis em no máximo 2 toques.
+---
+
+## Fluxo Atualizado
+
+```text
+1. Usuário digita "Paris"
+         ↓
+2. Sistema busca localizações
+         ↓
+3. [SE múltiplos resultados]
+   → Exibe modal de seleção
+   → Usuário escolhe "Paris, França"
+         ↓
+4. Análise de clima + IA
+         ↓
+5. Exibe resultados com:
+   - Weather Preview
+   - Trip Brief
+   - Checklist categorizado
+   - Looks com navegação melhorada
+         ↓
+6. Usuário clica "Criar Viagem"
+         ↓
+7. SALVA TUDO:
+   - Destino, datas, tipo
+   - Packing list
+   - Weather analysis (NOVO)
+   - Trip brief (NOVO)
+   - Tips (NOVO)
+   - Suggested looks (NOVO)
+         ↓
+8. Consulta posterior:
+   - TripDetailSheet exibe TUDO
+   - PDF exporta TUDO
+```
+
+---
+
+## Prioridade de Implementação
+
+1. **Alta**: Persistência de dados (sem isso, informações são perdidas)
+2. **Alta**: Desambiguação de locais (evita erros de clima)
+3. **Média**: Navegação de looks (UX improvement)
