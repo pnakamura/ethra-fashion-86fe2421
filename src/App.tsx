@@ -18,6 +18,7 @@ import { PageLoader } from "@/components/ui/PageLoader";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Landing from "./pages/Landing";
+import StyleQuiz from "./pages/StyleQuiz";
 
 // Lazy-loaded routes - code split for performance
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -81,6 +82,7 @@ function AppRoutes() {
             {/* Critical routes */}
             <Route path="/" element={<Index />} />
             <Route path="/welcome" element={<Landing />} />
+            <Route path="/quiz" element={<StyleQuiz />} />
             <Route path="/auth" element={<Auth />} />
             
             {/* Lazy-loaded routes */}

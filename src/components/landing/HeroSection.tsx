@@ -103,7 +103,7 @@ export function HeroSection() {
             <Button
               size="lg"
               className="group text-lg px-8 py-6 gradient-primary text-primary-foreground shadow-glow hover:shadow-elevated transition-all duration-300"
-              onClick={() => navigate('/auth?mode=signup')}
+              onClick={() => navigate('/quiz')}
             >
               Descobrir meu estilo
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
