@@ -23,17 +23,10 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { TripReport } from './TripReport';
+import { SuggestedLooks } from './SuggestedLooks';
 import type { PackingList, PackingItem } from './PackingChecklist';
-
-interface Trip {
-  id: string;
-  destination: string;
-  start_date: string;
-  end_date: string;
-  trip_type: string;
-  packed_items: string[];
-  packing_list?: PackingList | null;
-}
+import type { Trip, TripAnalysis } from '@/types/trip';
 
 interface TripDetailSheetProps {
   trip: Trip | null;
@@ -215,7 +208,7 @@ export function TripDetailSheet({
   const [hasChanges, setHasChanges] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Initialize local state when trip changes - FIXED: using useEffect instead of useState
+  // Initialize local state when trip changes
   useEffect(() => {
     if (trip?.packing_list) {
       setLocalPackingList(trip.packing_list);
@@ -296,6 +289,9 @@ export function TripDetailSheet({
   const totalItems = allItems.length;
   const inWardrobeCount = allItems.filter(({ item }) => item.in_wardrobe).length;
 
+  // Get trip analysis data
+  const tripAnalysis = trip.trip_analysis;
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-[90vh] rounded-t-3xl">
@@ -343,6 +339,24 @@ export function TripDetailSheet({
                 Calendário
               </Button>
             </div>
+
+            {/* Trip Report - Weather, Brief, Tips */}
+            {tripAnalysis && (
+              <TripReport 
+                tripAnalysis={tripAnalysis} 
+                tripBrief={tripAnalysis.trip_brief}
+              />
+            )}
+
+            {/* Suggested Looks from saved analysis */}
+            {tripAnalysis?.suggested_looks && tripAnalysis.suggested_looks.length > 0 && (
+              <SuggestedLooks
+                looks={tripAnalysis.suggested_looks}
+                wardrobeItems={wardrobeItems}
+                onAddLook={() => {}} // Read-only in detail view
+                selectedItems={trip.packed_items}
+              />
+            )}
 
             {/* Summary */}
             {totalItems > 0 && (

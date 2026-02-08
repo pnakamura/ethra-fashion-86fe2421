@@ -2,17 +2,7 @@ import { motion } from 'framer-motion';
 import { Plane, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TripCard } from './TripCard';
-import type { PackingList } from './PackingChecklist';
-
-interface Trip {
-  id: string;
-  destination: string;
-  start_date: string;
-  end_date: string;
-  trip_type: string;
-  packed_items: string[];
-  packing_list?: PackingList | null;
-}
+import type { Trip } from '@/types/trip';
 
 interface TripListProps {
   trips: Trip[];

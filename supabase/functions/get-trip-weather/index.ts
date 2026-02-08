@@ -100,13 +100,30 @@ function inferClimateVibe(conditions: string[], tempAvg: number): string {
   return "versatile_weather";
 }
 
-async function geocodeDestination(destination: string): Promise<{ lat: number; lon: number; name: string } | null> {
-  console.log(`Geocoding destination: ${destination}`);
+interface GeocodingResult {
+  lat: number;
+  lon: number;
+  name: string;
+  admin1?: string;  // state/region
+  country: string;
+  country_code: string;
+}
+
+// Country code to flag emoji mapping
+function getCountryFlag(countryCode: string): string {
+  const code = countryCode.toUpperCase();
+  return code
+    .split('')
+    .map(char => String.fromCodePoint(127397 + char.charCodeAt(0)))
+    .join('');
+}
+
+async function geocodeDestinationMultiple(destination: string, count = 5): Promise<GeocodingResult[]> {
+  console.log(`Geocoding destination (multiple): ${destination}`);
   
   const searchTerms = [
     destination,
     destination.split(',')[0].trim(),
-    destination.replace(/,/g, ' ').trim(),
   ];
   
   for (const term of searchTerms) {
@@ -114,7 +131,7 @@ async function geocodeDestination(destination: string): Promise<{ lat: number; l
       console.log(`Trying geocoding with: ${term}`);
       
       const response = await fetch(
-        `${OPEN_METEO_GEOCODING}?name=${encodeURIComponent(term)}&count=5&language=pt&format=json`
+        `${OPEN_METEO_GEOCODING}?name=${encodeURIComponent(term)}&count=${count}&language=pt&format=json`
       );
       
       if (!response.ok) {
@@ -125,14 +142,21 @@ async function geocodeDestination(destination: string): Promise<{ lat: number; l
       const data = await response.json();
       
       if (data.results && data.results.length > 0) {
-        const result = data.results[0];
-        console.log(`Geocoded to: ${result.name}, ${result.country} (${result.latitude}, ${result.longitude})`);
-        
-        return {
+        return data.results.map((result: {
+          latitude: number;
+          longitude: number;
+          name: string;
+          admin1?: string;
+          country: string;
+          country_code: string;
+        }) => ({
           lat: result.latitude,
           lon: result.longitude,
-          name: `${result.name}, ${result.country}`,
-        };
+          name: result.name,
+          admin1: result.admin1,
+          country: result.country,
+          country_code: result.country_code || 'XX',
+        }));
       }
     } catch (error) {
       console.error("Geocoding error for term:", term, error);
@@ -140,7 +164,21 @@ async function geocodeDestination(destination: string): Promise<{ lat: number; l
   }
   
   console.log("No geocoding results found for any search term");
-  return null;
+  return [];
+}
+
+async function geocodeDestination(destination: string): Promise<{ lat: number; lon: number; name: string } | null> {
+  const results = await geocodeDestinationMultiple(destination, 1);
+  if (results.length === 0) return null;
+  
+  const result = results[0];
+  return {
+    lat: result.lat,
+    lon: result.lon,
+    name: result.admin1 
+      ? `${result.name}, ${result.admin1}, ${result.country}`
+      : `${result.name}, ${result.country}`,
+  };
 }
 
 async function getWeatherData(
@@ -648,30 +686,48 @@ serve(async (req) => {
   }
   
   try {
-    const { destination, start_date, end_date, trip_type, user_id } = await req.json();
+    const { destination, start_date, end_date, trip_type, user_id, mode } = await req.json();
     
-    console.log(`Processing trip weather request: ${destination}, ${start_date} to ${end_date}`);
+    console.log(`Processing trip weather request: ${destination}, mode: ${mode || 'full'}`);
     
-    if (!destination || !start_date || !end_date) {
+    if (!destination) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields: destination, start_date, end_date" }),
+        JSON.stringify({ error: "Missing required field: destination" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     
-    const location = await geocodeDestination(destination);
-    if (!location) {
+    // GEOCODE-ONLY MODE: Return multiple location options
+    if (mode === 'geocode') {
+      const locations = await geocodeDestinationMultiple(destination, 5);
+      
+      if (locations.length === 0) {
+        return new Response(
+          JSON.stringify({ error: "Could not find destination. Try a more specific location." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      // Add flag emoji to each location
+      const locationsWithFlags = locations.map(loc => ({
+        ...loc,
+        flag: getCountryFlag(loc.country_code),
+        display_name: loc.admin1 
+          ? `${loc.name}, ${loc.admin1}, ${loc.country}`
+          : `${loc.name}, ${loc.country}`,
+      }));
+      
       return new Response(
-        JSON.stringify({ error: "Could not find destination. Try a more specific location." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ locations: locationsWithFlags }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     
-    const weather = await getWeatherData(location.lat, location.lon, start_date, end_date);
-    if (!weather) {
+    // FULL ANALYSIS MODE (default)
+    if (!start_date || !end_date) {
       return new Response(
-        JSON.stringify({ error: "Could not fetch weather data for this period." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "Missing required fields: start_date, end_date" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     

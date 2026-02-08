@@ -4,18 +4,10 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import type { PackingList } from './PackingChecklist';
+import type { Trip } from '@/types/trip';
 
 interface TripCardProps {
-  trip: {
-    id: string;
-    destination: string;
-    start_date: string;
-    end_date: string;
-    trip_type: string;
-    packed_items: string[];
-    packing_list?: PackingList | null;
-  };
+  trip: Trip;
   onClick: () => void;
 }
 

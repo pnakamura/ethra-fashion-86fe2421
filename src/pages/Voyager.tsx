@@ -12,17 +12,8 @@ import { useToast } from '@/hooks/use-toast';
 import { downloadPackingListPDF } from '@/lib/pdf-generator';
 import { openGoogleCalendar } from '@/lib/google-calendar';
 import type { PackingList } from '@/components/voyager/PackingChecklist';
+import type { Trip, TripAnalysis, CreateTripParams } from '@/types/trip';
 import type { Json } from '@/integrations/supabase/types';
-
-interface Trip {
-  id: string;
-  destination: string;
-  start_date: string;
-  end_date: string;
-  trip_type: string;
-  packed_items: string[];
-  packing_list?: PackingList | null;
-}
 
 // Helper to safely parse packing list from JSON
 function parsePackingList(json: Json | null): PackingList | null {
@@ -37,6 +28,22 @@ function parsePackingList(json: Json | null): PackingList | null {
     return obj as unknown as PackingList;
   }
   return null;
+}
+
+// Helper to safely parse trip analysis from JSON
+function parseTripAnalysis(json: Json | null): TripAnalysis | null {
+  if (!json || typeof json !== 'object' || Array.isArray(json)) return null;
+  const obj = json as Record<string, unknown>;
+  
+  // Check for required weather field
+  if (!obj.weather || typeof obj.weather !== 'object') return null;
+  
+  return {
+    weather: obj.weather as TripAnalysis['weather'],
+    trip_brief: typeof obj.trip_brief === 'string' ? obj.trip_brief : '',
+    tips: (obj.tips as TripAnalysis['tips']) || { essentials: [], local_culture: [], avoid: [], pro_tips: [] },
+    suggested_looks: Array.isArray(obj.suggested_looks) ? obj.suggested_looks as TripAnalysis['suggested_looks'] : [],
+  };
 }
 
 export default function Voyager() {
@@ -80,6 +87,7 @@ export default function Voyager() {
         trip_type: row.trip_type || 'leisure',
         packed_items: row.packed_items || [],
         packing_list: parsePackingList(row.packing_list),
+        trip_analysis: parseTripAnalysis((row as { trip_analysis?: Json }).trip_analysis || null),
       })) as Trip[];
     },
     enabled: !!user,
@@ -87,14 +95,7 @@ export default function Voyager() {
 
   // Create trip mutation
   const createTrip = useMutation({
-    mutationFn: async (trip: { 
-      destination: string; 
-      start_date: string; 
-      end_date: string; 
-      trip_type: string; 
-      packed_items: string[];
-      packing_list?: PackingList;
-    }) => {
+    mutationFn: async (trip: CreateTripParams) => {
       if (!user) throw new Error('Not authenticated');
       
       // Validate packed_items - only allow valid UUIDs
@@ -109,6 +110,7 @@ export default function Voyager() {
         trip_type: trip.trip_type,
         packed_items: validPackedItems,
         packing_list: trip.packing_list as unknown as Json,
+        trip_analysis: trip.trip_analysis as unknown as Json,
       });
       if (error) throw error;
     },
@@ -134,6 +136,9 @@ export default function Voyager() {
       const dbUpdates: Record<string, unknown> = { ...updates };
       if (updates.packing_list) {
         dbUpdates.packing_list = updates.packing_list as unknown as Json;
+      }
+      if (updates.trip_analysis) {
+        dbUpdates.trip_analysis = updates.trip_analysis as unknown as Json;
       }
       const { error } = await supabase
         .from('trips')

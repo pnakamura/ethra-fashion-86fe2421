@@ -351,6 +351,7 @@ export type Database = {
           packed_items: string[] | null
           packing_list: Json | null
           start_date: string
+          trip_analysis: Json | null
           trip_type: string | null
           user_id: string
         }
@@ -362,6 +363,7 @@ export type Database = {
           packed_items?: string[] | null
           packing_list?: Json | null
           start_date: string
+          trip_analysis?: Json | null
           trip_type?: string | null
           user_id: string
         }
@@ -373,6 +375,7 @@ export type Database = {
           packed_items?: string[] | null
           packing_list?: Json | null
           start_date?: string
+          trip_analysis?: Json | null
           trip_type?: string | null
           user_id?: string
         }
