@@ -5,7 +5,7 @@ import { useBackgroundSettings, BackgroundVariant, ThemeMode } from '@/contexts/
 const defaultBackgroundImages: Record<ThemeMode, Record<Exclude<BackgroundVariant, 'none' | 'custom'>, string>> = {
   light: {
     abstract: '/images/backgrounds/abstract-light.jpeg',
-    portrait: '/images/backgrounds/art-background-1.jpeg',
+    portrait: '/images/backgrounds/portrait-light.jpeg',
   },
   dark: {
     abstract: '/images/backgrounds/abstract-dark.png',
