@@ -41,6 +41,22 @@ export function TripPlanner({ wardrobeItems, onCreateTrip, userId }: TripPlanner
   
   const { analyze, geocode, isLoading, isGeocoding } = useTripWeather();
 
+  // Check if there's real ambiguity between locations
+  const checkAmbiguity = (locations: LocationOption[]): boolean => {
+    if (locations.length <= 1) return false;
+    
+    // Check for different countries
+    const countries = new Set(locations.map(l => l.country_code));
+    if (countries.size > 1) return true;
+    
+    // Check for different states/regions in the same country
+    const regions = new Set(locations.map(l => l.admin1 || ''));
+    if (regions.size > 1) return true;
+    
+    // Same country and region = no ambiguity
+    return false;
+  };
+
   const toggleItem = (id: string) => {
     setPackedItems((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
@@ -64,11 +80,14 @@ export function TripPlanner({ wardrobeItems, onCreateTrip, userId }: TripPlanner
       return; // Error already handled by hook
     }
     
-    if (locations.length === 1) {
-      // Single result - proceed directly
+    // Check if there's real ambiguity
+    const needsDisambiguation = checkAmbiguity(locations);
+    
+    if (locations.length === 1 || !needsDisambiguation) {
+      // Single result or no ambiguity - proceed directly
       await handleSelectLocation(locations[0]);
     } else {
-      // Multiple results - show picker
+      // Multiple ambiguous results - show picker
       setLocationOptions(locations);
       setStep('location');
     }
