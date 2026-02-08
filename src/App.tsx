@@ -51,7 +51,7 @@ const queryClient = new QueryClient({
 function AppProviders({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
         <AuthProvider>
           <SubscriptionProvider>
             <TemporarySeasonProvider>

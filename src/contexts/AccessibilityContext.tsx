@@ -29,7 +29,15 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
   // Load preferences on mount
   useEffect(() => {
     const loadPreferences = async () => {
-      // First check localStorage for immediate feedback
+      // For non-logged users, always force light theme
+      if (!user) {
+        setTheme('light');
+        setThemePreferenceState('light');
+        setIsLoading(false);
+        return;
+      }
+
+      // Only for logged-in users: load preferences
       const savedFontSize = localStorage.getItem(FONT_SIZE_KEY) as FontSize;
       const savedTheme = localStorage.getItem(THEME_KEY) as ThemePreference;
 
@@ -43,33 +51,31 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
         setTheme(savedTheme);
       }
 
-      // Then sync with database if user is logged in
-      if (user) {
-        try {
-          const { data } = await supabase
-            .from('profiles')
-            .select('theme_preference, font_size')
-            .eq('user_id', user.id)
-            .single();
+      // Sync with database for logged-in users
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('theme_preference, font_size')
+          .eq('user_id', user.id)
+          .single();
 
-          if (data) {
-            if (data.font_size) {
-              const dbFontSize = data.font_size as FontSize;
-              setFontSizeState(dbFontSize);
-              applyFontSize(dbFontSize);
-              localStorage.setItem(FONT_SIZE_KEY, dbFontSize);
-            }
-
-            if (data.theme_preference) {
-              const dbTheme = data.theme_preference as ThemePreference;
-              setThemePreferenceState(dbTheme);
-              setTheme(dbTheme);
-              localStorage.setItem(THEME_KEY, dbTheme);
-            }
+        if (data) {
+          if (data.font_size) {
+            const dbFontSize = data.font_size as FontSize;
+            setFontSizeState(dbFontSize);
+            applyFontSize(dbFontSize);
+            localStorage.setItem(FONT_SIZE_KEY, dbFontSize);
           }
-        } catch (error) {
-          console.error('Error loading preferences:', error);
+
+          if (data.theme_preference) {
+            const dbTheme = data.theme_preference as ThemePreference;
+            setThemePreferenceState(dbTheme);
+            setTheme(dbTheme);
+            localStorage.setItem(THEME_KEY, dbTheme);
+          }
         }
+      } catch (error) {
+        console.error('Error loading preferences:', error);
       }
 
       setIsLoading(false);
@@ -101,19 +107,22 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
   };
 
   const setThemePreference = async (theme: ThemePreference) => {
+    // Only allow theme changes for logged-in users
+    if (!user) {
+      return;
+    }
+
     setThemePreferenceState(theme);
     setTheme(theme);
     localStorage.setItem(THEME_KEY, theme);
 
-    if (user) {
-      try {
-        await supabase
-          .from('profiles')
-          .update({ theme_preference: theme })
-          .eq('user_id', user.id);
-      } catch (error) {
-        console.error('Error saving theme:', error);
-      }
+    try {
+      await supabase
+        .from('profiles')
+        .update({ theme_preference: theme })
+        .eq('user_id', user.id);
+    } catch (error) {
+      console.error('Error saving theme:', error);
     }
   };
 

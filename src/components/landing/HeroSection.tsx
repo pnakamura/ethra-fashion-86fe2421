@@ -1,17 +1,11 @@
 import { motion } from 'framer-motion';
 import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Sparkles, ArrowRight, Sun, Moon } from 'lucide-react';
+import { Sparkles, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from 'next-themes';
 
 export function HeroSection() {
   const navigate = useNavigate();
-  const { resolvedTheme, setTheme } = useTheme();
-
-  const toggleTheme = () => {
-    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
-  };
 
   // Memoize particles to prevent recreation on every render
   const particles = useMemo(() => {
@@ -52,22 +46,6 @@ export function HeroSection() {
             }}
           />
         ))}
-      </div>
-
-      {/* Theme toggle */}
-      <div className="absolute top-6 right-6 z-20">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={toggleTheme}
-          className="rounded-full border-primary/30 hover:bg-primary/10 dark:border-primary/40 dark:hover:bg-primary/20"
-        >
-          {resolvedTheme === 'dark' ? (
-            <Sun className="w-5 h-5 text-primary" />
-          ) : (
-            <Moon className="w-5 h-5 text-primary" />
-          )}
-        </Button>
       </div>
 
       {/* Content */}
