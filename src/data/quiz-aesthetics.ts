@@ -1,3 +1,10 @@
+import oldMoneyImage from '@/assets/aesthetics/old-money.jpg';
+import streetwearImage from '@/assets/aesthetics/streetwear.jpg';
+import minimalistImage from '@/assets/aesthetics/minimalist.jpg';
+import bohoChicImage from '@/assets/aesthetics/boho-chic.jpg';
+import romanticImage from '@/assets/aesthetics/romantic.jpg';
+import avantGardeImage from '@/assets/aesthetics/avant-garde.jpg';
+
 export interface Aesthetic {
   id: string;
   name: string;
@@ -6,13 +13,6 @@ export interface Aesthetic {
   gradient: string;
   imageUrl?: string;
 }
-
-import oldMoneyImage from '@/assets/aesthetics/old-money.jpg';
-import streetwearImage from '@/assets/aesthetics/streetwear.jpg';
-import minimalistImage from '@/assets/aesthetics/minimalist.jpg';
-import bohoChicImage from '@/assets/aesthetics/boho-chic.jpg';
-import romanticImage from '@/assets/aesthetics/romantic.jpg';
-import avantGardeImage from '@/assets/aesthetics/avant-garde.jpg';
 
 export const aesthetics: Aesthetic[] = [
   {
