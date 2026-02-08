@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { ConsentCheckbox, AgeConfirmationCheckbox } from '@/components/legal/ConsentCheckbox';
+import { supabase } from '@/integrations/supabase/client';
+import { clearSavedQuizData } from '@/hooks/useStyleQuiz';
 import { z } from 'zod';
 
 const authSchema = z.object({
@@ -14,9 +16,23 @@ const authSchema = z.object({
   password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
 });
 
+interface QuizData {
+  aesthetics?: string[];
+  painPoint?: string;
+  skinTone?: string;
+  undertone?: string;
+  hairColor?: string;
+  silhouette?: string;
+  styleDNA?: string;
+}
+
 export default function Auth() {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const mode = searchParams.get('mode');
+  
+  // Get quiz data from navigation state
+  const quizData = (location.state as { quizData?: QuizData })?.quizData;
   
   const [isLogin, setIsLogin] = useState(mode !== 'signup');
   const [email, setEmail] = useState('');
@@ -29,6 +45,36 @@ export default function Auth() {
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Save quiz data to profile after successful signup
+  const saveQuizDataToProfile = async (userId: string) => {
+    if (!quizData) return;
+
+    try {
+      const stylePreferences = {
+        aesthetics: quizData.aesthetics || [],
+        painPoint: quizData.painPoint,
+        skinTone: quizData.skinTone,
+        undertone: quizData.undertone,
+        hairColor: quizData.hairColor,
+        silhouette: quizData.silhouette,
+        styleDNA: quizData.styleDNA,
+        quizCompletedAt: new Date().toISOString(),
+      };
+
+      await supabase
+        .from('profiles')
+        .update({
+          style_preferences: stylePreferences,
+        })
+        .eq('user_id', userId);
+
+      // Clear saved quiz data from localStorage
+      clearSavedQuizData();
+    } catch (error) {
+      console.error('Error saving quiz data:', error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,9 +126,17 @@ export default function Auth() {
         });
       } else {
         if (!isLogin) {
+          // Save quiz data if available
+          const { data } = await supabase.auth.getUser();
+          if (data.user && quizData) {
+            await saveQuizDataToProfile(data.user.id);
+          }
+
           toast({
             title: 'Conta criada!',
-            description: 'Bem-vinda ao Ethra.',
+            description: quizData 
+              ? 'Seu DNA de estilo foi salvo. Bem-vinda ao Ethra!'
+              : 'Bem-vinda ao Ethra.',
           });
           navigate('/onboarding');
         } else {

@@ -39,9 +39,9 @@ export function CTASection() {
         <Button
           size="lg"
           className="group text-lg px-10 py-7 gradient-primary text-primary-foreground shadow-glow hover:shadow-elevated transition-all duration-300"
-          onClick={() => navigate('/auth?mode=signup')}
+          onClick={() => navigate('/quiz')}
         >
-          Criar minha conta grátis
+          Descobrir meu estilo grátis
           <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
         </Button>
 
