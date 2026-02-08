@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
 import { aesthetics, type Aesthetic } from '@/data/quiz-aesthetics';
 import { cn } from '@/lib/utils';
+import { OptimizedImage } from '@/components/ui/OptimizedImage';
 
 interface AestheticPickerProps {
   selected: string[];
@@ -55,16 +56,25 @@ function AestheticCard({
         disabled && !isSelected && 'opacity-40 cursor-not-allowed'
       )}
     >
-      {/* Gradient background */}
-      <div
-        className={cn(
-          'absolute inset-0 bg-gradient-to-br',
-          aesthetic.gradient
-        )}
-      />
+      {/* Background image with gradient fallback */}
+      {aesthetic.imageUrl ? (
+        <OptimizedImage
+          src={aesthetic.imageUrl}
+          alt={aesthetic.name}
+          className="absolute inset-0 w-full h-full object-cover"
+          aspectRatio="auto"
+        />
+      ) : (
+        <div
+          className={cn(
+            'absolute inset-0 bg-gradient-to-br',
+            aesthetic.gradient
+          )}
+        />
+      )}
 
-      {/* Pattern overlay */}
-      <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_70%)]" />
+      {/* Dark overlay for text legibility */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
 
       {/* Content */}
       <div className="absolute inset-0 flex flex-col justify-end p-4 bg-gradient-to-t from-black/70 via-black/30 to-transparent">

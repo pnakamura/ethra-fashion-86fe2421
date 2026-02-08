@@ -7,6 +7,13 @@ export interface Aesthetic {
   imageUrl?: string;
 }
 
+import oldMoneyImage from '@/assets/aesthetics/old-money.jpg';
+import streetwearImage from '@/assets/aesthetics/streetwear.jpg';
+import minimalistImage from '@/assets/aesthetics/minimalist.jpg';
+import bohoChicImage from '@/assets/aesthetics/boho-chic.jpg';
+import romanticImage from '@/assets/aesthetics/romantic.jpg';
+import avantGardeImage from '@/assets/aesthetics/avant-garde.jpg';
+
 export const aesthetics: Aesthetic[] = [
   {
     id: 'old-money',
@@ -14,6 +21,7 @@ export const aesthetics: Aesthetic[] = [
     description: 'Luxo discreto e atemporal',
     keywords: ['tons neutros', 'cashmere', 'pérolas', 'alfaiataria'],
     gradient: 'from-amber-900/80 to-stone-800/80',
+    imageUrl: oldMoneyImage,
   },
   {
     id: 'streetwear',
@@ -21,6 +29,7 @@ export const aesthetics: Aesthetic[] = [
     description: 'Atitude urbana e autêntica',
     keywords: ['sneakers', 'hoodies', 'logos', 'oversized'],
     gradient: 'from-zinc-900/80 to-neutral-800/80',
+    imageUrl: streetwearImage,
   },
   {
     id: 'minimalist',
@@ -28,6 +37,7 @@ export const aesthetics: Aesthetic[] = [
     description: 'Menos é mais',
     keywords: ['linhas limpas', 'monocromático', 'essencial'],
     gradient: 'from-slate-800/80 to-gray-700/80',
+    imageUrl: minimalistImage,
   },
   {
     id: 'boho-chic',
@@ -35,6 +45,7 @@ export const aesthetics: Aesthetic[] = [
     description: 'Livre e artístico',
     keywords: ['estampas', 'franjas', 'natureza', 'texturas'],
     gradient: 'from-orange-800/80 to-amber-700/80',
+    imageUrl: bohoChicImage,
   },
   {
     id: 'romantic',
@@ -42,6 +53,7 @@ export const aesthetics: Aesthetic[] = [
     description: 'Feminino e delicado',
     keywords: ['rendas', 'florais', 'tons pastel', 'laços'],
     gradient: 'from-rose-800/80 to-pink-700/80',
+    imageUrl: romanticImage,
   },
   {
     id: 'avant-garde',
@@ -49,6 +61,7 @@ export const aesthetics: Aesthetic[] = [
     description: 'Experimental e ousado',
     keywords: ['assimetria', 'texturas', 'monocromo', 'escultural'],
     gradient: 'from-violet-900/80 to-purple-800/80',
+    imageUrl: avantGardeImage,
   },
 ];
 
