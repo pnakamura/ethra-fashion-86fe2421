@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { SeasonDetailModal } from './SeasonDetailModal';
 import { AIDisclaimer } from '@/components/legal/AIDisclaimer';
+import { CelebrityDisclaimer } from '@/components/legal/CelebrityDisclaimer';
 import { chromaticSeasons } from '@/data/chromatic-seasons';
 import { toast } from 'sonner';
 import type { ColorAnalysisResult as AnalysisType } from '@/hooks/useColorAnalysis';
@@ -254,9 +255,7 @@ export function ColorAnalysisResult({
               </motion.span>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground mt-3">
-            Celebridades com a mesma paleta cromática
-          </p>
+          <CelebrityDisclaimer className="mt-3" />
         </motion.div>
       )}
 

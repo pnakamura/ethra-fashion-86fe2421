@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { AIDisclaimer } from '@/components/legal/AIDisclaimer';
 import {
   Sheet,
   SheetContent,
@@ -210,6 +211,7 @@ export function SuggestedLooks({ looks, wardrobeItems, onAddLook, selectedItems 
             <span className="text-xs text-muted-foreground">
               ({looks.length})
             </span>
+            <AIDisclaimer variant="compact" />
           </div>
           
           {looks.length > 2 && (

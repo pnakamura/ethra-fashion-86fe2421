@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AIDisclaimer } from '@/components/legal/AIDisclaimer';
 import { useLookRecommendations } from '@/hooks/useLookRecommendations';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -122,6 +123,7 @@ export const LookOfTheDay = memo(function LookOfTheDay() {
             <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
               {todayLook.color_harmony}
             </p>
+            <AIDisclaimer variant="compact" className="mt-2" />
           </div>
         </div>
         <div className="p-4 flex gap-2">

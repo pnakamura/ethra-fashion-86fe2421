@@ -206,6 +206,7 @@ export type Database = {
           age_confirmed_at: string | null
           avatar_url: string | null
           background_settings: Json | null
+          biometric_consent_at: string | null
           color_analysis: Json | null
           color_season: string | null
           created_at: string
@@ -213,11 +214,13 @@ export type Database = {
           id: string
           onboarding_complete: boolean | null
           privacy_accepted_at: string | null
+          privacy_version: string | null
           style_archetype: string | null
           style_preferences: Json | null
           subscription_expires_at: string | null
           subscription_plan_id: string | null
           terms_accepted_at: string | null
+          terms_version: string | null
           theme_preference: string | null
           updated_at: string
           user_id: string
@@ -229,6 +232,7 @@ export type Database = {
           age_confirmed_at?: string | null
           avatar_url?: string | null
           background_settings?: Json | null
+          biometric_consent_at?: string | null
           color_analysis?: Json | null
           color_season?: string | null
           created_at?: string
@@ -236,11 +240,13 @@ export type Database = {
           id?: string
           onboarding_complete?: boolean | null
           privacy_accepted_at?: string | null
+          privacy_version?: string | null
           style_archetype?: string | null
           style_preferences?: Json | null
           subscription_expires_at?: string | null
           subscription_plan_id?: string | null
           terms_accepted_at?: string | null
+          terms_version?: string | null
           theme_preference?: string | null
           updated_at?: string
           user_id: string
@@ -252,6 +258,7 @@ export type Database = {
           age_confirmed_at?: string | null
           avatar_url?: string | null
           background_settings?: Json | null
+          biometric_consent_at?: string | null
           color_analysis?: Json | null
           color_season?: string | null
           created_at?: string
@@ -259,11 +266,13 @@ export type Database = {
           id?: string
           onboarding_complete?: boolean | null
           privacy_accepted_at?: string | null
+          privacy_version?: string | null
           style_archetype?: string | null
           style_preferences?: Json | null
           subscription_expires_at?: string | null
           subscription_plan_id?: string | null
           terms_accepted_at?: string | null
+          terms_version?: string | null
           theme_preference?: string | null
           updated_at?: string
           user_id?: string

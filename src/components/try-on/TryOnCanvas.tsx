@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Download, Share2, RotateCcw, Heart, ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, Zap, Crown } from 'lucide-react';
+import { Sparkles, Download, Share2, RotateCcw, Heart, ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, Zap, Crown, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { AIDisclaimer } from '@/components/legal/AIDisclaimer';
 import { cn } from '@/lib/utils';
 
 interface TryOnResult {
@@ -164,9 +166,10 @@ export function TryOnCanvas({
   const currentFeedback = result?.user_feedback as 'like' | 'dislike' | null | undefined;
 
   return (
-    <Card className="overflow-hidden shadow-elevated">
-      {/* Canvas Area - Fluid height for correct proportions */}
-      <div className="relative bg-gradient-to-b from-secondary/50 to-secondary min-h-[300px]">
+    <TooltipProvider>
+      <Card className="overflow-hidden shadow-elevated">
+        {/* Canvas Area - Fluid height for correct proportions */}
+        <div className="relative bg-gradient-to-b from-secondary/50 to-secondary min-h-[300px]">
         <AnimatePresence mode="wait">
           {isProcessing ? (
             <motion.div
@@ -191,7 +194,10 @@ export function TryOnCanvas({
                 <Sparkles className="w-8 h-8 text-primary-foreground" />
               </motion.div>
               <p className="text-sm font-medium text-foreground">Processando prova virtual...</p>
-              <p className="text-xs text-muted-foreground mt-1">Isso pode levar alguns segundos</p>
+              <p className="text-xs text-muted-foreground mt-1">⏱️ Geralmente leva 15-30 segundos</p>
+              <p className="text-xs text-muted-foreground mt-3 max-w-[200px] text-center">
+                A IA está analisando proporções e ajustando a peça ao seu corpo.
+              </p>
             </motion.div>
           ) : isCorrectingImage ? (
             <motion.div
@@ -263,6 +269,23 @@ export function TryOnCanvas({
               
               {/* Model and processing time badge */}
               <div className="absolute top-3 right-3 flex items-center gap-2">
+                {/* Help tooltip */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 bg-background/80 backdrop-blur rounded-full">
+                      <HelpCircle className="w-4 h-4 text-muted-foreground" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-[280px]">
+                    <p className="text-xs font-medium mb-1">Sobre o provador virtual:</p>
+                    <ul className="text-xs space-y-1">
+                      <li>• Resultados são simulações de IA</li>
+                      <li>• Artefatos em mãos/dedos são comuns</li>
+                      <li>• Use "Tentar novamente" para melhor resultado</li>
+                      <li>• Prove a peça real antes de comprar</li>
+                    </ul>
+                  </TooltipContent>
+                </Tooltip>
                 <Badge variant="outline" className={cn("gap-1 bg-background/80 backdrop-blur", modelInfo.color)}>
                   <ModelIcon className="w-3 h-3" />
                   {modelInfo.label}
@@ -314,6 +337,9 @@ export function TryOnCanvas({
       {/* Actions */}
       {correctedImage && !isProcessing && !isCorrectingImage && (
         <div className="p-4 border-t border-border space-y-3">
+          {/* AI Disclaimer */}
+          <AIDisclaimer variant="compact" />
+          
           {/* Feedback row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -390,6 +416,7 @@ export function TryOnCanvas({
           </div>
         </div>
       )}
-    </Card>
+      </Card>
+    </TooltipProvider>
   );
 }
