@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
+import { AIDisclaimer } from '@/components/legal/AIDisclaimer';
+import { CelebrityDisclaimer } from '@/components/legal/CelebrityDisclaimer';
 import { VIPLook } from '@/hooks/useVIPLooks';
 import { cn } from '@/lib/utils';
 
@@ -133,6 +135,7 @@ export function VIPLookCard({ look, index, onOpenInCanvas, onTryOn }: VIPLookCar
                   <p className="text-xs text-muted-foreground/80 italic">{look.celebrity_inspiration.why}</p>
                 </div>
               </div>
+              <CelebrityDisclaimer className="mt-2" />
             </div>
           )}
 
@@ -246,6 +249,9 @@ export function VIPLookCard({ look, index, onOpenInCanvas, onTryOn }: VIPLookCar
               ))}
             </div>
           )}
+
+          {/* AI Disclaimer */}
+          <AIDisclaimer variant="compact" className="pt-2" />
 
           {/* Actions */}
           <div className="flex gap-2 pt-3">

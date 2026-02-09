@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Wand2, X, Check, Sparkles, AlertTriangle, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { CelebrityDisclaimer } from '@/components/legal/CelebrityDisclaimer';
 import { useTemporarySeason } from '@/contexts/TemporarySeasonContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
@@ -220,6 +221,7 @@ export function TemporaryPalettePreview({ temporarySeason, savedAnalysis }: Temp
               </span>
             ))}
           </div>
+          <CelebrityDisclaimer className="mt-2" />
         </div>
       )}
 
