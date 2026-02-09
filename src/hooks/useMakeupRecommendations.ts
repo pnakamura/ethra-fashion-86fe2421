@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useProfile } from '@/hooks/useProfile';
 import { useTemporarySeason } from '@/contexts/TemporarySeasonContext';
-import { chromaticSeasons } from '@/data/chromatic-seasons';
+import { getCachedSeasons } from '@/hooks/useChromaticSeasons';
 import { getMakeupForSeason, type SeasonMakeup, type MakeupProduct, type MakeupCategory } from '@/data/makeup-palettes';
 
 export interface MakeupRecommendationsResult {
@@ -51,7 +51,7 @@ export function useMakeupRecommendations(): MakeupRecommendationsResult {
     } else if (profile?.color_season) {
       seasonId = profile.color_season;
       // Find season details from chromatic seasons
-      const season = chromaticSeasons.find(s => s.id === seasonId);
+      const season = getCachedSeasons().find(s => s.id === seasonId);
       if (season) {
         seasonName = season.name;
         seasonSubtype = season.subtype;

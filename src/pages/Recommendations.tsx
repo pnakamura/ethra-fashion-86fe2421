@@ -17,7 +17,7 @@ import { useLookRecommendations } from '@/hooks/useLookRecommendations';
 import { useVIPLooks, VIPLook } from '@/hooks/useVIPLooks';
 import { useTemporarySeason } from '@/contexts/TemporarySeasonContext';
 import { usePermission } from '@/hooks/usePermission';
-import { chromaticSeasons } from '@/data/chromatic-seasons';
+import { useChromaticSeasons, getCachedSeasons } from '@/hooks/useChromaticSeasons';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useProfile } from '@/hooks/useProfile';
@@ -55,6 +55,9 @@ export default function Recommendations() {
   const { vipLooks, isLoading: isLoadingVIP, generateVIPLooks, loadCachedVIPLooks } = useVIPLooks();
   const { hasAccess: hasVIPAccess } = usePermission('vip_looks');
 
+  // Preload chromatic seasons data (lazy loaded)
+  useChromaticSeasons();
+
   // Use centralized hooks
   const { profile, colorSeason } = useProfile();
   const { items: wardrobeItems } = useWardrobeItems();
@@ -68,8 +71,8 @@ export default function Recommendations() {
   }, [loadCachedLooks, loadCachedVIPLooks, hasVIPAccess]);
 
   // Get effective color analysis (considering temporary season)
-  const userSeasonData = colorSeason 
-    ? chromaticSeasons.find(s => s.id === colorSeason)
+  const userSeasonData = colorSeason
+    ? getCachedSeasons().find(s => s.id === colorSeason)
     : null;
   
   const effectiveSeason = getEffectiveSeason(userSeasonData);

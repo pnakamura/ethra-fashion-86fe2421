@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { SeasonDetailModal } from './SeasonDetailModal';
 import { AIDisclaimer } from '@/components/legal/AIDisclaimer';
 import { CelebrityDisclaimer } from '@/components/legal/CelebrityDisclaimer';
-import { chromaticSeasons } from '@/data/chromatic-seasons';
+import { getCachedSeasons } from '@/hooks/useChromaticSeasons';
 import { toast } from 'sonner';
 import type { ColorAnalysisResult as AnalysisType } from '@/hooks/useColorAnalysis';
 
@@ -21,11 +21,12 @@ interface ColorAnalysisResultProps {
 // Helper to find season data
 function findSeasonData(seasonName?: string, subtype?: string) {
   if (!seasonName || !subtype) return undefined;
-  
+
+  const seasons = getCachedSeasons();
   const seasonId = `${seasonName.toLowerCase().replace('ã', 'a').replace('é', 'e')}-${subtype.toLowerCase().replace('ã', 'a').replace('é', 'e')}`;
-  return chromaticSeasons.find(s => s.id === seasonId) || 
-         chromaticSeasons.find(s => 
-           s.name.toLowerCase() === seasonName.toLowerCase() && 
+  return seasons.find(s => s.id === seasonId) ||
+         seasons.find(s =>
+           s.name.toLowerCase() === seasonName.toLowerCase() &&
            s.subtype.toLowerCase() === subtype.toLowerCase()
          );
 }

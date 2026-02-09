@@ -7,7 +7,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { getSeasonById, type SeasonData } from '@/data/chromatic-seasons';
+import { getSeasonById } from '@/hooks/useChromaticSeasons';
+import type { SeasonData } from '@/data/chromatic-seasons';
 import type { ColorAnalysisResult } from '@/hooks/useColorAnalysis';
 
 interface TemporaryPalettePreviewProps {

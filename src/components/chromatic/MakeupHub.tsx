@@ -7,7 +7,7 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useMakeupRecommendations } from '@/hooks/useMakeupRecommendations';
 import { MakeupSwatchGrid } from '@/components/makeup/MakeupSwatchGrid';
-import { getSeasonById } from '@/data/chromatic-seasons';
+import { getSeasonById } from '@/hooks/useChromaticSeasons';
 import type { MakeupProduct } from '@/data/makeup-palettes';
 
 type CategoryKey = 'lips' | 'eyes' | 'face' | 'nails';

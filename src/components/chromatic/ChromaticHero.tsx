@@ -2,7 +2,8 @@ import { motion } from 'framer-motion';
 import { Sparkles, ChevronRight, Shirt, Star, AlertTriangle, Wand2, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { getSeasonById, type SeasonData } from '@/data/chromatic-seasons';
+import { getSeasonById } from '@/hooks/useChromaticSeasons';
+import type { SeasonData } from '@/data/chromatic-seasons';
 import type { ColorAnalysisResult } from '@/hooks/useColorAnalysis';
 
 interface ChromaticHeroProps {

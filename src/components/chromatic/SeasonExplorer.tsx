@@ -4,7 +4,8 @@ import { Search, Filter, Info, Sun, Snowflake, Thermometer, Droplets } from 'luc
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { chromaticSeasons, type SeasonData } from '@/data/chromatic-seasons';
+import { getCachedSeasons } from '@/hooks/useChromaticSeasons';
+import type { SeasonData } from '@/data/chromatic-seasons';
 import { SeasonDetailModal } from './SeasonDetailModal';
 import { EnhancedSeasonCard } from './EnhancedSeasonCard';
 import { useTemporarySeason } from '@/contexts/TemporarySeasonContext';
@@ -39,7 +40,7 @@ export function SeasonExplorer({ onSelectSeason, userSeasonId, onTryPalette }: S
   const [showModal, setShowModal] = useState(false);
   const { temporarySeason } = useTemporarySeason();
 
-  const filteredSeasons = chromaticSeasons.filter(season => {
+  const filteredSeasons = getCachedSeasons().filter(season => {
     // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
