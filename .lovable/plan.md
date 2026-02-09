@@ -1,170 +1,103 @@
 
 
-# Plano: Tema Claro como Padrão e Modo Escuro Exclusivo para Usuários Logados
+# Plano: Background Abstract como Padrão no Tema Claro
 
-## Resumo da Mudança
+## Problema Identificado
 
-A solicitação envolve duas alterações fundamentais:
-
-1. **Tema claro como padrão universal** - Independente da configuração do sistema do usuário, o app sempre iniciará em modo claro
-2. **Modo escuro exclusivo para usuários cadastrados** - O toggle/opção de tema escuro só será visível e funcional para usuários autenticados
-
----
-
-## Arquivos a Modificar
-
-### 1. `src/App.tsx`
-Alterar o `ThemeProvider` para usar `defaultTheme="light"` em vez de `"system"`:
+Atualmente, o `defaultSettings` no `BackgroundSettingsContext.tsx` define:
 
 ```typescript
-<ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-```
-
-Isso garante que todos os visitantes iniciam no tema claro.
-
----
-
-### 2. `src/contexts/AccessibilityContext.tsx`
-Modificar a lógica de carregamento de tema para:
-
-- **Usuários não logados**: Forçar tema claro, ignorar localStorage
-- **Usuários logados**: Carregar preferência salva (localStorage → banco)
-
-```typescript
-// Dentro de loadPreferences:
-if (!user) {
-  // Usuário não logado - forçar tema claro
-  setTheme('light');
-  setThemePreferenceState('light');
-} else {
-  // Usuário logado - carregar preferência salva
-  const savedTheme = localStorage.getItem(THEME_KEY) as ThemePreference;
-  if (savedTheme) {
-    setThemePreferenceState(savedTheme);
-    setTheme(savedTheme);
-  }
-  // ... resto da lógica de sync com banco
+light: {
+  variant: 'none',  // ❌ Sem background no tema claro
+  opacity: 0.15,
 }
 ```
 
-Também modificar `setThemePreference` para só permitir mudança se houver usuário:
+Isso faz com que o tema claro não exiba nenhum background artístico por padrão.
+
+---
+
+## Solução
+
+Alterar o `defaultSettings` para que o modo **light** use a variante **abstract** por padrão:
 
 ```typescript
-const setThemePreference = async (theme: ThemePreference) => {
-  if (!user) {
-    // Silenciosamente ignorar - usuário não pode mudar tema
-    return;
-  }
-  // ... resto da lógica
-};
+light: {
+  variant: 'abstract',  // ✅ Background abstract no tema claro
+  opacity: 0.15,        // Opacidade sutil para não atrapalhar leitura
+}
 ```
 
 ---
 
-### 3. `src/components/landing/HeroSection.tsx`
-**Remover o botão de toggle de tema** da landing page, já que usuários não logados não podem alterar o tema:
+## Arquivo a Modificar
 
-```typescript
-// REMOVER completamente o bloco:
-{/* Theme toggle */}
-<div className="absolute top-6 right-6 z-20">
-  <Button ... />
-</div>
-```
+**`src/contexts/BackgroundSettingsContext.tsx`**
 
----
-
-### 4. `src/pages/Settings.tsx`
-Adicionar condição para **ocultar as opções de tema** para usuários não logados (embora esta página já requer login, é uma proteção adicional):
-
-A página de Settings já exige autenticação, então as opções de tema continuarão visíveis normalmente para usuários logados.
-
----
-
-## Lógica Resumida
-
-| Estado do Usuário | Tema Aplicado | Pode Alterar Tema? |
-|-------------------|---------------|-------------------|
-| Não logado | Claro (fixo) | ❌ Não |
-| Logado (sem preferência) | Claro (padrão) | ✅ Sim |
-| Logado (preferência dark) | Escuro | ✅ Sim |
-| Logado (preferência system) | Depende do SO | ✅ Sim |
-
----
-
-## Fluxo de Experiência
-
-```text
-1. Visitante acessa /welcome
-         ↓
-2. Tema é forçado para CLARO
-   (botão de toggle não aparece)
-         ↓
-3. Visitante faz login/cadastro
-         ↓
-4. Sistema carrega preferência do banco
-   (ou mantém claro se primeira vez)
-         ↓
-5. Em /settings, usuário pode:
-   - Escolher "Sistema", "Claro" ou "Escuro"
-   - Preferência é salva no banco
-```
-
----
-
-## Seção Técnica
-
-### Alteração no ThemeProvider (App.tsx)
+### Alteração 1: `defaultSettings` (linha 30-41)
 
 ```typescript
 // ANTES:
-<ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+const defaultSettings: BackgroundSettings = {
+  dark: {
+    variant: 'abstract',
+    opacity: 0.30,
+    customImageUrl: undefined,
+  },
+  light: {
+    variant: 'none',        // ❌
+    opacity: 0.15,
+    customImageUrl: undefined,
+  },
+};
 
 // DEPOIS:
-<ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+const defaultSettings: BackgroundSettings = {
+  dark: {
+    variant: 'abstract',
+    opacity: 0.30,
+    customImageUrl: undefined,
+  },
+  light: {
+    variant: 'abstract',    // ✅
+    opacity: 0.15,
+    customImageUrl: undefined,
+  },
+};
 ```
 
-A mudança de `enableSystem={false}` previne que o tema do sistema operacional seja aplicado automaticamente.
+### Alteração 2: Fallback no carregamento do localStorage (linhas 61, 66, 86)
 
-### Alteração no AccessibilityContext
-
-```typescript
-useEffect(() => {
-  const loadPreferences = async () => {
-    // Para usuários não logados, sempre forçar tema claro
-    if (!user) {
-      setTheme('light');
-      setThemePreferenceState('light');
-      setIsLoading(false);
-      return;
-    }
-
-    // Apenas para usuários logados: carregar preferências
-    const savedFontSize = localStorage.getItem(FONT_SIZE_KEY) as FontSize;
-    const savedTheme = localStorage.getItem(THEME_KEY) as ThemePreference;
-    // ... resto do código
-  };
-  
-  loadPreferences();
-}, [user, setTheme]);
-```
-
-### Alteração na HeroSection
+Atualizar os valores de fallback para garantir consistência:
 
 ```typescript
-// Remover completamente:
-// - import do useTheme
-// - const { resolvedTheme, setTheme } = useTheme();
-// - const toggleTheme = () => { ... };
-// - O JSX do botão de toggle
+// localStorage v2 fallback
+variant: parsed.light?.variant || 'abstract',  // era 'none'
+
+// Migração do formato antigo
+light: {
+  variant: 'abstract',  // era 'none'
+  opacity: 0.15,
+  customImageUrl: undefined,
+},
+
+// Database fallback
+variant: dbSettings.light?.variant || 'abstract',  // era 'none'
 ```
 
 ---
 
-## Benefícios
+## Resultado Esperado
 
-1. **Consistência visual** - Todos os visitantes veem a mesma experiência inicial
-2. **Performance** - Sem flash de tema incorreto no carregamento
-3. **Exclusividade** - Modo escuro como "feature" para usuários cadastrados
-4. **Simplicidade** - Landing page mais limpa sem toggle de tema
+| Estado | Background Light Mode |
+|--------|----------------------|
+| Visitante (novo) | abstract-light.jpeg com 15% opacidade |
+| Usuário sem preferência | abstract-light.jpeg com 15% opacidade |
+| Usuário com preferência | Configuração salva respeitada |
+
+---
+
+## Imagem Utilizada
+
+O arquivo `/images/backgrounds/abstract-light.jpeg` já existe e será usado automaticamente pelo componente `ArtBackground.tsx`.
 
