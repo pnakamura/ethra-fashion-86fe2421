@@ -1,70 +1,21 @@
 
-# Integrar resultado do quiz na Home Page
+# Corrigir Background da pagina /quiz
 
-## O que sera feito
+## Problema
+A pagina `/quiz` usa `bg-background` no container principal e `bg-background/80` na barra de progresso, criando um fundo opaco que bloqueia o `ArtBackground` global renderizado no `App.tsx`.
 
-A Home Page vai ler o `painPoint` salvo no perfil do usuario (dentro de `style_preferences.style_dna.painPoint`) e reconfigurar dinamicamente:
-1. A **subtitulo de boas-vindas** (mensagem contextual)
-2. A **ordem e destaque dos cards promocionais** (priorizar o que importa para aquela dor)
-3. Os **QuickActions** (reordenar e destacar o atalho mais relevante)
-
-## Mapeamento das dores para conteudo
-
-```text
-painPoint: "closet"
-  - Subtitulo: "Vamos organizar seu closet hoje?"
-  - QuickActions: destaca "Nova Peca" (1o lugar)
-  - Card hero: Closet Virtual (navega /wardrobe)
-  - Secundario: Looks Exclusivos
-
-painPoint: "curadoria"
-  - Subtitulo: "Que tal um look novo hoje?"
-  - QuickActions: destaca "Provador" (1o lugar)
-  - Card hero: Espelho Neural (navega /provador)
-  - Secundario: Looks Exclusivos
-
-painPoint: "evento"
-  - Subtitulo: "Preparada para arrasar no proximo evento?"
-  - QuickActions: destaca "Agenda" como 1o (adicionar /events)
-  - Card hero: Looks Exclusivos VIP
-  - Secundario: Agenda de Eventos (navega /events)
-
-Sem quiz (null):
-  - Comportamento atual (default)
-```
+## Padrao do site
+Outras paginas usam fundos transparentes para permitir que o art background apareça:
+- `Index.tsx`: `dark:bg-transparent`
+- `Landing.tsx`: `bg-transparent`
+- `VirtualTryOn.tsx`: `bg-transparent`
+- `Auth.tsx`: `gradient-soft dark:bg-transparent`
 
 ## Mudancas
 
-### 1. `src/pages/Index.tsx`
-- Extrair `painPoint` de `profile?.style_preferences`
-- Criar funcao `getContextualSubtitle(painPoint)` para retornar mensagem personalizada
-- Reordenar os cards promocionais com base no painPoint (card hero primeiro, secundario depois)
-- Adicionar um card de "Agenda" para painPoint="evento" (navega para /events)
+### `src/pages/Quiz.tsx`
+1. Container principal (linha 50): trocar `bg-background` por `bg-transparent`
+2. Barra de progresso (linha 56): trocar `bg-background/80` por `bg-background/60 dark:bg-card/60` para manter legibilidade com blur mas permitir transparencia no dark mode
 
-### 2. `src/components/dashboard/QuickActions.tsx`
-- Aceitar prop opcional `painPoint?: string | null`
-- Reordenar os 4 botoes para que o mais relevante fique primeiro
-- Adicionar acao "Agenda" (icone CalendarDays, path /events) quando painPoint="evento", substituindo "Planejar"
-
-## Logica de priorizacao na Index
-
-```text
-if painPoint === "closet":
-  ordem cards: [Closet CTA] [VIP Looks] [Provador]
-  QuickActions ordem: Nova Peca, Provador, Paleta, Planejar
-
-if painPoint === "curadoria":
-  ordem cards: [Provador] [VIP Looks]
-  QuickActions ordem: Provador, Nova Peca, Paleta, Planejar
-
-if painPoint === "evento":
-  ordem cards: [VIP Looks] [Agenda CTA]
-  QuickActions ordem: Agenda, Nova Peca, Provador, Paleta
-
-default (null):
-  comportamento atual sem alteracoes
-```
-
-## Arquivos modificados: 2
-- `src/pages/Index.tsx` (~20 linhas adicionadas/modificadas)
-- `src/components/dashboard/QuickActions.tsx` (~15 linhas adicionadas/modificadas)
+## Arquivos modificados: 1
+- `src/pages/Quiz.tsx` (2 linhas)
