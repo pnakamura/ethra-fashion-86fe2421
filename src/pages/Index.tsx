@@ -21,6 +21,7 @@ export default function Index() {
 
   // Use centralized hooks
   const { profile, isLoading: profileLoading, hasCompletedOnboarding } = useProfile();
+  const hasChromaticAnalysis = !!profile?.color_season;
 
   useEffect(() => {
     if (!loading) {
