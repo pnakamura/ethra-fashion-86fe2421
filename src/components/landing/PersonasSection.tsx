@@ -18,7 +18,7 @@ const personas = [{
 }, {
   icon: Minimize2,
   title: 'Minimalista',
-  description: 'Valoriza um guarda-roupa cápsula eficiente e funcional',
+  description: 'Valoriza um guarda-roupa  eficiente e funcional',
   color: 'from-stone-500/20 to-neutral-500/20'
 }];
 export function PersonasSection() {
