@@ -2,11 +2,18 @@ import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+import imgOldMoney from '@/assets/quiz/aesthetic-old-money.jpg';
+import imgStreetwear from '@/assets/quiz/aesthetic-streetwear.jpg';
+import imgMinimalist from '@/assets/quiz/aesthetic-minimalist.jpg';
+import imgBohoChic from '@/assets/quiz/aesthetic-boho-chic.jpg';
+import imgRomantic from '@/assets/quiz/aesthetic-romantic.jpg';
+import imgAvantGarde from '@/assets/quiz/aesthetic-avant-garde.jpg';
+
 interface Aesthetic {
   id: string;
   title: string;
   subtitle: string;
-  gradient: string;
+  image: string;
   icon: string;
 }
 
@@ -15,42 +22,42 @@ const AESTHETICS: Aesthetic[] = [
     id: 'old-money',
     title: 'Old Money',
     subtitle: 'Elegância atemporal e tecidos nobres',
-    gradient: 'from-[hsl(30,20%,25%)] via-[hsl(35,25%,35%)] to-[hsl(40,15%,20%)]',
+    image: imgOldMoney,
     icon: '👑',
   },
   {
     id: 'streetwear',
     title: 'Streetwear',
     subtitle: 'Atitude urbana e oversized moderno',
-    gradient: 'from-[hsl(0,0%,15%)] via-[hsl(260,30%,25%)] to-[hsl(0,0%,10%)]',
+    image: imgStreetwear,
     icon: '🔥',
   },
   {
     id: 'minimalist',
     title: 'Minimalist',
     subtitle: 'Menos é mais, linhas limpas',
-    gradient: 'from-[hsl(0,0%,85%)] via-[hsl(0,0%,70%)] to-[hsl(0,0%,55%)]',
+    image: imgMinimalist,
     icon: '◻️',
   },
   {
     id: 'boho-chic',
     title: 'Boho-Chic',
     subtitle: 'Texturas naturais e liberdade criativa',
-    gradient: 'from-[hsl(25,60%,35%)] via-[hsl(35,50%,45%)] to-[hsl(15,40%,30%)]',
+    image: imgBohoChic,
     icon: '🌿',
   },
   {
     id: 'romantic',
     title: 'Romantic',
     subtitle: 'Rendas, babados e feminilidade',
-    gradient: 'from-[hsl(340,40%,55%)] via-[hsl(330,35%,45%)] to-[hsl(350,30%,35%)]',
+    image: imgRomantic,
     icon: '🌸',
   },
   {
     id: 'avant-garde',
     title: 'Avant-Garde',
     subtitle: 'Moda como arte, formas ousadas',
-    gradient: 'from-[hsl(270,50%,25%)] via-[hsl(200,40%,30%)] to-[hsl(240,45%,20%)]',
+    image: imgAvantGarde,
     icon: '✦',
   },
 ];
@@ -98,15 +105,15 @@ export function QuizAesthetics({ selected, onSelect }: Props) {
                   : 'hover:scale-[1.01] shadow-soft'
               )}
             >
-              {/* Gradient Background */}
-              <div className={cn(
-                'absolute inset-0 bg-gradient-to-br transition-opacity duration-500',
-                a.gradient,
-                isSelected ? 'opacity-90' : 'opacity-100 group-hover:opacity-90'
-              )} />
+              {/* Image Background */}
+              <img
+                src={a.image}
+                alt={a.title}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
 
               {/* Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
 
               {/* Content */}
               <div className="relative h-full flex flex-col justify-end p-4">
