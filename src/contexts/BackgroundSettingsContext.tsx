@@ -35,7 +35,7 @@ const defaultSettings: BackgroundSettings = {
   },
   light: {
     variant: 'abstract',
-    opacity: 0.15,
+    opacity: 0.25,
     customImageUrl: undefined,
   },
 };
@@ -64,7 +64,7 @@ export function BackgroundSettingsProvider({ children }: { children: React.React
           },
           light: {
             variant: parsed.light?.variant || 'abstract',
-            opacity: parsed.light?.opacity ?? 0.15,
+            opacity: parsed.light?.opacity ?? 0.25,
             customImageUrl: parsed.light?.customImageUrl || undefined,
           },
         });
@@ -85,7 +85,7 @@ export function BackgroundSettingsProvider({ children }: { children: React.React
             },
             light: {
               variant: 'abstract',
-              opacity: 0.15,
+              opacity: 0.25,
               customImageUrl: undefined,
             },
           });
