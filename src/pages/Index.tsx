@@ -10,7 +10,7 @@ import { MissionCard } from '@/components/dashboard/MissionCard';
 import { AchievementsPanel } from '@/components/dashboard/AchievementsPanel';
 import { TemporarySeasonBanner } from '@/components/chromatic/TemporarySeasonBanner';
 import { useProfile } from '@/hooks/useProfile';
-import { Sparkles, ChevronRight, Crown, Camera, Palette, ArrowRight } from 'lucide-react';
+import { Sparkles, ChevronRight, Crown, Camera } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import { getGreeting, getFirstName } from '@/lib/greeting';
@@ -59,42 +59,6 @@ export default function Index() {
           </div>
           
           <TemporarySeasonBanner />
-
-          {/* Quiz CTA - only show when user hasn't done color analysis */}
-          {!hasChromaticAnalysis && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              onClick={() => navigate('/chromatic')}
-              className="cursor-pointer p-5 rounded-2xl border transition-all relative overflow-hidden
-                bg-gradient-to-r from-pink-500/8 via-purple-500/8 to-blue-500/8
-                border-purple-500/20 hover:border-purple-500/40
-                dark:from-pink-500/12 dark:via-purple-500/10 dark:to-blue-500/12
-                dark:border-purple-500/25 dark:hover:border-purple-500/45"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/15 dark:from-purple-500/30 dark:to-pink-500/20">
-                    <Palette className="w-5 h-5 text-purple-500 dark:text-purple-400" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-foreground">Descubra suas cores</h3>
-                      <Badge className="text-[10px] px-1.5 py-0 h-4 bg-purple-500/20 text-purple-600 dark:bg-purple-500/30 dark:text-purple-400 border-0">
-                        Quiz
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">Análise cromática por IA em segundos</p>
-                  </div>
-                </div>
-                <ArrowRight className="w-5 h-5 text-purple-500/70 dark:text-purple-400/70" />
-              </div>
-              <p className="text-xs text-muted-foreground/70 mt-2 ml-14">
-                Descubra sua paleta perfeita e desbloqueie looks personalizados
-              </p>
-            </motion.div>
-          )}
 
           <QuickActions />
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Crown, Check, Gift, ArrowLeft, Home, Shield, CreditCard, HelpCircle, ChevronDown, ChevronUp, Palette } from 'lucide-react';
+import { Sparkles, Crown, Check, Gift, ArrowLeft, Home, Shield, CreditCard, HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -13,7 +13,6 @@ import { useSubscription, PlanLimit } from '@/contexts/SubscriptionContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-import { useProfile } from '@/hooks/useProfile';
 
 // Static fallback data for when Supabase returns empty (RLS or connectivity)
 const FALLBACK_PLANS = [
@@ -105,7 +104,6 @@ export default function Subscription() {
   const { plan: currentPlan, currentPlanId, demoPlanId, setDemoPlan, allPlans } = useSubscription();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { hasChromaticAnalysis } = useProfile();
 
   const isFreeUser = currentPlanId === 'free';
 
@@ -207,38 +205,6 @@ export default function Subscription() {
                     onClick={() => handleSelectPlan('trendsetter')}
                   >
                     Ativar trial grátis
-                  </Button>
-                </div>
-              </Card>
-            </motion.div>
-          )}
-
-          {/* Quiz CTA - encourage users to try quiz before subscribing */}
-          {!hasChromaticAnalysis && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.15 }}
-            >
-              <Card className="p-5 bg-gradient-to-r from-purple-500/10 via-pink-500/5 to-purple-500/10 border-purple-500/20">
-                <div className="flex flex-col sm:flex-row items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-purple-500/15 flex items-center justify-center flex-shrink-0">
-                    <Palette className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <div className="flex-1 text-center sm:text-left">
-                    <p className="font-medium text-purple-800 dark:text-purple-200">
-                      Faça o Quiz de Cores primeiro!
-                    </p>
-                    <p className="text-sm text-purple-700/70 dark:text-purple-300/70">
-                      Descubra sua paleta ideal gratuitamente e veja o poder do Ethra antes de assinar.
-                    </p>
-                  </div>
-                  <Button
-                    size="sm"
-                    className="bg-purple-600 hover:bg-purple-700 text-white flex-shrink-0"
-                    onClick={() => navigate('/chromatic')}
-                  >
-                    Fazer o quiz grátis
                   </Button>
                 </div>
               </Card>
