@@ -23,14 +23,14 @@ const AESTHETICS: Aesthetic[] = [
     title: 'Old Money',
     subtitle: 'Elegância atemporal e tecidos nobres',
     image: imgOldMoney,
-    icon: '💎',
+    icon: '👑',
   },
   {
     id: 'streetwear',
     title: 'Streetwear',
     subtitle: 'Atitude urbana e oversized moderno',
     image: imgStreetwear,
-    icon: '⚡',
+    icon: '🔥',
   },
   {
     id: 'minimalist',
