@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Camera, FileText, ArrowRight, Crown } from 'lucide-react';
+import { Sparkles, Camera, FileText, ArrowRight, Crown, Shirt, Palette, CalendarHeart, LayoutGrid, Users, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { StyleDNA } from '@/hooks/useStyleDNAQuiz';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
 
 interface LookSuggestion {
   title: string;
@@ -40,8 +41,10 @@ interface Props {
 }
 
 export function QuizResult({ dna, saving }: Props) {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const looks = LOOK_SUGGESTIONS[dna.primaryAesthetic] || LOOK_SUGGESTIONS.default;
+  const isGuest = !user;
 
   return (
     <div className="space-y-8">
@@ -103,56 +106,127 @@ export function QuizResult({ dna, saving }: Props) {
       </div>
 
       {/* CTA Principal */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1 }}
-        className="space-y-3"
-      >
-        <Button
-          className="w-full h-12 text-base font-body gap-2"
-          onClick={() => navigate('/wardrobe')}
-          disabled={saving}
+      {isGuest ? (
+        /* ── Conversion Block for Guests ── */
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1 }}
+          className="space-y-5"
         >
-          <Camera className="w-5 h-5" />
-          Desbloquear meu provador virtual
-          <ArrowRight className="w-4 h-4" />
-        </Button>
-
-        {/* Upsell Nudges */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <button
-            onClick={() => navigate('/chromatic')}
-            className={cn(
-              'flex items-center gap-3 p-3 rounded-xl border border-border bg-card',
-              'hover:border-primary/30 transition-all text-left'
-            )}
-          >
-            <Sparkles className="w-5 h-5 text-primary flex-shrink-0" />
-            <div>
-              <p className="text-xs font-medium font-body">Análise Cromática com IA</p>
-              <p className="text-[10px] text-muted-foreground">Descubra sua estação de cores</p>
-            </div>
-          </button>
-          <div
-            className={cn(
-              'flex items-center gap-3 p-3 rounded-xl border border-border bg-card',
-              'opacity-70 cursor-default'
-            )}
-          >
-            <FileText className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-            <div>
-              <p className="text-xs font-medium font-body flex items-center gap-1">
-                Relatório PDF
-                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[9px]">
-                  <Crown className="w-2.5 h-2.5" /> Premium
-                </span>
+          {/* Urgency + Value */}
+          <div className="p-5 rounded-2xl border border-primary/20 bg-primary/5 space-y-3">
+            <div className="flex items-center gap-2 text-primary">
+              <Clock className="w-4 h-4" />
+              <p className="text-sm font-body font-semibold">
+                Seu perfil foi criado — mas ele expira em 24h
               </p>
-              <p className="text-[10px] text-muted-foreground">Guia completo do seu estilo</p>
+            </div>
+            <p className="text-xs text-muted-foreground font-body">
+              Crie sua conta gratuita para salvar seu DNA de Estilo e desbloquear:
+            </p>
+            <ul className="space-y-2.5 pt-1">
+              {[
+                { icon: Shirt, text: 'Provador Virtual com IA', sub: 'Experimente roupas sem sair de casa' },
+                { icon: Palette, text: 'Análise Cromática personalizada', sub: 'Descubra suas cores ideais' },
+                { icon: CalendarHeart, text: 'Looks curados diariamente', sub: 'Baseados no seu perfil de estilo' },
+                { icon: LayoutGrid, text: 'Closet digital inteligente', sub: 'Combinações automáticas para você' },
+              ].map((item, i) => (
+                <motion.li
+                  key={item.text}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 1.2 + i * 0.1 }}
+                  className="flex items-start gap-3"
+                >
+                  <item.icon className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-xs font-body font-medium">{item.text}</p>
+                    <p className="text-[10px] text-muted-foreground">{item.sub}</p>
+                  </div>
+                </motion.li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Primary CTA */}
+          <Button
+            className="w-full h-12 text-base font-body gap-2"
+            onClick={() => navigate('/auth?mode=signup')}
+          >
+            <Sparkles className="w-5 h-5" />
+            Criar conta gratuita e salvar meu perfil
+            <ArrowRight className="w-4 h-4" />
+          </Button>
+
+          {/* Social Proof */}
+          <div className="flex items-center justify-center gap-1.5 text-muted-foreground">
+            <Users className="w-3.5 h-3.5" />
+            <p className="text-[11px] font-body">
+              12.847 mulheres já descobriram seu DNA de Estilo
+            </p>
+          </div>
+
+          {/* Secondary CTA */}
+          <button
+            onClick={() => navigate('/welcome')}
+            className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors font-body py-2"
+          >
+            Voltar para a página inicial
+          </button>
+        </motion.div>
+      ) : (
+        /* ── Authenticated CTAs ── */
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1 }}
+          className="space-y-3"
+        >
+          <Button
+            className="w-full h-12 text-base font-body gap-2"
+            onClick={() => navigate('/wardrobe')}
+            disabled={saving}
+          >
+            <Camera className="w-5 h-5" />
+            Desbloquear meu provador virtual
+            <ArrowRight className="w-4 h-4" />
+          </Button>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button
+              onClick={() => navigate('/chromatic')}
+              className={cn(
+                'flex items-center gap-3 p-3 rounded-xl border border-border bg-card',
+                'hover:border-primary/30 transition-all text-left'
+              )}
+            >
+              <Sparkles className="w-5 h-5 text-primary flex-shrink-0" />
+              <div>
+                <p className="text-xs font-medium font-body">Análise Cromática com IA</p>
+                <p className="text-[10px] text-muted-foreground">Descubra sua estação de cores</p>
+              </div>
+            </button>
+            <div
+              className={cn(
+                'flex items-center gap-3 p-3 rounded-xl border border-border bg-card',
+                'opacity-70 cursor-default'
+              )}
+            >
+              <FileText className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+              <div>
+                <p className="text-xs font-medium font-body flex items-center gap-1">
+                  Relatório PDF
+                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[9px]">
+                    <Crown className="w-2.5 h-2.5" /> Premium
+                  </span>
+                </p>
+                <p className="text-[10px] text-muted-foreground">Guia completo do seu estilo</p>
+              </div>
             </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      )}
     </div>
   );
 }
