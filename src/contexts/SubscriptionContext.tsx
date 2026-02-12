@@ -43,14 +43,14 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const { data: userPlanId, isLoading: isLoadingUserPlan } = useQuery({
     queryKey: ['user-subscription', user?.id],
     queryFn: async () => {
-      if (!user) return 'free';
+      if (!user) return 'muse';
       const { data, error } = await supabase
         .from('profiles')
         .select('subscription_plan_id')
         .eq('user_id', user.id)
         .single();
-      if (error) return 'free';
-      return data?.subscription_plan_id || 'free';
+      if (error) return 'muse';
+      return data?.subscription_plan_id || 'muse';
     },
     enabled: !!user,
   });
@@ -79,7 +79,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  const activePlanId = demoPlanId || userPlanId || 'free';
+  const activePlanId = demoPlanId || userPlanId || 'muse';
 
   // Create Map of limits for current plan
   const limits = useMemo(() => {
