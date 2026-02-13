@@ -580,6 +580,7 @@ export type Database = {
           dominant_colors: Json | null
           id: string
           image_url: string
+          is_capsule: boolean | null
           is_favorite: boolean | null
           last_worn: string | null
           name: string | null
@@ -595,6 +596,7 @@ export type Database = {
           dominant_colors?: Json | null
           id?: string
           image_url: string
+          is_capsule?: boolean | null
           is_favorite?: boolean | null
           last_worn?: string | null
           name?: string | null
@@ -610,6 +612,7 @@ export type Database = {
           dominant_colors?: Json | null
           id?: string
           image_url?: string
+          is_capsule?: boolean | null
           is_favorite?: boolean | null
           last_worn?: string | null
           name?: string | null

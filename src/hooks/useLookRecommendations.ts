@@ -42,7 +42,7 @@ export function useLookRecommendations() {
     return Math.round(scores.reduce((a, b) => a + b, 0) / items.length);
   };
 
-  const generateLooks = useCallback(async (occasion?: string, count = 3) => {
+  const generateLooks = useCallback(async (occasion?: string, count = 3, capsuleOnly = false) => {
     setIsLoading(true);
     setError(null);
 
@@ -59,7 +59,7 @@ export function useLookRecommendations() {
         const token = sessionData.session?.access_token;
         
         const { data, error: fnError } = await supabase.functions.invoke('suggest-looks', {
-          body: { occasion, count },
+          body: { occasion, count, capsule_only: capsuleOnly },
           headers: token ? { Authorization: `Bearer ${token}` } : undefined
         });
         if (fnError) throw new Error(fnError.message);

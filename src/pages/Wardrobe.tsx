@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, Filter, Check, Minus, AlertTriangle, Crown, Search, Shirt, Footprints, Gem, Glasses } from 'lucide-react';
+import { Plus, Filter, Check, Minus, AlertTriangle, Crown, Search, Shirt, Footprints, Gem, Glasses, Diamond } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
@@ -8,6 +8,8 @@ import { WardrobeGrid } from '@/components/wardrobe/WardrobeGrid';
 import { WardrobeEmptyState } from '@/components/wardrobe/WardrobeEmptyState';
 import { AddItemSheet } from '@/components/wardrobe/AddItemSheet';
 import { EditItemSheet } from '@/components/wardrobe/EditItemSheet';
+import { CapsuleGuide } from '@/components/wardrobe/CapsuleGuide';
+import { CapsuleHealthCard } from '@/components/wardrobe/CapsuleHealthCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { UsageIndicator } from '@/components/subscription/UsageIndicator';
@@ -29,6 +31,7 @@ import {
 
 type CompatibilityFilter = 'all' | 'ideal' | 'neutral' | 'avoid';
 type CategoryGroup = 'all' | 'roupas' | 'calcados' | 'acessorios' | 'joias';
+type ViewMode = 'all' | 'capsule';
 
 interface DominantColor {
   hex: string;
@@ -70,6 +73,7 @@ export default function Wardrobe() {
   const [compatibilityFilter, setCompatibilityFilter] = useState<CompatibilityFilter>('all');
   const [categoryFilter, setCategoryFilter] = useState<CategoryGroup>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<ViewMode>('all');
   const { user } = useAuth();
   const { profile } = useProfile();
   const { toast } = useToast();
@@ -77,12 +81,13 @@ export default function Wardrobe() {
   const navigate = useNavigate();
   const wardrobePermission = usePermission('wardrobe_slots');
 
-  const { items, idealItems, neutralItems, avoidItems, invalidate } = useWardrobeItems();
+  const { items, idealItems, neutralItems, avoidItems, capsuleItems, capsuleCount, invalidate } = useWardrobeItems();
   
   const firstName = getFirstName(profile?.username);
 
   const filteredItems = useMemo(() => {
-    return items.filter(item => {
+    let base = viewMode === 'capsule' ? items.filter(i => i.is_capsule) : items;
+    return base.filter(item => {
       if (compatibilityFilter !== 'all' && item.chromatic_compatibility !== compatibilityFilter) return false;
       if (categoryFilter !== 'all' && getCategoryGroup(item.category) !== categoryFilter) return false;
       if (searchQuery) {
@@ -93,7 +98,7 @@ export default function Wardrobe() {
       }
       return true;
     });
-  }, [items, compatibilityFilter, categoryFilter, searchQuery]);
+  }, [items, compatibilityFilter, categoryFilter, searchQuery, viewMode]);
 
   const addMutation = useMutation({
     mutationFn: async (item: { 
@@ -160,6 +165,20 @@ export default function Wardrobe() {
     },
     onSuccess: () => invalidate(),
   });
+
+  const toggleCapsule = useMutation({
+    mutationFn: async (id: string) => {
+      const item = items.find((i) => i.id === id);
+      if (!item) return;
+      await supabase.from('wardrobe_items').update({ is_capsule: !item.is_capsule }).eq('id', id);
+    },
+    onSuccess: () => {
+      invalidate();
+      toast({ title: 'Cápsula atualizada', description: 'Peça atualizada no armário cápsula.' });
+    },
+  });
+
+
 
   const handleEdit = (item: WardrobeItem) => setEditingItem(item);
 
@@ -275,9 +294,26 @@ export default function Wardrobe() {
             </div>
           )}
 
-          {/* Category chips */}
+          {/* View mode + Category chips */}
           {items.length > 0 && (
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+              {/* Capsule toggle chip */}
+              <motion.button
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                onClick={() => setViewMode(viewMode === 'capsule' ? 'all' : 'capsule')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                  viewMode === 'capsule'
+                    ? 'bg-amber-500 text-white'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                }`}
+              >
+                <Diamond className="w-3.5 h-3.5" />
+                Cápsula
+                {capsuleCount > 0 && (
+                  <span className="ml-0.5 text-[10px] opacity-80">({capsuleCount})</span>
+                )}
+              </motion.button>
               {categoryChips.map((chip, index) => {
                 const Icon = chip.icon;
                 const isActive = categoryFilter === chip.value;
@@ -286,7 +322,7 @@ export default function Wardrobe() {
                     key={chip.value}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
+                    transition={{ delay: (index + 1) * 0.05 }}
                     onClick={() => setCategoryFilter(chip.value)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
                       isActive
@@ -300,6 +336,16 @@ export default function Wardrobe() {
                 );
               })}
             </div>
+          )}
+
+          {/* Capsule Guide & Health */}
+          {items.length > 0 && (
+            <>
+              <CapsuleGuide capsuleCount={capsuleCount} />
+              {capsuleCount > 0 && (
+                <CapsuleHealthCard capsuleItems={capsuleItems} />
+              )}
+            </>
           )}
 
           {/* Content */}
@@ -320,6 +366,7 @@ export default function Wardrobe() {
             <WardrobeGrid 
               items={filteredItems} 
               onToggleFavorite={(id) => toggleFavorite.mutate(id)}
+              onToggleCapsule={(id) => toggleCapsule.mutate(id)}
               onEdit={handleEdit}
               onDelete={handleDelete}
             />

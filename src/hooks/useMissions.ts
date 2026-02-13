@@ -36,7 +36,7 @@ interface UseMissionsReturn {
 export function useMissions(): UseMissionsReturn {
   const { user } = useAuth();
   const { profile, hasChromaticAnalysis, hasCompletedOnboarding } = useProfile();
-  const { items: wardrobeItems, idealItems } = useWardrobeItems();
+  const { items: wardrobeItems, idealItems, capsuleCount } = useWardrobeItems();
   const queryClient = useQueryClient();
   const pendingCompletionsRef = useRef<Set<string>>(new Set());
 
@@ -100,6 +100,7 @@ export function useMissions(): UseMissionsReturn {
       outfit_count: counts?.outfit_count ?? 0,
       ideal_items_count: idealItems?.length ?? 0,
       trip_count: counts?.trip_count ?? 0,
+      capsule_count: capsuleCount ?? 0,
       completed_missions: achievements.completed_missions.length
     };
 
@@ -112,7 +113,7 @@ export function useMissions(): UseMissionsReturn {
     });
 
     return progressMap;
-  }, [hasCompletedOnboarding, hasChromaticAnalysis, wardrobeItems, idealItems, counts, achievements.completed_missions.length]);
+  }, [hasCompletedOnboarding, hasChromaticAnalysis, wardrobeItems, idealItems, capsuleCount, counts, achievements.completed_missions.length]);
 
   // Get completed missions (missions where progress is 100%)
   const completedMissions = useMemo(() => {

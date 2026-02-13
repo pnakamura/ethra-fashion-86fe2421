@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, RefreshCw, Palette, Shirt, Camera, ChevronRight, Sun, Briefcase, PartyPopper, Gem, Crown } from 'lucide-react';
+import { Sparkles, RefreshCw, Palette, Shirt, Camera, ChevronRight, Sun, Briefcase, PartyPopper, Gem, Crown, Diamond } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -35,6 +35,7 @@ export default function Recommendations() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [selectedOccasion, setSelectedOccasion] = useState('all');
+  const [capsuleOnly, setCapsuleOnly] = useState(false);
   const { temporarySeason, isUsingTemporary, getEffectiveSeason } = useTemporarySeason();
   const { looks, isLoading, generateLooks, loadCachedLooks } = useLookRecommendations();
   const { vipLooks, isLoading: isLoadingVIP, generateVIPLooks, loadCachedVIPLooks } = useVIPLooks();
@@ -78,7 +79,7 @@ export default function Recommendations() {
 
   const handleGenerateLooks = () => {
     const occasion = selectedOccasion === 'all' ? undefined : selectedOccasion;
-    generateLooks(occasion, 6);
+    generateLooks(occasion, 6, capsuleOnly);
   };
 
   const handleGenerateVIPLooks = () => {
@@ -260,6 +261,19 @@ export default function Recommendations() {
               );
             })}
           </div>
+
+          {/* Capsule Only Toggle */}
+          <button
+            onClick={() => setCapsuleOnly(!capsuleOnly)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-colors w-fit ${
+              capsuleOnly
+                ? 'bg-amber-500/15 text-amber-600 border border-amber-500/30'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            }`}
+          >
+            <Diamond className={`w-3.5 h-3.5 ${capsuleOnly ? 'text-amber-500' : ''}`} />
+            Apenas Cápsula
+          </button>
 
           <Tabs defaultValue="looks" className="w-full">
             <TabsList className="w-full grid grid-cols-3 h-11 rounded-xl bg-muted p-1">

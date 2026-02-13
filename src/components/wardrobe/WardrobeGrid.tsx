@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Heart, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { Heart, MoreVertical, Pencil, Trash2, Diamond } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { CompatibilityBadge } from './CompatibilityBadge';
@@ -29,6 +29,7 @@ interface WardrobeItem {
   name?: string | null;
   category: string;
   is_favorite: boolean | null;
+  is_capsule?: boolean | null;
   chromatic_compatibility?: string | null;
   color_code?: string | null;
   season_tag?: string | null;
@@ -38,11 +39,12 @@ interface WardrobeItem {
 interface WardrobeGridProps {
   items: WardrobeItem[];
   onToggleFavorite: (id: string) => void;
+  onToggleCapsule?: (id: string) => void;
   onEdit?: (item: WardrobeItem) => void;
   onDelete?: (id: string) => void;
 }
 
-export function WardrobeGrid({ items, onToggleFavorite, onEdit, onDelete }: WardrobeGridProps) {
+export function WardrobeGrid({ items, onToggleFavorite, onToggleCapsule, onEdit, onDelete }: WardrobeGridProps) {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const isMobile = useIsMobile();
 
@@ -77,9 +79,14 @@ export function WardrobeGrid({ items, onToggleFavorite, onEdit, onDelete }: Ward
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-charcoal/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 
-                {/* Compatibility badge - always visible */}
-                <div className="absolute top-2 left-2">
+                {/* Badges top-left */}
+                <div className="absolute top-2 left-2 flex items-center gap-1">
                   <CompatibilityBadge compatibility={item.chromatic_compatibility} />
+                  {item.is_capsule && (
+                    <span className="p-1 rounded-full bg-amber-500/80 backdrop-blur-sm">
+                      <Diamond className="w-3 h-3 text-white" />
+                    </span>
+                  )}
                 </div>
                 
                 {/* Actions overlay - always visible on mobile */}
@@ -105,6 +112,12 @@ export function WardrobeGrid({ items, onToggleFavorite, onEdit, onDelete }: Ward
                         <DropdownMenuItem onClick={() => onEdit(item)} className="flex items-center gap-2">
                           <Pencil className="w-4 h-4" />
                           <span>Editar</span>
+                        </DropdownMenuItem>
+                      )}
+                      {onToggleCapsule && (
+                        <DropdownMenuItem onClick={() => onToggleCapsule(item.id)} className="flex items-center gap-2">
+                          <Diamond className={`w-4 h-4 ${item.is_capsule ? 'text-amber-500' : ''}`} />
+                          <span>{item.is_capsule ? 'Remover da Cápsula' : 'Adicionar à Cápsula'}</span>
                         </DropdownMenuItem>
                       )}
                       {onDelete && (

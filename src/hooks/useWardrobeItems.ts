@@ -13,6 +13,7 @@ export interface WardrobeItem {
   chromatic_compatibility: string | null;
   dominant_colors: Json | null;
   is_favorite: boolean | null;
+  is_capsule: boolean | null;
   last_worn: string | null;
   occasion: string | null;
   season_tag: string | null;
@@ -75,6 +76,9 @@ export function useWardrobeItems(options: UseWardrobeItemsOptions = {}) {
   const neutralItems = filterByCompatibility('neutral');
   const avoidItems = filterByCompatibility('avoid');
 
+  const capsuleItems = query.data?.filter(item => item.is_capsule) ?? [];
+  const capsuleCount = capsuleItems.length;
+
   return {
     items: query.data ?? [],
     isLoading: query.isLoading,
@@ -87,6 +91,8 @@ export function useWardrobeItems(options: UseWardrobeItemsOptions = {}) {
     idealItems,
     neutralItems,
     avoidItems,
+    capsuleItems,
+    capsuleCount,
     filterByCompatibility,
   };
 }

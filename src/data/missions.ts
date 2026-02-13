@@ -8,7 +8,8 @@ import {
   Star, 
   Plane,
   Target,
-  Crown
+  Crown,
+  Diamond
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -148,14 +149,26 @@ export const MISSIONS: Mission[] = [
     ctaLabel: 'Planejar Viagem'
   },
   {
+    id: 'capsule_wardrobe',
+    title: 'Cápsula Completa',
+    description: 'Monte seu armário cápsula com 30 peças essenciais',
+    icon: Diamond,
+    category: 'wardrobe',
+    requirement: { type: 'count', key: 'capsule_count', target: 30 },
+    reward: { badge: '💎', points: 50 },
+    order: 10,
+    ctaRoute: '/wardrobe',
+    ctaLabel: 'Montar Cápsula'
+  },
+  {
     id: 'style_master',
     title: 'Mestre do Estilo',
     description: 'Complete todas as missões e domine o Aura',
     icon: Crown,
     category: 'discovery',
-    requirement: { type: 'count', key: 'completed_missions', target: 9 },
+    requirement: { type: 'count', key: 'completed_missions', target: 10 },
     reward: { badge: '👑', points: 100 },
-    order: 10,
+    order: 11,
     ctaRoute: '/',
     ctaLabel: 'Ver Conquistas'
   }

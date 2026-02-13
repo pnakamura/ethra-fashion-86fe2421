@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Upload, Camera, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { X, Upload, Camera, Image as ImageIcon, Loader2, Diamond } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,6 +32,7 @@ interface WardrobeItem {
   season_tag: string | null;
   occasion: string | null;
   image_url: string;
+  is_capsule?: boolean | null;
   dominant_colors?: Json | null;
 }
 
@@ -67,6 +68,7 @@ export function EditItemSheet({ isOpen, item, onClose, onSave }: EditItemSheetPr
   const [seasonTag, setSeasonTag] = useState('');
   const [occasion, setOccasion] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [isCapsule, setIsCapsule] = useState(false);
   const [analyzedColors, setAnalyzedColors] = useState<DominantColor[] | null>(null);
   const [showCameraFallback, setShowCameraFallback] = useState(false);
   
@@ -82,6 +84,7 @@ export function EditItemSheet({ isOpen, item, onClose, onSave }: EditItemSheetPr
       setSeasonTag(item.season_tag || '');
       setOccasion(item.occasion || '');
       setImageUrl(item.image_url || '');
+      setIsCapsule(item.is_capsule || false);
       // Parse dominant_colors from Json to DominantColor[]
       if (Array.isArray(item.dominant_colors)) {
         setAnalyzedColors(item.dominant_colors as unknown as DominantColor[]);
@@ -139,8 +142,14 @@ export function EditItemSheet({ isOpen, item, onClose, onSave }: EditItemSheetPr
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!category || !item) return;
+    
+    // Update capsule status separately since it's not in the onSave interface
+    if ((item.is_capsule || false) !== isCapsule) {
+      const { supabase } = await import('@/integrations/supabase/client');
+      await supabase.from('wardrobe_items').update({ is_capsule: isCapsule }).eq('id', item.id);
+    }
     
     onSave(item.id, {
       name,
@@ -367,6 +376,26 @@ export function EditItemSheet({ isOpen, item, onClose, onSave }: EditItemSheetPr
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {/* Capsule toggle */}
+                  <button
+                    type="button"
+                    onClick={() => setIsCapsule(!isCapsule)}
+                    className={`flex items-center gap-3 p-3 rounded-xl border transition-colors w-full text-left ${
+                      isCapsule
+                        ? 'border-amber-500/40 bg-amber-500/10'
+                        : 'border-border hover:bg-muted/50'
+                    }`}
+                  >
+                    <Diamond className={`w-5 h-5 ${isCapsule ? 'text-amber-500' : 'text-muted-foreground'}`} />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Peça Cápsula</p>
+                      <p className="text-xs text-muted-foreground">Incluir no armário cápsula</p>
+                    </div>
+                    <div className={`w-10 h-6 rounded-full transition-colors flex items-center ${isCapsule ? 'bg-amber-500 justify-end' : 'bg-muted justify-start'}`}>
+                      <div className="w-5 h-5 rounded-full bg-white shadow-sm mx-0.5" />
+                    </div>
+                  </button>
 
                   <Button
                     onClick={handleSubmit}

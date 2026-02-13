@@ -63,7 +63,7 @@ serve(async (req) => {
       global: { headers: { Authorization: `Bearer ${token}` } },
     });
 
-    const { occasion, count = 3 } = await req.json();
+    const { occasion, count = 3, capsule_only = false } = await req.json();
 
     console.log(`Generating ${count} looks for user ${user.id}, occasion: ${occasion || 'any'}`);
 
@@ -75,17 +75,25 @@ serve(async (req) => {
       .single();
 
     // Fetch user's wardrobe items (prioritize ideal compatibility)
-    const { data: items } = await supabase
+    let query = supabase
       .from('wardrobe_items')
       .select('*')
       .eq('user_id', user.id)
       .order('chromatic_compatibility', { ascending: true }); // ideal first
 
+    if (capsule_only) {
+      query = query.eq('is_capsule', true);
+    }
+
+    const { data: items } = await query;
+
     if (!items || items.length < 3) {
       return new Response(
         JSON.stringify({ 
           error: 'Guarda-roupa insuficiente',
-          message: 'Adicione pelo menos 3 peças para receber recomendações de looks.'
+          message: capsule_only 
+            ? 'Adicione pelo menos 3 peças à sua cápsula para receber recomendações.'
+            : 'Adicione pelo menos 3 peças para receber recomendações de looks.'
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
