@@ -32,6 +32,7 @@ export default function Chromatic() {
   const [savedAnalysis, setSavedAnalysis] = useState<ColorAnalysisResult | null>(null);
   const [activeTab, setActiveTab] = useState('discover');
   const [showSeasonDetail, setShowSeasonDetail] = useState(false);
+  const [showAnalysisFlow, setShowAnalysisFlow] = useState(false);
 
   // Use centralized hook - only fetch needed fields for stats
   const { items: wardrobeItems } = useWardrobeItems();
@@ -73,6 +74,7 @@ export default function Chromatic() {
 
   const handleNewAnalysis = () => {
     reset();
+    setShowAnalysisFlow(true);
     setActiveTab('discover');
   };
 
@@ -149,7 +151,7 @@ export default function Chromatic() {
             {/* Discover Tab */}
             <TabsContent value="discover" className="mt-4">
               <AnimatePresence mode="wait">
-                {!hasAnalysis ? (
+                {!hasAnalysis && !showAnalysisFlow ? (
                   <motion.div
                     key="onboarding"
                     initial={{ opacity: 0 }}
@@ -157,7 +159,7 @@ export default function Chromatic() {
                     exit={{ opacity: 0 }}
                   >
                     <ChromaticOnboarding
-                      onStartAnalysis={() => {}}
+                      onStartAnalysis={() => setShowAnalysisFlow(true)}
                       onExplore={() => setActiveTab('explore')}
                     />
                   </motion.div>
