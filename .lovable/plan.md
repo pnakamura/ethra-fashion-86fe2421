@@ -1,165 +1,120 @@
 
 
-# Liveness Detection + Face Matching com Controle Admin
+# Gerenciamento Completo de Usuarios -- Admin
 
-## Resumo
+## Problemas Atuais
 
-Implementar dois sistemas de seguranca biometrica -- prova de vida (liveness) e correspondencia facial (face matching) -- controlados por feature flags que somente o admin pode ativar/desativar pelo painel /admin.
+1. **"Ver Detalhes" nao faz nada** -- o botao nao tem funcionalidade implementada
+2. **"Banir Usuario" nao faz nada** -- nenhum campo de ban no banco de dados
+3. **Nao e possivel editar plano diretamente na tabela de usuarios** -- precisa ir a aba separada e colar UUID manualmente
+4. **Nao mostra dados importantes**: email, status do onboarding, colorimetria, quantidade de pecas no closet
+5. **Sem confirmacao para acoes destrutivas** (promover/rebaixar/banir)
+6. **Sem paginacao real** -- carrega todos os usuarios de uma vez
 
-## 1. Feature Flags no Banco de Dados
+## Implementacao
 
-Nova tabela `app_feature_flags` para armazenar configuracoes globais controladas pelo admin:
+### 1. Migracao: Adicionar campo `is_banned` na tabela profiles
+
+Adicionar coluna `is_banned boolean DEFAULT false` e `banned_at timestamptz` para suportar banimento de usuarios.
+
+### 2. Componente `UserDetailSheet` (novo)
+
+**Arquivo:** `src/components/admin/UserDetailSheet.tsx`
+
+Sheet lateral (Radix Sheet) que abre ao clicar "Ver Detalhes" mostrando:
+
+- Avatar + nome + ID completo (copiavel)
+- Email (buscado via perfil ou exibido se disponivel)
+- Plano atual com seletor para alterar diretamente
+- Role atual com seletor para alterar diretamente
+- Status: onboarding completo, analise cromatica feita, consentimento biometrico
+- Estatisticas: total de pecas no closet, looks salvos, provas virtuais
+- Data de cadastro e ultimo acesso
+- Botoes de acao: Alterar Plano, Alterar Role, Banir/Desbanir
+- Historico de acoes (role changes)
+
+### 3. Refatorar `UserManagement.tsx`
+
+Melhorias na tabela principal:
+
+- **Coluna "Status"**: indicador visual (ativo/banido/onboarding incompleto)
+- **Filtro por plano**: alem do filtro por role, adicionar filtro por plano de assinatura
+- **Alterar plano inline**: seletor de plano diretamente na tabela sem precisar ir a outra aba
+- **Dialogo de confirmacao**: AlertDialog antes de promover/rebaixar/banir
+- **Banir/Desbanir**: funcionalidade real que marca `is_banned = true` no perfil
+- **Contador de stats por usuario**: numero de pecas, looks
+- **Copiar ID**: botao para copiar user_id completo
+
+### 4. Melhorias no `useAdmin` hook
+
+Adicionar funcoes:
+
+- `banUser(userId)`: atualiza `is_banned = true, banned_at = now()` no perfil
+- `unbanUser(userId)`: atualiza `is_banned = false, banned_at = null`
+- `changeUserPlan(userId, planId)`: atualiza `subscription_plan_id` no perfil
+
+### 5. Busca de dados enriquecidos
+
+Na query de `admin-users`, incluir dados adicionais:
+
+- `onboarding_complete` do perfil
+- `color_season` (se fez analise cromatica)
+- `biometric_consent_at` (se consentiu dados biometricos)
+- Contagem de `wardrobe_items` por usuario (via query separada agrupada)
+- Contagem de `outfits` por usuario
+
+## Detalhes Tecnicos
+
+### Migracao SQL
 
 ```text
-CREATE TABLE app_feature_flags (
-  id text PRIMARY KEY,
-  enabled boolean NOT NULL DEFAULT false,
-  updated_by uuid,
-  updated_at timestamptz DEFAULT now(),
-  description text
-);
-
--- Somente admin pode ler/modificar
-ALTER TABLE app_feature_flags ENABLE ROW LEVEL SECURITY;
-
--- Qualquer usuario autenticado pode ler (para saber se a feature esta ativa)
-CREATE POLICY "Anyone can read flags" ON app_feature_flags FOR SELECT USING (true);
--- Somente admin pode modificar
-CREATE POLICY "Admin can update flags" ON app_feature_flags FOR UPDATE USING (has_role(auth.uid(), 'admin'));
-CREATE POLICY "Admin can insert flags" ON app_feature_flags FOR INSERT WITH CHECK (has_role(auth.uid(), 'admin'));
-
-INSERT INTO app_feature_flags (id, enabled, description) VALUES
-  ('liveness_detection', false, 'Exigir prova de vida na camera cromatica'),
-  ('face_matching', false, 'Comparar rosto do avatar com selfie de referencia');
+ALTER TABLE profiles
+  ADD COLUMN IF NOT EXISTS is_banned boolean DEFAULT false,
+  ADD COLUMN IF NOT EXISTS banned_at timestamptz;
 ```
-
-## 2. Liveness Detection (Prova de Vida)
-
-### Abordagem tecnica
-
-Usar **MediaPipe Face Landmarker** (ja instalado: `@mediapipe/tasks-vision`) para:
-
-1. **Blink detection**: Calcular EAR (Eye Aspect Ratio) usando landmarks dos olhos. Quando EAR cai abaixo de 0.21 por 2-3 frames consecutivos, um blink e detectado.
-2. **Head pose**: Calcular angulo de rotacao da cabeca usando landmarks do nariz, queixo e orelhas. Exigir uma rotacao lateral > 15 graus.
-
-### Fluxo do usuario
-
-```text
-1. Camera cromatica abre normalmente
-2. Se liveness_detection estiver ativo:
-   a. Overlay mostra instrucao: "Pisque os olhos"
-   b. Usuario pisca -> check verde
-   c. Instrucao muda: "Vire a cabeca para o lado"  
-   d. Usuario vira -> check verde
-   e. Validacao completa em < 2s
-   f. Botao "Capturar" e liberado
-3. Se desativado: fluxo atual sem mudancas
-```
-
-### Criterios de aceite
-- MediaPipe Face Mesh com deteccao de blink + head pose
-- Taxa de rejeicao de fotos estaticas > 95%
-- Latencia < 2s para validacao
 
 ### Arquivos novos
 
 | Arquivo | Descricao |
 |---|---|
-| `src/hooks/useLivenessDetection.ts` | Hook principal: inicializa FaceLandmarker, detecta blinks via EAR, head pose via landmarks, retorna `{ isLive, currentChallenge, progress, startDetection, stopDetection }` |
-| `src/components/camera/LivenessChallenge.tsx` | Overlay visual com instrucoes animadas ("Pisque", "Vire a cabeca"), indicadores de progresso e feedback em tempo real |
+| `src/components/admin/UserDetailSheet.tsx` | Sheet lateral com perfil completo, edicao de plano/role, estatisticas e acoes |
 
 ### Arquivos modificados
 
 | Arquivo | Mudanca |
 |---|---|
-| `src/components/chromatic/ChromaticCameraCapture.tsx` | Integrar LivenessChallenge antes de liberar captura. Condicional baseado na feature flag |
+| `src/components/admin/UserManagement.tsx` | Refatorar completamente: dados enriquecidos, filtro por plano, edicao inline de plano, confirmacao de acoes, banimento, integracao com UserDetailSheet |
+| `src/hooks/useAdmin.ts` | Adicionar `banUser`, `unbanUser`, `changeUserPlan` |
 
-## 3. Face Matching (Correspondencia Facial)
-
-### Abordagem tecnica
-
-1. **Selfie de referencia**: Na primeira analise cromatica bem-sucedida, extrair embedding facial usando MediaPipe FaceLandmarker (468 landmarks -> vetor normalizado).
-2. **Armazenamento**: Salvar o embedding como hash numerico na tabela `profiles` (campo `face_embedding_hash` tipo `jsonb`). Nunca armazenar a imagem do rosto.
-3. **Comparacao**: No provador virtual, antes de aceitar o avatar, extrair embedding da nova imagem e calcular similaridade por distancia euclidiana normalizada.
-4. **Threshold**: Similaridade > 0.85 = aceitar. Abaixo = rejeitar com mensagem amigavel.
-
-### Fluxo do usuario
+### Fluxo de edicao de usuario
 
 ```text
-1. Primeira analise cromatica -> embedding salvo automaticamente no perfil
-2. No provador virtual (upload de avatar):
-   a. Se face_matching estiver ativo:
-      - Extrair embedding da imagem enviada
-      - Comparar com embedding salvo
-      - Se similaridade >= 0.85 -> prosseguir
-      - Se similaridade < 0.85 -> mostrar mensagem:
-        "A pessoa na foto nao corresponde ao seu perfil.
-         Use uma foto sua para o provador virtual."
-   b. Se desativado: fluxo atual sem mudancas
-3. Se usuario nao tem embedding salvo: pular verificacao
+1. Admin abre aba "Usuarios" 
+2. Tabela mostra: avatar, nome, plano (editavel), role, status, cadastro, acoes
+3. Admin pode filtrar por nome/ID, role E plano
+4. Clicar no menu "..." abre opcoes com confirmacao
+5. "Ver Detalhes" abre sheet lateral com perfil completo
+6. No sheet, admin pode alterar plano e role com selectors
+7. Banir/desbanir com confirmacao e feedback visual
+8. Todas as acoes invalidam cache e atualizam tabela em tempo real
 ```
 
-### Criterios de aceite
-- Embedding facial armazenado como hash (nao imagem)
-- Threshold de similaridade > 0.85
-- Mensagem clara de rejeicao sem expor dados tecnicos
+### Dados exibidos na tabela (colunas)
 
-### Arquivos novos
-
-| Arquivo | Descricao |
+| Coluna | Dados |
 |---|---|
-| `src/hooks/useFaceEmbedding.ts` | Hook: extrair embedding via FaceLandmarker (468 landmarks -> vetor 936D), salvar/carregar do perfil, comparar com cosine similarity. Retorna `{ extractEmbedding, compareWithReference, saveReferenceEmbedding, hasReference }` |
-| `src/components/camera/FaceMatchResult.tsx` | Componente de feedback visual: icone de sucesso/falha, mensagem amigavel, botao de tentar novamente |
+| Usuario | Avatar + nome + ID truncado (clicavel para copiar) |
+| Plano | Badge colorida com seletor inline para alterar |
+| Role | Badge com cor por tipo (Admin/Mod/User) |
+| Status | Icones: check verde (ativo), X vermelho (banido), relogio (onboarding) |
+| Pecas | Numero de itens no closet |
+| Cadastro | Data formatada |
+| Acoes | Menu dropdown com confirmacao |
 
-### Arquivos modificados
+### Dados exibidos no UserDetailSheet
 
-| Arquivo | Mudanca |
-|---|---|
-| `src/components/chromatic/ColorAnalysis.tsx` | Apos analise bem-sucedida, salvar embedding de referencia (se ainda nao existe) |
-| `src/components/try-on/AvatarManager.tsx` | Antes de upload/captura, verificar face matching (se flag ativa). Mostrar FaceMatchResult em caso de rejeicao |
-| Migracao SQL | Adicionar coluna `face_embedding_hash jsonb` na tabela `profiles` |
-
-## 4. Painel Admin -- Controle de Features
-
-### Arquivo modificado: `src/pages/Admin.tsx`
-
-Na aba "Config" (atualmente vazia), adicionar secao "Seguranca Biometrica" com:
-
-- **Toggle "Prova de Vida"**: ativa/desativa liveness_detection
-- **Toggle "Face Matching"**: ativa/desativa face_matching
-- Descricao curta de cada feature
-- Indicador visual do status atual (ativo/inativo)
-
-### Arquivo novo: `src/hooks/useFeatureFlags.ts`
-
-Hook para ler e atualizar feature flags:
-- `flags`: Map de flags com status
-- `isEnabled(flagId)`: verificar se uma flag esta ativa
-- `toggleFlag(flagId, enabled)`: atualizar flag (somente admin)
-- Cache via React Query com staleTime de 60s
-
-## 5. Infraestrutura MediaPipe Compartilhada
-
-### Arquivo novo: `src/lib/mediapipe-face.ts`
-
-Singleton para inicializacao do FaceLandmarker:
-- Lazy loading do modelo WASM (carrega sob demanda)
-- Compartilhado entre liveness e face matching
-- Funcoes utilitarias: `calculateEAR()`, `calculateHeadPose()`, `extractLandmarkVector()`, `cosineSimilarity()`
-
-## Resumo de arquivos
-
-| Arquivo | Acao |
-|---|---|
-| Migracao SQL | Criar tabela `app_feature_flags`, adicionar `face_embedding_hash` em profiles |
-| `src/lib/mediapipe-face.ts` | Novo -- singleton MediaPipe + utilitarios |
-| `src/hooks/useFeatureFlags.ts` | Novo -- leitura/escrita de feature flags |
-| `src/hooks/useLivenessDetection.ts` | Novo -- deteccao de blink e head pose |
-| `src/hooks/useFaceEmbedding.ts` | Novo -- embedding facial e comparacao |
-| `src/components/camera/LivenessChallenge.tsx` | Novo -- overlay de desafio de prova de vida |
-| `src/components/camera/FaceMatchResult.tsx` | Novo -- feedback de correspondencia facial |
-| `src/components/chromatic/ChromaticCameraCapture.tsx` | Gate de liveness antes da captura |
-| `src/components/chromatic/ColorAnalysis.tsx` | Salvar embedding apos analise |
-| `src/components/try-on/AvatarManager.tsx` | Gate de face matching antes de upload |
-| `src/pages/Admin.tsx` | Toggles na aba Config para ativar/desativar |
+- Secao "Perfil": avatar, nome, ID copiavel, plano, role
+- Secao "Status": onboarding, colorimetria (estacao), consentimento biometrico, banido
+- Secao "Estatisticas": pecas no closet, looks salvos, provas virtuais realizadas
+- Secao "Acoes": seletores de plano e role, botao banir/desbanir com AlertDialog
 
