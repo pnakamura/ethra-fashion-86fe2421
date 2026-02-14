@@ -1,88 +1,100 @@
 
-# Melhorias UX do Painel Admin + Deletar Usuarios
+# Sistema de Alertas para Regularizacao Biometrica
 
-## Resumo
+## Contexto
 
-Adicionar funcionalidade de deletar usuario completo (dados + conta auth), melhorar a UX com refresh imediato apos acoes, e criar uma edge function dedicada para exclusao administrativa.
+Quando os feature flags `liveness_detection` e/ou `face_matching` estao ativos, os usuarios precisam cumprir pre-requisitos para usar funcionalidades que dependem deles:
 
-## 1. Nova Edge Function: `admin-delete-user`
+- **Prova de Vida (liveness_detection)**: Nao exige acao previa -- funciona em tempo real na camera. Porem, o usuario precisa **consentir biometria** (`biometric_consent_at` no perfil) antes de usar a camera.
+- **Face Matching**: Exige que o usuario tenha uma **embedding de referencia salva** (`face_embedding_hash` no perfil). Sem ela, uploads de avatar sao aceitos sem verificacao, mas o sistema nao protege o provador.
 
-**Arquivo:** `supabase/functions/admin-delete-user/index.ts`
+## O que o usuario precisa fazer
 
-Edge function que recebe um `target_user_id` no body, verifica que o chamador e admin (via `has_role`), e deleta todos os dados do usuario alvo:
+| Flag Ativo | Pre-requisito | Como resolver |
+|---|---|---|
+| `liveness_detection` | Consentimento biometrico | Abrir camera e aceitar modal de consentimento |
+| `face_matching` | Embedding de referencia salva | Fazer uma captura facial na Chromatic AI (que salva a embedding) |
+| Ambos | Ambos acima | Completar analise cromatica (resolve os dois de uma vez) |
 
-- Verifica token JWT do chamador
-- Consulta `has_role(caller_id, 'admin')` usando service role client
-- Deleta dados de todas as tabelas (mesma ordem da funcao `delete-user-data` existente)
-- Deleta arquivos de storage (avatars, try-on-results, etc.)
-- Deleta usuario do auth via `admin.deleteUser()`
-- Retorna resultado detalhado
+## Implementacao
 
-## 2. Atualizar `useAdmin` Hook
+### 1. Hook `useBiometricStatus`
 
-**Arquivo:** `src/hooks/useAdmin.ts`
+**Arquivo novo:** `src/hooks/useBiometricStatus.ts`
 
-Adicionar funcao `deleteUser(userId)`:
+Hook centralizado que verifica:
 
-- Chama a edge function `admin-delete-user` com o token do admin
-- Exibe toast de sucesso/erro
-- Invalida queries `admin-users` e `admin-stats` imediatamente
-- Adicionar na interface `AdminHookResult`
+- Se `liveness_detection` esta ativo (via `useFeatureFlags`)
+- Se `face_matching` esta ativo
+- Se o usuario tem `biometric_consent_at` preenchido (via `useProfile`)
+- Se o usuario tem `face_embedding_hash` preenchido (via query ao perfil, ja disponivel no useProfile se adicionarmos o campo)
+- Retorna: `{ needsConsent, needsReferencePhoto, pendingActions: string[], isFullyCompliant }`
 
-Tambem garantir que **todas as funcoes existentes** (ban, unban, changeUserPlan, promote, demote) invalidem as queries `admin-stats` alem de `admin-users`, para que os contadores do dashboard atualizem tambem.
+### 2. Componente `BiometricAlertBanner`
 
-## 3. Atualizar `UserManagement.tsx`
+**Arquivo novo:** `src/components/alerts/BiometricAlertBanner.tsx`
 
-**Arquivo:** `src/components/admin/UserManagement.tsx`
+Banner de alerta que aparece quando ha pendencias. Comportamento:
 
-Mudancas:
+- Estilo: Alert com borda amarela/amber e icone Shield
+- Mostra uma lista de acoes pendentes com botoes de acao:
+  - "Consentir uso de biometria" -> navega para `/chromatic` para iniciar analise
+  - "Registrar foto de referencia" -> navega para `/chromatic` para fazer a analise cromatica (que tambem salva a embedding)
+- O banner e discreto (pode ser fechado temporariamente na sessao) mas reaparece ao navegar
 
-- Adicionar opcao "Excluir Permanentemente" no dropdown de acoes (com icone Trash2, cor destructive)
-- Adicionar entrada `delete` no `confirmLabels` com mensagem forte de alerta: "Esta acao e IRREVERSIVEL. Todos os dados serao excluidos permanentemente."
-- No `executeConfirmAction`, tratar tipo `delete` chamando `deleteUser(userId)`
-- Fechar o sheet de detalhes apos exclusao
+### 3. Integracao nos locais relevantes
 
-## 4. Atualizar `UserDetailSheet.tsx`
+O banner aparecera em:
 
-**Arquivo:** `src/components/admin/UserDetailSheet.tsx`
+- **Dashboard (`Index.tsx`)**: Acima dos quick actions, so quando ha pendencias
+- **Provador Virtual (`VirtualTryOn.tsx`)**: No topo da pagina, antes do AvatarManager
+- **Chromatic (`Chromatic.tsx`)**: Apenas se falta consentimento (nao a foto, ja que esta na pagina certa)
 
-Mudancas:
+### 4. Atualizar `useProfile` para expor campos biometricos
 
-- Adicionar botao "Excluir Conta Permanentemente" abaixo do botao de ban
-- AlertDialog com confirmacao dupla (mensagem clara de irreversibilidade)
-- Fechar o sheet e invalidar queries apos exclusao
-- Receber callback `onUserDeleted` para fechar o sheet e atualizar a lista
-
-## 5. Refresh Imediato
-
-Garantir que todas as acoes (ban, unban, promote, demote, delete, change plan) facam `await refetch()` logo apos a acao, e que os stats do dashboard (`admin-stats`) tambem sejam invalidados. Remover o `setTimeout(() => refetch(), 300)` atual no `onOpenChange` do sheet e substituir por invalidacao direta nas funcoes do hook.
+Adicionar `face_embedding_hash` e `biometric_consent_at` como campos derivados no hook `useProfile`, para evitar queries extras.
 
 ## Detalhes Tecnicos
 
-### Edge Function `admin-delete-user`
+### `useBiometricStatus.ts`
 
 ```text
-POST /admin-delete-user
-Body: { "target_user_id": "uuid" }
-Auth: Bearer token (admin only)
+Inputs: useFeatureFlags(), useProfile()
 
-1. Verificar JWT do chamador
-2. Verificar has_role(caller, 'admin') via service role
-3. Impedir que admin delete a si mesmo
-4. Deletar de: notifications, notification_preferences, try_on_results, 
-   user_avatars, recommended_looks, outfits, trips, user_events, 
-   wardrobe_items, external_garments, app_feature_flags (se houver), 
-   user_roles, profiles
-5. Deletar storage files
-6. Deletar auth user
-7. Retornar resultado
+Logica:
+- livenessActive = isEnabled('liveness_detection')
+- faceMatchActive = isEnabled('face_matching')
+- hasConsent = !!profile?.biometric_consent_at
+- hasReference = !!profile?.face_embedding_hash
+- needsConsent = (livenessActive || faceMatchActive) && !hasConsent
+- needsReference = faceMatchActive && !hasReference
+- pendingActions = array de strings descrevendo cada pendencia
+- isFullyCompliant = !needsConsent && !needsReference
+
+Output: { needsConsent, needsReference, pendingActions, isFullyCompliant, livenessActive, faceMatchActive }
+```
+
+### `BiometricAlertBanner.tsx`
+
+```text
+Props: compact?: boolean (para versao menor no dashboard)
+
+- Usa useBiometricStatus()
+- Se isFullyCompliant, retorna null
+- Renderiza Alert com:
+  - Titulo: "Verificacao biometrica necessaria"
+  - Lista de pendencias com icones (CheckCircle para completo, AlertCircle para pendente)
+  - Botao CTA: "Fazer analise cromatica" (resolve consentimento + referencia de uma vez)
+  - Botao de fechar (useState sessionDismissed)
 ```
 
 ### Resumo de arquivos
 
 | Arquivo | Acao |
 |---|---|
-| `supabase/functions/admin-delete-user/index.ts` | Novo -- edge function para exclusao administrativa |
-| `src/hooks/useAdmin.ts` | Adicionar `deleteUser`, melhorar invalidacao de cache |
-| `src/components/admin/UserManagement.tsx` | Opcao de excluir no dropdown, confirmacao, refresh imediato |
-| `src/components/admin/UserDetailSheet.tsx` | Botao de excluir, callback de atualizacao, receber `onUserDeleted` |
+| `src/hooks/useBiometricStatus.ts` | Novo -- hook centralizado de status biometrico |
+| `src/hooks/useProfile.ts` | Modificar -- expor `hasBiometricConsent` e `hasFaceReference` |
+| `src/components/alerts/BiometricAlertBanner.tsx` | Novo -- banner de alerta com acoes |
+| `src/pages/Index.tsx` | Modificar -- adicionar banner acima dos quick actions |
+| `src/pages/VirtualTryOn.tsx` | Modificar -- adicionar banner no topo |
+| `src/pages/Chromatic.tsx` | Modificar -- adicionar banner (apenas consentimento) |
