@@ -16,7 +16,8 @@ import {
   Check,
   Loader2,
   RotateCcw,
-  Settings
+  Settings,
+  ShieldOff
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -57,6 +58,10 @@ export function ChromaticCameraCapture({
 
   const QUALITY_THRESHOLD = 60;
 
+  // Liveness blocking logic
+  const livenessBlocking = livenessEnabled && !liveness.isLive && !liveness.timeoutReached;
+  const canCapture = isReady && !isCapturing && !livenessBlocking;
+
   // Handle camera access error
   const handleCameraAccessError = useCallback((error: string | DOMException) => {
     console.error('[ChromaticCamera] Access error:', error);
@@ -73,7 +78,6 @@ export function ChromaticCameraCapture({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Sample center region for face lighting
     const sampleSize = 100;
     canvas.width = sampleSize;
     canvas.height = sampleSize;
@@ -131,7 +135,6 @@ export function ChromaticCameraCapture({
   const handleWebcamReady = useCallback(() => {
     setIsReady(true);
     analysisIntervalRef.current = setInterval(analyzeFrame, 300);
-    // Start liveness detection if enabled
     if (livenessEnabled && webcamRef.current?.video) {
       liveness.startDetection(webcamRef.current.video);
     }
@@ -175,6 +178,13 @@ export function ChromaticCameraCapture({
     }
   }, [onCapture, analyzeFrame]);
 
+  const handleRetryLiveness = useCallback(() => {
+    liveness.reset();
+    if (webcamRef.current?.video) {
+      liveness.startDetection(webcamRef.current.video);
+    }
+  }, [liveness]);
+
   const getStatusIcon = (lighting: string) => {
     const iconClass = 'w-4 h-4';
     if (lighting === 'good') return <Sun className={cn(iconClass, 'text-green-500')} />;
@@ -195,6 +205,40 @@ export function ChromaticCameraCapture({
         ? 'bg-amber-500'
         : 'bg-red-500'
     : 'bg-muted';
+
+  // Button label
+  const getCaptureButtonContent = () => {
+    if (isCapturing) {
+      return (
+        <>
+          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+          Capturando...
+        </>
+      );
+    }
+    if (livenessEnabled && !liveness.isLive && !liveness.timeoutReached) {
+      return (
+        <>
+          <Camera className="w-5 h-5 mr-2 opacity-50" />
+          Complete a verificação acima
+        </>
+      );
+    }
+    if (livenessEnabled && liveness.timeoutReached && !liveness.isLive) {
+      return (
+        <>
+          <ShieldOff className="w-5 h-5 mr-2" />
+          Capturar sem verificação
+        </>
+      );
+    }
+    return (
+      <>
+        <Camera className="w-5 h-5 mr-2" />
+        {analysis?.isReady ? 'Capturar' : 'Capturar mesmo assim'}
+      </>
+    );
+  };
 
   return (
     <motion.div
@@ -317,6 +361,10 @@ export function ChromaticCameraCapture({
             headTurnDetected={liveness.headTurnDetected}
             isProcessing={liveness.isProcessing}
             error={liveness.error}
+            faceDetected={liveness.faceDetected}
+            timeoutReached={liveness.timeoutReached}
+            onSkip={liveness.skipChallenge}
+            onRetry={handleRetryLiveness}
           />
         )}
       </div>
@@ -365,25 +413,15 @@ export function ChromaticCameraCapture({
         <Button
           size="lg"
           onClick={handleCapture}
-          disabled={!isReady || isCapturing || (livenessEnabled && !liveness.isLive)}
+          disabled={!canCapture}
           className={cn(
             "px-8 shadow-glow transition-all duration-300",
-            analysis?.isReady 
+            canCapture && analysis?.isReady
               ? "gradient-primary text-primary-foreground" 
               : "bg-secondary text-secondary-foreground"
           )}
         >
-          {isCapturing ? (
-            <>
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              Capturando...
-            </>
-          ) : (
-            <>
-              <Camera className="w-5 h-5 mr-2" />
-              {analysis?.isReady ? 'Capturar' : 'Capturar mesmo assim'}
-            </>
-          )}
+          {getCaptureButtonContent()}
         </Button>
       </div>
 

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { getFaceLandmarker, calculateEAR, calculateHeadYaw } from '@/lib/mediapipe-face';
 
 export type LivenessChallenge = 'blink' | 'head_turn' | 'complete';
@@ -10,11 +10,14 @@ interface LivenessState {
   headTurnDetected: boolean;
   isProcessing: boolean;
   error: string | null;
+  faceDetected: boolean;
+  timeoutReached: boolean;
 }
 
-const EAR_THRESHOLD = 0.21;
-const EAR_CONSECUTIVE_FRAMES = 2;
-const HEAD_YAW_THRESHOLD = 15; // degrees
+const EAR_THRESHOLD = 0.25;
+const EAR_CONSECUTIVE_FRAMES = 1;
+const HEAD_YAW_THRESHOLD = 15;
+const TIMEOUT_MS = 30000;
 
 export function useLivenessDetection() {
   const [state, setState] = useState<LivenessState>({
@@ -24,12 +27,16 @@ export function useLivenessDetection() {
     headTurnDetected: false,
     isProcessing: false,
     error: null,
+    faceDetected: false,
+    timeoutReached: false,
   });
 
   const animationFrameRef = useRef<number | null>(null);
   const lowEarFrames = useRef(0);
   const wasEyeClosed = useRef(false);
   const isRunning = useRef(false);
+  const startedAt = useRef<number | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const stopDetection = useCallback(() => {
     isRunning.current = false;
@@ -37,10 +44,33 @@ export function useLivenessDetection() {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
   }, []);
 
+  const skipChallenge = useCallback(() => {
+    stopDetection();
+    setState((s) => ({
+      ...s,
+      isLive: true,
+      currentChallenge: 'complete',
+      isProcessing: false,
+    }));
+  }, [stopDetection]);
+
   const startDetection = useCallback(async (videoElement: HTMLVideoElement) => {
-    setState((s) => ({ ...s, isProcessing: true, error: null }));
+    setState((s) => ({ ...s, isProcessing: true, error: null, faceDetected: false, timeoutReached: false }));
+    startedAt.current = Date.now();
+
+    // Set timeout
+    timeoutRef.current = setTimeout(() => {
+      setState((s) => {
+        if (s.currentChallenge === 'complete') return s;
+        return { ...s, timeoutReached: true };
+      });
+    }, TIMEOUT_MS);
 
     try {
       const landmarker = await getFaceLandmarker();
@@ -66,6 +96,12 @@ export function useLivenessDetection() {
           if (result.faceLandmarks && result.faceLandmarks.length > 0) {
             const landmarks = result.faceLandmarks[0];
 
+            // Mark face as detected
+            setState((s) => {
+              if (s.faceDetected) return s;
+              return { ...s, faceDetected: true };
+            });
+
             // Blink detection
             const ear = calculateEAR(landmarks);
 
@@ -76,7 +112,6 @@ export function useLivenessDetection() {
               }
             } else {
               if (wasEyeClosed.current) {
-                // Blink completed (eyes closed then opened)
                 setState((s) => {
                   if (s.blinkDetected) return s;
                   return {
@@ -95,6 +130,11 @@ export function useLivenessDetection() {
             if (yaw > HEAD_YAW_THRESHOLD) {
               setState((s) => {
                 if (!s.blinkDetected || s.headTurnDetected) return s;
+                // Clear timeout on success
+                if (timeoutRef.current) {
+                  clearTimeout(timeoutRef.current);
+                  timeoutRef.current = null;
+                }
                 return {
                   ...s,
                   headTurnDetected: true,
@@ -104,6 +144,12 @@ export function useLivenessDetection() {
                 };
               });
             }
+          } else {
+            // No face found
+            setState((s) => {
+              if (!s.faceDetected) return s;
+              return { ...s, faceDetected: false };
+            });
           }
         } catch (e) {
           // Silently handle frame errors
@@ -130,6 +176,7 @@ export function useLivenessDetection() {
     stopDetection();
     lowEarFrames.current = 0;
     wasEyeClosed.current = false;
+    startedAt.current = null;
     setState({
       isLive: false,
       currentChallenge: 'blink',
@@ -137,13 +184,21 @@ export function useLivenessDetection() {
       headTurnDetected: false,
       isProcessing: false,
       error: null,
+      faceDetected: false,
+      timeoutReached: false,
     });
+  }, [stopDetection]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => stopDetection();
   }, [stopDetection]);
 
   return {
     ...state,
     startDetection,
     stopDetection,
+    skipChallenge,
     reset,
   };
 }
