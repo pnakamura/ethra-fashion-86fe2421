@@ -17,6 +17,7 @@ import { LookSelector } from '@/components/try-on/LookSelector';
 import { BatchTryOnProgress } from '@/components/try-on/BatchTryOnProgress';
 import { ModelBenchmark } from '@/components/try-on/ModelBenchmark';
 import { AIDisclaimer } from '@/components/legal/AIDisclaimer';
+import { BiometricAlertBanner } from '@/components/alerts/BiometricAlertBanner';
 import { useVirtualTryOn } from '@/hooks/useVirtualTryOn';
 import { useBatchTryOn } from '@/hooks/useBatchTryOn';
 import { useAuth } from '@/hooks/useAuth';
@@ -340,6 +341,9 @@ export default function VirtualTryOn() {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-2xl mx-auto space-y-6"
         >
+          {/* Biometric Alert */}
+          <BiometricAlertBanner />
+
           {/* AI Disclaimer */}
           <AIDisclaimer variant="inline" className="mb-4" />
 

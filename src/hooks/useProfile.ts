@@ -19,6 +19,8 @@ export interface UserProfile {
   font_size: string | null;
   background_settings: Json | null;
   achievements: Json | null;
+  biometric_consent_at: string | null;
+  face_embedding_hash: Json | null;
   created_at: string;
   updated_at: string;
 }
@@ -58,6 +60,8 @@ export function useProfile() {
   const hasChromaticAnalysis = !!query.data?.color_analysis;
   const hasCompletedOnboarding = !!query.data?.onboarding_complete;
   const colorSeason = query.data?.color_season;
+  const hasBiometricConsent = !!query.data?.biometric_consent_at;
+  const hasFaceReference = !!query.data?.face_embedding_hash;
 
   return {
     profile: query.data,
@@ -69,6 +73,8 @@ export function useProfile() {
     hasChromaticAnalysis,
     hasCompletedOnboarding,
     colorSeason,
+    hasBiometricConsent,
+    hasFaceReference,
   };
 }
 

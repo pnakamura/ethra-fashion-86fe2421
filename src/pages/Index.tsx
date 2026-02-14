@@ -9,6 +9,7 @@ import { QuickActions } from '@/components/dashboard/QuickActions';
 import { MissionCard } from '@/components/dashboard/MissionCard';
 import { AchievementsPanel } from '@/components/dashboard/AchievementsPanel';
 import { TemporarySeasonBanner } from '@/components/chromatic/TemporarySeasonBanner';
+import { BiometricAlertBanner } from '@/components/alerts/BiometricAlertBanner';
 import { useProfile } from '@/hooks/useProfile';
 import { Sparkles, ChevronRight, Crown, Camera, CalendarDays, ShirtIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -233,6 +234,7 @@ export default function Index() {
           </div>
           
           <TemporarySeasonBanner />
+          <BiometricAlertBanner compact />
           <QuickActions painPoint={painPoint} />
           <PromoCards painPoint={painPoint} navigate={navigate} />
           <LookOfTheDay />

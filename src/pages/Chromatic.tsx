@@ -14,6 +14,7 @@ import { ChromaticOnboarding } from '@/components/chromatic/ChromaticOnboarding'
 import { MakeupHub } from '@/components/chromatic/MakeupHub';
 import { QuickActionsGrid } from '@/components/chromatic/QuickActionsGrid';
 import { ColorJourney } from '@/components/chromatic/ColorJourney';
+import { BiometricAlertBanner } from '@/components/alerts/BiometricAlertBanner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useColorAnalysis, type ColorAnalysisResult } from '@/hooks/useColorAnalysis';
 import { useAuth } from '@/hooks/useAuth';
@@ -99,6 +100,9 @@ export default function Chromatic() {
         <div className="max-w-lg mx-auto space-y-6">
           {/* Temporary Season Banner */}
           <TemporarySeasonBanner />
+
+          {/* Biometric consent alert */}
+          <BiometricAlertBanner consentOnly />
 
           {/* Hero section - only show when user has analysis */}
           {hasAnalysis && (
