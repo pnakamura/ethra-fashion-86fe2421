@@ -105,6 +105,11 @@ export function useLivenessDetection() {
         try {
           const result = landmarker.detectForVideo(videoElement, now);
 
+          // Log first 5 frames for diagnostics
+          if (logCounter < 5) {
+            console.log(`[Liveness] Frame #${logCounter}: faceLandmarks=${result.faceLandmarks?.length ?? 0}, videoSize=${videoElement.videoWidth}x${videoElement.videoHeight}`);
+          }
+
           if (result.faceLandmarks && result.faceLandmarks.length > 0) {
             const landmarks = result.faceLandmarks[0];
 
