@@ -22,6 +22,7 @@ import { useWardrobeItems } from '@/hooks/useWardrobeItems';
 import { Loader2, Palette, Sparkles, Compass, Heart } from 'lucide-react';
 import { getSeasonById, chromaticSeasons } from '@/data/chromatic-seasons';
 import { calculateWardrobeStats } from '@/lib/chromatic-match';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Chromatic() {
   const { user } = useAuth();
@@ -32,6 +33,7 @@ export default function Chromatic() {
   const [activeTab, setActiveTab] = useState('discover');
   const [showSeasonDetail, setShowSeasonDetail] = useState(false);
   const [showAnalysisForm, setShowAnalysisForm] = useState(false);
+  const [referenceAvatarUrl, setReferenceAvatarUrl] = useState<string | null>(null);
 
   // Use centralized hook - only fetch needed fields for stats
   const { items: wardrobeItems } = useWardrobeItems();
@@ -49,6 +51,22 @@ export default function Chromatic() {
           setSavedAnalysis(analysis);
           // If user has analysis, default to palette tab
           setActiveTab('palette');
+        }
+
+        // Fetch primary avatar for face matching
+        try {
+          const { data: avatar } = await supabase
+            .from('user_avatars')
+            .select('image_url')
+            .eq('user_id', user.id)
+            .eq('is_primary', true)
+            .maybeSingle();
+
+          if (avatar?.image_url) {
+            setReferenceAvatarUrl(avatar.image_url);
+          }
+        } catch {
+          // No avatar for face matching — skip silently
         }
       }
       setLoading(false);
@@ -170,6 +188,7 @@ export default function Chromatic() {
                       onComplete={() => {}}
                       onSave={handleSaveAnalysis}
                       showSaveButton={!!user}
+                      referenceAvatarUrl={referenceAvatarUrl}
                     />
 
                     {!user && (
