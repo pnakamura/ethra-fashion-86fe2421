@@ -20,7 +20,9 @@ import {
   Settings,
   ShieldCheck,
   ShieldAlert,
-  Fingerprint
+  Fingerprint,
+  Eye,
+  MoveHorizontal
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -162,7 +164,9 @@ export function ChromaticCameraCapture({
     } else if (livenessStatus === 'suspicious') {
       tips.push('Movimento não detectado - mova levemente o rosto');
     } else if (livenessStatus === 'waiting' || livenessStatus === 'analyzing') {
-      tips.push('Mantenha o rosto parado por um momento...');
+      tips.push('Detectando presença...');
+    } else if (livenessStatus === 'challenge') {
+      tips.push(livenessMessage);
     } else if (lighting === 'low') {
       tips.push('Procure um local com mais luz natural');
     } else if (lighting === 'overexposed') {
@@ -246,12 +250,18 @@ export function ChromaticCameraCapture({
     const iconClass = 'w-4 h-4';
     if (status === 'alive') return <ShieldCheck className={cn(iconClass, 'text-green-500')} />;
     if (status === 'suspicious') return <ShieldAlert className={cn(iconClass, 'text-red-500')} />;
+    if (status === 'challenge') {
+      const challengeType = livenessDetectorRef.current.challengeType;
+      if (challengeType === 'blink') return <Eye className={cn(iconClass, 'text-blue-400 animate-pulse')} />;
+      return <MoveHorizontal className={cn(iconClass, 'text-blue-400 animate-pulse')} />;
+    }
     return <Fingerprint className={cn(iconClass, 'text-amber-500 animate-pulse')} />;
   };
 
   const getLivenessText = (status: LivenessStatus) => {
     if (status === 'alive') return 'Verificada';
     if (status === 'suspicious') return 'Suspensa';
+    if (status === 'challenge') return 'Desafio';
     if (status === 'analyzing') return 'Verificando...';
     return 'Aguardando...';
   };
@@ -269,6 +279,7 @@ export function ChromaticCameraCapture({
     if (!analysis?.faceDetected) return 'border-red-400/70 border-dashed';
     if (analysis.livenessStatus === 'alive' && analysis.isReady) return 'border-green-500/70';
     if (analysis.livenessStatus === 'alive') return 'border-amber-500/70';
+    if (analysis.livenessStatus === 'challenge') return 'border-blue-400/70';
     if (analysis.livenessStatus === 'suspicious') return 'border-red-400/70';
     return 'border-amber-400/50 border-dashed';
   };
@@ -409,9 +420,11 @@ export function ChromaticCameraCapture({
                   "px-3 py-1.5 rounded-full text-white text-xs font-medium flex items-center gap-1.5",
                   analysis.livenessStatus === 'alive'
                     ? "bg-green-600/90"
-                    : analysis.livenessStatus === 'suspicious'
-                      ? "bg-red-500/90"
-                      : "bg-slate-600/90"
+                    : analysis.livenessStatus === 'challenge'
+                      ? "bg-blue-500/90"
+                      : analysis.livenessStatus === 'suspicious'
+                        ? "bg-red-500/90"
+                        : "bg-slate-600/90"
                 )}
               >
                 {getLivenessIcon(analysis.livenessStatus)}
@@ -461,8 +474,9 @@ export function ChromaticCameraCapture({
                     <span className={cn(
                       'font-medium',
                       analysis.livenessStatus === 'alive' ? 'text-green-500'
-                        : analysis.livenessStatus === 'suspicious' ? 'text-red-500'
-                          : 'text-amber-500'
+                        : analysis.livenessStatus === 'challenge' ? 'text-blue-500'
+                          : analysis.livenessStatus === 'suspicious' ? 'text-red-500'
+                            : 'text-amber-500'
                     )}>
                       {getLivenessText(analysis.livenessStatus)}
                     </span>
@@ -471,14 +485,16 @@ export function ChromaticCameraCapture({
                 <Progress
                   value={
                     analysis.livenessStatus === 'alive' ? 100
-                      : analysis.livenessStatus === 'analyzing' ? 50
-                        : analysis.livenessStatus === 'suspicious' ? 15
-                          : 10
+                      : analysis.livenessStatus === 'challenge' ? 65
+                        : analysis.livenessStatus === 'analyzing' ? 35
+                          : analysis.livenessStatus === 'suspicious' ? 15
+                            : 10
                   }
                   className={cn('h-2',
                     analysis.livenessStatus === 'alive' ? 'bg-green-500'
-                      : analysis.livenessStatus === 'suspicious' ? 'bg-red-500'
-                        : 'bg-amber-500'
+                      : analysis.livenessStatus === 'challenge' ? 'bg-blue-500'
+                        : analysis.livenessStatus === 'suspicious' ? 'bg-red-500'
+                          : 'bg-amber-500'
                   )}
                 />
               </div>
@@ -499,7 +515,7 @@ export function ChromaticCameraCapture({
         <Button
           size="lg"
           onClick={handleCapture}
-          disabled={!isReady || isCapturing || (analysis?.faceDetected && analysis?.livenessStatus !== 'alive')}
+          disabled={!isReady || isCapturing || (analysis?.faceDetected === true && analysis?.livenessStatus !== 'alive')}
           className={cn(
             "px-8 shadow-glow transition-all duration-300",
             analysis?.isReady
@@ -511,6 +527,14 @@ export function ChromaticCameraCapture({
             <>
               <Loader2 className="w-5 h-5 mr-2 animate-spin" />
               Capturando...
+            </>
+          ) : analysis?.livenessStatus === 'challenge' && analysis?.faceDetected ? (
+            <>
+              {livenessDetectorRef.current.challengeType === 'blink'
+                ? <Eye className="w-5 h-5 mr-2 animate-pulse" />
+                : <MoveHorizontal className="w-5 h-5 mr-2 animate-pulse" />
+              }
+              {analysis.livenessMessage || 'Complete o desafio...'}
             </>
           ) : analysis?.livenessStatus !== 'alive' && analysis?.faceDetected ? (
             <>

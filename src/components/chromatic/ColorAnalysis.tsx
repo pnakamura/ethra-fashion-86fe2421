@@ -11,6 +11,7 @@ import { useColorAnalysis, type ColorAnalysisResult as AnalysisType } from '@/ho
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { compareFaces, type FaceMatchResult } from '@/lib/face-matching';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ColorAnalysisProps {
   onComplete?: (result: AnalysisType) => void;
@@ -18,6 +19,8 @@ interface ColorAnalysisProps {
   showSaveButton?: boolean;
   demoMode?: boolean;
   referenceAvatarUrl?: string | null;
+  /** Called when a reference selfie is saved (first-use capture). */
+  onReferenceSaved?: (url: string) => void;
 }
 
 // Rotating analysis messages
@@ -35,7 +38,8 @@ export function ColorAnalysis({
   onSave,
   showSaveButton = true,
   demoMode = false,
-  referenceAvatarUrl = null
+  referenceAvatarUrl = null,
+  onReferenceSaved
 }: ColorAnalysisProps) {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [showCamera, setShowCamera] = useState(false);
@@ -121,9 +125,43 @@ export function ColorAnalysis({
     reader.readAsDataURL(file);
   };
 
+  /**
+   * Save the first selfie as reference for future face matching.
+   * Stores the image in Supabase Storage and updates profiles.avatar_url.
+   */
+  const saveReferenceSelfie = async (base64: string) => {
+    if (!user || referenceAvatarUrl) return; // already has one
+    try {
+      const blob = await (await fetch(base64)).blob();
+      const fileName = `${user.id}/reference-selfie-${Date.now()}.jpg`;
+      const { error: upErr } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, blob, { contentType: 'image/jpeg', upsert: true });
+      if (upErr) throw upErr;
+
+      const { data } = supabase.storage.from('avatars').getPublicUrl(fileName);
+      const publicUrl = data.publicUrl;
+
+      await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('user_id', user.id);
+
+      onReferenceSaved?.(publicUrl);
+      console.log('[ColorAnalysis] Reference selfie saved:', publicUrl);
+    } catch (err) {
+      console.warn('[ColorAnalysis] Could not save reference selfie:', err);
+    }
+  };
+
   const handleConfirmPhoto = async () => {
     if (!capturedImage) return;
     setShowPreview(false);
+
+    // Save as reference selfie on first use (no existing reference)
+    if (user && !referenceAvatarUrl) {
+      saveReferenceSelfie(capturedImage);
+    }
 
     const analysisResult = await analyzeImage(capturedImage);
     if (analysisResult && onComplete) {

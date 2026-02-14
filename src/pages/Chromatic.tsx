@@ -53,20 +53,32 @@ export default function Chromatic() {
           setActiveTab('palette');
         }
 
-        // Fetch primary avatar for face matching
+        // Fetch reference selfie for face matching:
+        // 1st priority: profiles.avatar_url (reference selfie from chromatic camera)
+        // 2nd priority: primary avatar from user_avatars (try-on avatar)
         try {
-          const { data: avatar } = await supabase
-            .from('user_avatars')
-            .select('image_url')
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('avatar_url')
             .eq('user_id', user.id)
-            .eq('is_primary', true)
             .maybeSingle();
 
-          if (avatar?.image_url) {
-            setReferenceAvatarUrl(avatar.image_url);
+          if (profile?.avatar_url) {
+            setReferenceAvatarUrl(profile.avatar_url);
+          } else {
+            const { data: avatar } = await supabase
+              .from('user_avatars')
+              .select('image_url')
+              .eq('user_id', user.id)
+              .eq('is_primary', true)
+              .maybeSingle();
+
+            if (avatar?.image_url) {
+              setReferenceAvatarUrl(avatar.image_url);
+            }
           }
         } catch {
-          // No avatar for face matching — skip silently
+          // No reference for face matching — skip silently
         }
       }
       setLoading(false);
@@ -189,6 +201,7 @@ export default function Chromatic() {
                       onSave={handleSaveAnalysis}
                       showSaveButton={!!user}
                       referenceAvatarUrl={referenceAvatarUrl}
+                      onReferenceSaved={(url) => setReferenceAvatarUrl(url)}
                     />
 
                     {!user && (
