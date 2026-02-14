@@ -16,7 +16,7 @@ interface LivenessState {
 
 const EAR_THRESHOLD = 0.25;
 const EAR_CONSECUTIVE_FRAMES = 1;
-const HEAD_YAW_THRESHOLD = 15;
+const HEAD_YAW_THRESHOLD = 8; // degrees - lowered for webcam accuracy
 const TIMEOUT_MS = 30000;
 
 export function useLivenessDetection() {
