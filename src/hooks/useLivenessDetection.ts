@@ -85,6 +85,12 @@ export function useLivenessDetection() {
 
       const detect = () => {
         if (!isRunning.current || !videoElement || videoElement.readyState < 2) {
+          if (isRunning.current && videoElement) {
+            logCounter++;
+            if (logCounter % 60 === 0) {
+              console.log(`[Liveness] Waiting for video... readyState=${videoElement.readyState}`);
+            }
+          }
           animationFrameRef.current = requestAnimationFrame(detect);
           return;
         }
@@ -179,7 +185,7 @@ export function useLivenessDetection() {
             });
           }
         } catch (e) {
-          // Silently handle frame errors
+          console.warn('[Liveness] Frame error:', e);
         }
 
         if (isRunning.current) {
