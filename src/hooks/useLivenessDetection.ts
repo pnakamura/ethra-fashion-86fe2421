@@ -73,9 +73,12 @@ export function useLivenessDetection() {
     }, TIMEOUT_MS);
 
     try {
+      console.log('[Liveness] Loading FaceLandmarker...');
       const landmarker = await getFaceLandmarker();
+      console.log('[Liveness] FaceLandmarker ready, starting detection loop');
       isRunning.current = true;
       let lastTimestamp = -1;
+      let logCounter = 0;
 
       const detect = () => {
         if (!isRunning.current || !videoElement || videoElement.readyState < 2) {
@@ -99,11 +102,19 @@ export function useLivenessDetection() {
             // Mark face as detected
             setState((s) => {
               if (s.faceDetected) return s;
+              console.log('[Liveness] Face detected!');
               return { ...s, faceDetected: true };
             });
 
             // Blink detection
             const ear = calculateEAR(landmarks);
+            const yaw = Math.abs(calculateHeadYaw(landmarks));
+
+            // Log every 30 frames
+            logCounter++;
+            if (logCounter % 30 === 0) {
+              console.log(`[Liveness] EAR=${ear.toFixed(3)} (thr=${EAR_THRESHOLD}) | Yaw=${yaw.toFixed(1)}° (thr=${HEAD_YAW_THRESHOLD}) | eyeClosed=${wasEyeClosed.current} | lowFrames=${lowEarFrames.current}`);
+            }
 
             if (ear < EAR_THRESHOLD) {
               lowEarFrames.current++;
@@ -125,8 +136,7 @@ export function useLivenessDetection() {
               wasEyeClosed.current = false;
             }
 
-            // Head turn detection
-            const yaw = Math.abs(calculateHeadYaw(landmarks));
+            // Head turn detection (yaw already computed above)
             if (yaw > HEAD_YAW_THRESHOLD) {
               setState((s) => {
                 if (!s.blinkDetected || s.headTurnDetected) return s;
