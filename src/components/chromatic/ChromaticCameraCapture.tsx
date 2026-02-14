@@ -22,6 +22,9 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { handleCameraError, showPermissionDeniedToast } from '@/lib/camera-permissions';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
+import { useLivenessDetection } from '@/hooks/useLivenessDetection';
+import { LivenessChallenge } from '@/components/camera/LivenessChallenge';
 
 interface CameraAnalysis {
   overallScore: number;
@@ -47,6 +50,10 @@ export function ChromaticCameraCapture({
   const [isCapturing, setIsCapturing] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<CameraAnalysis | null>(null);
+
+  const { isEnabled } = useFeatureFlags();
+  const livenessEnabled = isEnabled('liveness_detection');
+  const liveness = useLivenessDetection();
 
   const QUALITY_THRESHOLD = 60;
 
@@ -124,7 +131,11 @@ export function ChromaticCameraCapture({
   const handleWebcamReady = useCallback(() => {
     setIsReady(true);
     analysisIntervalRef.current = setInterval(analyzeFrame, 300);
-  }, [analyzeFrame]);
+    // Start liveness detection if enabled
+    if (livenessEnabled && webcamRef.current?.video) {
+      liveness.startDetection(webcamRef.current.video);
+    }
+  }, [analyzeFrame, livenessEnabled, liveness]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -132,8 +143,9 @@ export function ChromaticCameraCapture({
       if (analysisIntervalRef.current) {
         clearInterval(analysisIntervalRef.current);
       }
+      liveness.stopDetection();
     };
-  }, []);
+  }, [liveness]);
 
   // Handle capture
   const handleCapture = useCallback(async () => {
@@ -296,6 +308,17 @@ export function ChromaticCameraCapture({
             </div>
           </motion.div>
         )}
+
+        {/* Liveness Challenge Overlay */}
+        {livenessEnabled && isReady && !isCapturing && !cameraError && (
+          <LivenessChallenge
+            currentChallenge={liveness.currentChallenge}
+            blinkDetected={liveness.blinkDetected}
+            headTurnDetected={liveness.headTurnDetected}
+            isProcessing={liveness.isProcessing}
+            error={liveness.error}
+          />
+        )}
       </div>
 
       {/* Analysis Feedback */}
@@ -342,7 +365,7 @@ export function ChromaticCameraCapture({
         <Button
           size="lg"
           onClick={handleCapture}
-          disabled={!isReady || isCapturing}
+          disabled={!isReady || isCapturing || (livenessEnabled && !liveness.isLive)}
           className={cn(
             "px-8 shadow-glow transition-all duration-300",
             analysis?.isReady 

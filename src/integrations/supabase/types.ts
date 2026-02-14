@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_feature_flags: {
+        Row: {
+          description: string | null
+          enabled: boolean
+          id: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          description?: string | null
+          enabled?: boolean
+          id: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       external_garments: {
         Row: {
           created_at: string
@@ -210,6 +234,7 @@ export type Database = {
           color_analysis: Json | null
           color_season: string | null
           created_at: string
+          face_embedding_hash: Json | null
           font_size: string | null
           id: string
           onboarding_complete: boolean | null
@@ -236,6 +261,7 @@ export type Database = {
           color_analysis?: Json | null
           color_season?: string | null
           created_at?: string
+          face_embedding_hash?: Json | null
           font_size?: string | null
           id?: string
           onboarding_complete?: boolean | null
@@ -262,6 +288,7 @@ export type Database = {
           color_analysis?: Json | null
           color_season?: string | null
           created_at?: string
+          face_embedding_hash?: Json | null
           font_size?: string | null
           id?: string
           onboarding_complete?: boolean | null

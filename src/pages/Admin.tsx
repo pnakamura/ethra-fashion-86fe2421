@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdminGuard } from '@/components/admin/AdminGuard';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { SubscriptionManagement } from '@/components/admin/SubscriptionManagement';
+import { FeatureFlagsSettings } from '@/components/admin/FeatureFlagsSettings';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -186,15 +187,18 @@ function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="settings">
-            <Card className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Settings className="w-5 h-5 text-primary" />
-                <h3 className="font-semibold">Configurações</h3>
-              </div>
-              <p className="text-muted-foreground text-sm">
-                Em breve: Configurações gerais do aplicativo.
-              </p>
-            </Card>
+            <div className="space-y-4">
+              <FeatureFlagsSettings />
+              <Card className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <Settings className="w-5 h-5 text-primary" />
+                  <h3 className="font-semibold">Configurações Gerais</h3>
+                </div>
+                <p className="text-muted-foreground text-sm">
+                  Em breve: Configurações gerais do aplicativo.
+                </p>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

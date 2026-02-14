@@ -7,6 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { useVirtualTryOn } from '@/hooks/useVirtualTryOn';
 import { SmartCameraCapture } from './SmartCameraCapture';
 import { PrivacySettings } from './PrivacySettings';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
+import { useFaceEmbedding } from '@/hooks/useFaceEmbedding';
+import { FaceMatchResult } from '@/components/camera/FaceMatchResult';
+import { toast } from 'sonner';
 
 export function AvatarManager() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -15,6 +19,12 @@ export function AvatarManager() {
   const [showSmartCamera, setShowSmartCamera] = useState(false);
   const [blurFaceEnabled, setBlurFaceEnabled] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [faceMatchFailed, setFaceMatchFailed] = useState(false);
+  const [isCheckingFace, setIsCheckingFace] = useState(false);
+
+  const { isEnabled } = useFeatureFlags();
+  const faceMatchingEnabled = isEnabled('face_matching');
+  const { extractEmbedding, compareWithReference, hasReference } = useFaceEmbedding();
   
   const {
     primaryAvatar,
@@ -25,17 +35,56 @@ export function AvatarManager() {
     setPrimaryAvatar,
   } = useVirtualTryOn();
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const verifyFaceMatch = async (file: File): Promise<boolean> => {
+    if (!faceMatchingEnabled || !hasReference) return true;
+
+    setIsCheckingFace(true);
+    try {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      const url = URL.createObjectURL(file);
+      img.src = url;
+      await new Promise<void>((resolve) => { img.onload = () => resolve(); });
+      
+      const embedding = await extractEmbedding(img);
+      URL.revokeObjectURL(url);
+
+      if (!embedding) {
+        // No face detected in image — allow (it might be a body shot)
+        return true;
+      }
+
+      const { match } = await compareWithReference(embedding);
+      if (!match) {
+        setFaceMatchFailed(true);
+        return false;
+      }
+      return true;
+    } catch (e) {
+      console.warn('[AvatarManager] Face match error:', e);
+      return true; // Fail open on errors
+    } finally {
+      setIsCheckingFace(false);
+    }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (!file) return;
+
+    const allowed = await verifyFaceMatch(file);
+    if (allowed) {
       uploadAvatar(file);
     }
   };
 
-  const handleSmartCameraCapture = (blob: Blob) => {
+  const handleSmartCameraCapture = async (blob: Blob) => {
     const file = new File([blob], `avatar-${Date.now()}.jpg`, { type: 'image/jpeg' });
-    uploadAvatar(file);
-    setShowSmartCamera(false);
+    const allowed = await verifyFaceMatch(file);
+    if (allowed) {
+      uploadAvatar(file);
+      setShowSmartCamera(false);
+    }
   };
 
   const handleSetPrimary = async (avatarId: string) => {
@@ -46,6 +95,19 @@ export function AvatarManager() {
       setSettingPrimaryId(null);
     }
   };
+
+  // Show face match failure
+  if (faceMatchFailed) {
+    return (
+      <Card className="p-4 shadow-soft">
+        <FaceMatchResult
+          match={false}
+          onRetry={() => setFaceMatchFailed(false)}
+          onCancel={() => setFaceMatchFailed(false)}
+        />
+      </Card>
+    );
+  }
 
   // Show Smart Camera overlay
   if (showSmartCamera) {

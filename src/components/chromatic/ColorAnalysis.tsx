@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Upload, RotateCcw, Loader2, Sparkles, AlertTriangle, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,8 @@ import { ChromaticCameraCapture } from './ChromaticCameraCapture';
 import { useColorAnalysis, type ColorAnalysisResult as AnalysisType } from '@/hooks/useColorAnalysis';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
+import { useFaceEmbedding } from '@/hooks/useFaceEmbedding';
 
 interface ColorAnalysisProps {
   onComplete?: (result: AnalysisType) => void;
@@ -40,6 +42,9 @@ export function ColorAnalysis({
   const { isAnalyzing, result, hasError, error, analyzeImage, retry, reset } = useColorAnalysis();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { isEnabled } = useFeatureFlags();
+  const { hasReference, extractEmbedding, saveReferenceEmbedding } = useFaceEmbedding();
+  const embeddingSavedRef = useRef(false);
 
   // Rotate messages during analysis
   useState(() => {
@@ -78,6 +83,24 @@ export function ColorAnalysis({
     const analysisResult = await analyzeImage(capturedImage);
     if (analysisResult && onComplete) {
       onComplete(analysisResult);
+    }
+
+    // Save face embedding for face matching (only on first successful analysis)
+    if (analysisResult && user && isEnabled('face_matching') && !hasReference && !embeddingSavedRef.current) {
+      embeddingSavedRef.current = true;
+      try {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = capturedImage;
+        await new Promise<void>((resolve) => { img.onload = () => resolve(); });
+        const embedding = await extractEmbedding(img);
+        if (embedding) {
+          await saveReferenceEmbedding(embedding);
+          console.log('[ColorAnalysis] Face embedding saved for future matching');
+        }
+      } catch (e) {
+        console.warn('[ColorAnalysis] Could not save face embedding:', e);
+      }
     }
   };
 
