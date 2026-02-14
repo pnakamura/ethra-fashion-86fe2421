@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Upload, RotateCcw, Loader2, Sparkles, AlertTriangle, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -35,14 +35,14 @@ export function ColorAnalysis({
   const [showCamera, setShowCamera] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [messageIndex, setMessageIndex] = useState(0);
-  const fileInputRef = useState<HTMLInputElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const { isAnalyzing, result, hasError, error, analyzeImage, retry, reset } = useColorAnalysis();
   const { user } = useAuth();
   const navigate = useNavigate();
 
   // Rotate messages during analysis
-  useState(() => {
+  useEffect(() => {
     if (isAnalyzing) {
       const interval = setInterval(() => {
         setMessageIndex(prev => (prev + 1) % ANALYSIS_MESSAGES.length);
@@ -50,7 +50,7 @@ export function ColorAnalysis({
       return () => clearInterval(interval);
     }
     setMessageIndex(0);
-  });
+  }, [isAnalyzing]);
 
   const handleCameraCapture = (imageBase64: string) => {
     setCapturedImage(imageBase64);

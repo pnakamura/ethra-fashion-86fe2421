@@ -31,6 +31,7 @@ export default function Chromatic() {
   const [savedAnalysis, setSavedAnalysis] = useState<ColorAnalysisResult | null>(null);
   const [activeTab, setActiveTab] = useState('discover');
   const [showSeasonDetail, setShowSeasonDetail] = useState(false);
+  const [showAnalysisForm, setShowAnalysisForm] = useState(false);
 
   // Use centralized hook - only fetch needed fields for stats
   const { items: wardrobeItems } = useWardrobeItems();
@@ -72,6 +73,7 @@ export default function Chromatic() {
 
   const handleNewAnalysis = () => {
     reset();
+    setShowAnalysisForm(true);
     setActiveTab('discover');
   };
 
@@ -145,7 +147,7 @@ export default function Chromatic() {
             {/* Discover Tab */}
             <TabsContent value="discover" className="mt-4">
               <AnimatePresence mode="wait">
-                {!hasAnalysis ? (
+                {!hasAnalysis && !showAnalysisForm ? (
                   <motion.div
                     key="onboarding"
                     initial={{ opacity: 0 }}
@@ -153,7 +155,7 @@ export default function Chromatic() {
                     exit={{ opacity: 0 }}
                   >
                     <ChromaticOnboarding
-                      onStartAnalysis={() => {}}
+                      onStartAnalysis={() => setShowAnalysisForm(true)}
                       onExplore={() => setActiveTab('explore')}
                     />
                   </motion.div>
@@ -169,7 +171,7 @@ export default function Chromatic() {
                       onSave={handleSaveAnalysis}
                       showSaveButton={!!user}
                     />
-                    
+
                     {!user && (
                       <p className="text-center text-sm text-muted-foreground mt-4">
                         Faça login para salvar sua paleta

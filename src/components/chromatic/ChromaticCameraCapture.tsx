@@ -26,6 +26,7 @@ import { handleCameraError, showPermissionDeniedToast } from '@/lib/camera-permi
 interface CameraAnalysis {
   overallScore: number;
   lighting: 'good' | 'low' | 'overexposed';
+  faceDetected: boolean;
   isReady: boolean;
   tips: string[];
 }
@@ -57,7 +58,24 @@ export function ChromaticCameraCapture({
     setCameraError(typeof error === 'string' ? error : error.message);
   }, []);
 
-  // Analyze lighting from video frame
+  // Check if RGB values match common skin tones
+  const isSkinTone = useCallback((r: number, g: number, b: number): boolean => {
+    const isBrightSkin = r > 95 && g > 40 && b > 20 &&
+      Math.max(r, g, b) - Math.min(r, g, b) > 15 &&
+      Math.abs(r - g) > 15 && r > g && r > b;
+
+    const isDarkSkin = r > 60 && g > 40 && b > 30 &&
+      r > g && g > b &&
+      (r - b) > 10 && (r - g) < 100;
+
+    const isMediumSkin = r > 80 && g > 50 && b > 35 &&
+      r > g && g >= b &&
+      Math.abs(r - g) < 80;
+
+    return isBrightSkin || isDarkSkin || isMediumSkin;
+  }, []);
+
+  // Analyze lighting and face presence from video frame
   const analyzeFrame = useCallback(() => {
     const video = webcamRef.current?.video;
     const canvas = canvasRef.current;
@@ -66,32 +84,43 @@ export function ChromaticCameraCapture({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Sample center region for face lighting
-    const sampleSize = 100;
+    // Sample center region for face lighting and detection
+    const sampleSize = 150;
     canvas.width = sampleSize;
     canvas.height = sampleSize;
-    
+
     const startX = (video.videoWidth - sampleSize) / 2;
     const startY = (video.videoHeight - sampleSize) / 2;
-    
+
     ctx.drawImage(video, startX, startY, sampleSize, sampleSize, 0, 0, sampleSize, sampleSize);
-    
+
     const imageData = ctx.getImageData(0, 0, sampleSize, sampleSize);
     const data = imageData.data;
-    
+
     let totalBrightness = 0;
+    let skinPixelCount = 0;
+    const totalPixels = data.length / 4;
+
     for (let i = 0; i < data.length; i += 4) {
       const r = data[i];
       const g = data[i + 1];
       const b = data[i + 2];
       totalBrightness += (r + g + b) / 3;
+
+      if (isSkinTone(r, g, b)) {
+        skinPixelCount++;
+      }
     }
-    
-    const avgBrightness = totalBrightness / (data.length / 4);
-    
+
+    const avgBrightness = totalBrightness / totalPixels;
+
+    // Face detected if at least 15% of center region has skin-tone pixels
+    const skinRatio = skinPixelCount / totalPixels;
+    const faceDetected = skinRatio >= 0.15;
+
     let lighting: 'good' | 'low' | 'overexposed';
     let lightingScore: number;
-    
+
     if (avgBrightness < 60) {
       lighting = 'low';
       lightingScore = avgBrightness;
@@ -102,23 +131,30 @@ export function ChromaticCameraCapture({
       lighting = 'good';
       lightingScore = 100 - Math.abs(130 - avgBrightness) * 0.5;
     }
-    
-    const overallScore = Math.round(Math.max(0, Math.min(100, lightingScore)));
-    
+
+    // Factor face detection into overall score
+    const baseLightingScore = Math.max(0, Math.min(100, lightingScore));
+    const overallScore = Math.round(faceDetected ? baseLightingScore : baseLightingScore * 0.4);
+
     const tips: string[] = [];
-    if (lighting === 'low') tips.push('Procure um local com mais luz natural');
-    if (lighting === 'overexposed') tips.push('Evite luz direta no rosto');
-    if (overallScore >= QUALITY_THRESHOLD && tips.length === 0) {
+    if (!faceDetected) {
+      tips.push('Posicione seu rosto dentro do círculo');
+    } else if (lighting === 'low') {
+      tips.push('Procure um local com mais luz natural');
+    } else if (lighting === 'overexposed') {
+      tips.push('Evite luz direta no rosto');
+    } else if (overallScore >= QUALITY_THRESHOLD) {
       tips.push('Iluminação ótima! Mantenha essa posição');
     }
-    
+
     setAnalysis({
       overallScore,
       lighting,
-      isReady: overallScore >= QUALITY_THRESHOLD,
+      faceDetected,
+      isReady: faceDetected && overallScore >= QUALITY_THRESHOLD,
       tips
     });
-  }, []);
+  }, [isSkinTone]);
 
   // Start analysis when webcam is ready
   const handleWebcamReady = useCallback(() => {
@@ -250,9 +286,20 @@ export function ChromaticCameraCapture({
               animate={{ opacity: 1, scale: 1 }}
               className={cn(
                 "w-48 h-56 border-2 rounded-full transition-colors duration-300",
-                analysis?.isReady ? "border-green-500/70" : "border-white/50"
+                analysis?.faceDetected
+                  ? analysis?.isReady ? "border-green-500/70" : "border-amber-500/70"
+                  : "border-red-400/70 border-dashed"
               )}
             />
+            {analysis && !analysis.faceDetected && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="absolute bottom-1/4 text-xs text-red-300 bg-black/60 px-3 py-1 rounded-full"
+              >
+                Rosto não detectado
+              </motion.p>
+            )}
           </div>
         )}
 
@@ -285,14 +332,20 @@ export function ChromaticCameraCapture({
           >
             <div className={cn(
               "px-3 py-1.5 rounded-full text-white text-sm font-medium flex items-center gap-2",
-              analysis.isReady ? "bg-green-500/90" : "bg-amber-500/90"
+              analysis.isReady
+                ? "bg-green-500/90"
+                : analysis.faceDetected
+                  ? "bg-amber-500/90"
+                  : "bg-red-500/90"
             )}>
               {analysis.isReady ? (
                 <Check className="w-4 h-4" />
+              ) : !analysis.faceDetected ? (
+                <AlertCircle className="w-4 h-4" />
               ) : (
                 getStatusIcon(analysis.lighting)
               )}
-              {analysis.overallScore}%
+              {analysis.faceDetected ? `${analysis.overallScore}%` : 'Sem rosto'}
             </div>
           </motion.div>
         )}
