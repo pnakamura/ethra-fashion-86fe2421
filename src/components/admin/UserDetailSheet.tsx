@@ -1,31 +1,18 @@
 import { useState } from 'react';
-import { Copy, Check, Ban, ShieldCheck, AlertTriangle, Shirt, Palette, Camera, Eye } from 'lucide-react';
+import { Copy, Check, Ban, Trash2, Shirt, Palette, Camera } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useAdmin } from '@/hooks/useAdmin';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -58,11 +45,13 @@ interface UserDetailSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   plans: SubscriptionPlan[];
+  onUserDeleted?: () => void;
 }
 
-export function UserDetailSheet({ user, open, onOpenChange, plans }: UserDetailSheetProps) {
-  const { promoteToAdmin, promoteToModerator, demoteToUser, banUser, unbanUser, changeUserPlan } = useAdmin();
+export function UserDetailSheet({ user, open, onOpenChange, plans, onUserDeleted }: UserDetailSheetProps) {
+  const { promoteToAdmin, promoteToModerator, demoteToUser, banUser, unbanUser, changeUserPlan, deleteUser } = useAdmin();
   const [copiedId, setCopiedId] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   if (!user) return null;
 
@@ -87,7 +76,17 @@ export function UserDetailSheet({ user, open, onOpenChange, plans }: UserDetailS
     else await banUser(user.user_id);
   };
 
-  const planObj = plans.find(p => p.id === (user.subscription_plan_id || 'free'));
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteUser(user.user_id);
+      onUserDeleted?.();
+    } catch {
+      // toast already shown in hook
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -162,26 +161,10 @@ export function UserDetailSheet({ user, open, onOpenChange, plans }: UserDetailS
           <div>
             <h4 className="text-sm font-semibold mb-3">Status</h4>
             <div className="grid grid-cols-2 gap-3">
-              <StatusItem
-                label="Onboarding"
-                value={user.onboarding_complete ? 'Completo' : 'Pendente'}
-                positive={!!user.onboarding_complete}
-              />
-              <StatusItem
-                label="Colorimetria"
-                value={user.color_season || 'Não feita'}
-                positive={!!user.color_season}
-              />
-              <StatusItem
-                label="Consentimento Bio."
-                value={user.biometric_consent_at ? 'Aceito' : 'Pendente'}
-                positive={!!user.biometric_consent_at}
-              />
-              <StatusItem
-                label="Conta"
-                value={user.is_banned ? 'Banido' : 'Ativo'}
-                positive={!user.is_banned}
-              />
+              <StatusItem label="Onboarding" value={user.onboarding_complete ? 'Completo' : 'Pendente'} positive={!!user.onboarding_complete} />
+              <StatusItem label="Colorimetria" value={user.color_season || 'Não feita'} positive={!!user.color_season} />
+              <StatusItem label="Consentimento Bio." value={user.biometric_consent_at ? 'Aceito' : 'Pendente'} positive={!!user.biometric_consent_at} />
+              <StatusItem label="Conta" value={user.is_banned ? 'Banido' : 'Ativo'} positive={!user.is_banned} />
             </div>
           </div>
 
@@ -199,36 +182,59 @@ export function UserDetailSheet({ user, open, onOpenChange, plans }: UserDetailS
 
           <Separator />
 
-          {/* Ban Action */}
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant={user.is_banned ? 'outline' : 'destructive'}
-                className="w-full"
-              >
-                <Ban className="w-4 h-4 mr-2" />
-                {user.is_banned ? 'Desbanir Usuário' : 'Banir Usuário'}
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  {user.is_banned ? 'Desbanir usuário?' : 'Banir usuário?'}
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  {user.is_banned
-                    ? `Isso restaurará o acesso de ${user.username || 'este usuário'} à plataforma.`
-                    : `Isso impedirá ${user.username || 'este usuário'} de acessar a plataforma. Essa ação pode ser revertida.`}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={handleBanToggle}>
-                  {user.is_banned ? 'Desbanir' : 'Banir'}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          {/* Actions */}
+          <div className="space-y-3">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant={user.is_banned ? 'outline' : 'destructive'} className="w-full">
+                  <Ban className="w-4 h-4 mr-2" />
+                  {user.is_banned ? 'Desbanir Usuário' : 'Banir Usuário'}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{user.is_banned ? 'Desbanir usuário?' : 'Banir usuário?'}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {user.is_banned
+                      ? `Isso restaurará o acesso de ${user.username || 'este usuário'} à plataforma.`
+                      : `Isso impedirá ${user.username || 'este usuário'} de acessar a plataforma. Essa ação pode ser revertida.`}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleBanToggle}>
+                    {user.is_banned ? 'Desbanir' : 'Banir'}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="w-full" disabled={isDeleting}>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  {isDeleting ? 'Excluindo...' : 'Excluir Conta Permanentemente'}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>⚠️ Excluir permanentemente?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta ação é <strong>IRREVERSÍVEL</strong>. Todos os dados de {user.username || 'este usuário'} serão excluídos permanentemente: perfil, guarda-roupa, looks, provas virtuais, arquivos e conta de acesso.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Excluir Permanentemente
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
       </SheetContent>
     </Sheet>

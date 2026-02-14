@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, MoreHorizontal, Crown, Shield, User, Eye, Ban, Copy, Check, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Search, MoreHorizontal, Crown, Shield, User, Eye, Ban, Copy, Check, CheckCircle, XCircle, Clock, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -80,7 +80,7 @@ function StatusIndicator({ user }: { user: EnrichedUser }) {
 }
 
 export function UserManagement() {
-  const { promoteToAdmin, promoteToModerator, demoteToUser, banUser, unbanUser, changeUserPlan } = useAdmin();
+  const { promoteToAdmin, promoteToModerator, demoteToUser, banUser, unbanUser, changeUserPlan, deleteUser } = useAdmin();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
@@ -103,14 +103,12 @@ export function UserManagement() {
   const { data: users = [], isLoading, refetch } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      // Fetch profiles with enriched data
       const { data: profiles, error } = await supabase
         .from('profiles')
-        .select('id, user_id, username, avatar_url, subscription_plan_id, created_at, onboarding_complete, color_season, biometric_consent_at')
+        .select('id, user_id, username, avatar_url, subscription_plan_id, created_at, onboarding_complete, color_season, biometric_consent_at, is_banned, banned_at')
         .order('created_at', { ascending: false });
       if (error) throw error;
 
-      // Fetch roles, wardrobe counts, outfit counts, tryon counts in parallel
       const [rolesRes, wardrobeRes, outfitsRes, tryonRes] = await Promise.all([
         supabase.from('user_roles').select('user_id, role'),
         supabase.from('wardrobe_items').select('user_id'),
@@ -165,7 +163,11 @@ export function UserManagement() {
       else if (type === 'demote') await demoteToUser(userId);
       else if (type === 'ban') await banUser(userId);
       else if (type === 'unban') await unbanUser(userId);
-      refetch();
+      else if (type === 'delete') {
+        await deleteUser(userId);
+        setSheetOpen(false);
+        setSelectedUser(null);
+      }
     } catch {}
     setConfirmAction(null);
   };
@@ -173,7 +175,6 @@ export function UserManagement() {
   const handleInlinePlanChange = async (userId: string, planId: string) => {
     try {
       await changeUserPlan(userId, planId);
-      refetch();
     } catch {}
   };
 
@@ -182,12 +183,18 @@ export function UserManagement() {
     setSheetOpen(true);
   };
 
+  const handleUserDeleted = () => {
+    setSheetOpen(false);
+    setSelectedUser(null);
+  };
+
   const confirmLabels: Record<string, { title: string; desc: string; action: string }> = {
     admin: { title: 'Tornar Admin?', desc: 'Esse usuário terá acesso total ao painel de administração.', action: 'Confirmar' },
     moderator: { title: 'Tornar Moderador?', desc: 'Esse usuário terá permissões de moderação.', action: 'Confirmar' },
     demote: { title: 'Remover Privilégios?', desc: 'Esse usuário perderá todas as permissões especiais.', action: 'Remover' },
     ban: { title: 'Banir Usuário?', desc: 'Esse usuário será impedido de acessar a plataforma.', action: 'Banir' },
     unban: { title: 'Desbanir Usuário?', desc: 'O acesso deste usuário será restaurado.', action: 'Desbanir' },
+    delete: { title: '⚠️ Excluir Permanentemente?', desc: 'Esta ação é IRREVERSÍVEL. Todos os dados do usuário (perfil, guarda-roupa, looks, provas virtuais, arquivos) serão excluídos permanentemente do sistema.', action: 'Excluir Permanentemente' },
   };
 
   return (
@@ -330,6 +337,12 @@ export function UserManagement() {
                           >
                             <Ban className="w-4 h-4 mr-2" /> {user.is_banned ? 'Desbanir' : 'Banir Usuário'}
                           </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-destructive font-medium"
+                            onClick={() => setConfirmAction({ type: 'delete', userId: user.user_id, username: user.username })}
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" /> Excluir Permanentemente
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -356,7 +369,10 @@ export function UserManagement() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={executeConfirmAction}>
+            <AlertDialogAction
+              onClick={executeConfirmAction}
+              className={confirmAction?.type === 'delete' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : ''}
+            >
               {confirmAction ? confirmLabels[confirmAction.type]?.action : ''}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -367,11 +383,9 @@ export function UserManagement() {
       <UserDetailSheet
         user={selectedUser}
         open={sheetOpen}
-        onOpenChange={open => {
-          setSheetOpen(open);
-          if (!open) setTimeout(() => refetch(), 300);
-        }}
+        onOpenChange={setSheetOpen}
         plans={plans}
+        onUserDeleted={handleUserDeleted}
       />
     </>
   );
