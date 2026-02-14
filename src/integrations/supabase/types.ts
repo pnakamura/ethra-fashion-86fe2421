@@ -230,6 +230,7 @@ export type Database = {
           age_confirmed_at: string | null
           avatar_url: string | null
           background_settings: Json | null
+          banned_at: string | null
           biometric_consent_at: string | null
           color_analysis: Json | null
           color_season: string | null
@@ -237,6 +238,7 @@ export type Database = {
           face_embedding_hash: Json | null
           font_size: string | null
           id: string
+          is_banned: boolean | null
           onboarding_complete: boolean | null
           privacy_accepted_at: string | null
           privacy_version: string | null
@@ -257,6 +259,7 @@ export type Database = {
           age_confirmed_at?: string | null
           avatar_url?: string | null
           background_settings?: Json | null
+          banned_at?: string | null
           biometric_consent_at?: string | null
           color_analysis?: Json | null
           color_season?: string | null
@@ -264,6 +267,7 @@ export type Database = {
           face_embedding_hash?: Json | null
           font_size?: string | null
           id?: string
+          is_banned?: boolean | null
           onboarding_complete?: boolean | null
           privacy_accepted_at?: string | null
           privacy_version?: string | null
@@ -284,6 +288,7 @@ export type Database = {
           age_confirmed_at?: string | null
           avatar_url?: string | null
           background_settings?: Json | null
+          banned_at?: string | null
           biometric_consent_at?: string | null
           color_analysis?: Json | null
           color_season?: string | null
@@ -291,6 +296,7 @@ export type Database = {
           face_embedding_hash?: Json | null
           font_size?: string | null
           id?: string
+          is_banned?: boolean | null
           onboarding_complete?: boolean | null
           privacy_accepted_at?: string | null
           privacy_version?: string | null
