@@ -14,9 +14,10 @@ interface LivenessState {
   timeoutReached: boolean;
 }
 
-const EAR_THRESHOLD = 0.25;
+const CALIBRATION_FRAMES = 15;
+const EAR_RATIO = 0.75;
 const EAR_CONSECUTIVE_FRAMES = 1;
-const HEAD_YAW_THRESHOLD = 8; // degrees - lowered for webcam accuracy
+const HEAD_YAW_THRESHOLD = 8;
 const TIMEOUT_MS = 30000;
 
 export function useLivenessDetection() {
@@ -37,6 +38,8 @@ export function useLivenessDetection() {
   const isRunning = useRef(false);
   const startedAt = useRef<number | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const earSamples = useRef<number[]>([]);
+  const earBaseline = useRef<number | null>(null);
 
   const stopDetection = useCallback(() => {
     isRunning.current = false;
@@ -106,17 +109,31 @@ export function useLivenessDetection() {
               return { ...s, faceDetected: true };
             });
 
-            // Blink detection
+            // Blink detection with adaptive threshold
             const ear = calculateEAR(landmarks);
             const yaw = Math.abs(calculateHeadYaw(landmarks));
+
+            // Calibration phase: collect EAR samples
+            if (earBaseline.current === null) {
+              earSamples.current.push(ear);
+              if (earSamples.current.length >= CALIBRATION_FRAMES) {
+                const avg = earSamples.current.reduce((a, b) => a + b, 0) / earSamples.current.length;
+                earBaseline.current = avg;
+                console.log(`[Liveness] Calibrated: baseline=${avg.toFixed(3)}, threshold=${(avg * EAR_RATIO).toFixed(3)}`);
+              }
+              if (isRunning.current) animationFrameRef.current = requestAnimationFrame(detect);
+              return;
+            }
+
+            const dynamicThreshold = earBaseline.current * EAR_RATIO;
 
             // Log every 30 frames
             logCounter++;
             if (logCounter % 30 === 0) {
-              console.log(`[Liveness] EAR=${ear.toFixed(3)} (thr=${EAR_THRESHOLD}) | Yaw=${yaw.toFixed(1)}° (thr=${HEAD_YAW_THRESHOLD}) | eyeClosed=${wasEyeClosed.current} | lowFrames=${lowEarFrames.current}`);
+              console.log(`[Liveness] EAR=${ear.toFixed(3)} (thr=${dynamicThreshold.toFixed(3)}) | Yaw=${yaw.toFixed(1)}° (thr=${HEAD_YAW_THRESHOLD}) | eyeClosed=${wasEyeClosed.current} | lowFrames=${lowEarFrames.current}`);
             }
 
-            if (ear < EAR_THRESHOLD) {
+            if (ear < dynamicThreshold) {
               lowEarFrames.current++;
               if (lowEarFrames.current >= EAR_CONSECUTIVE_FRAMES) {
                 wasEyeClosed.current = true;
@@ -136,7 +153,7 @@ export function useLivenessDetection() {
               wasEyeClosed.current = false;
             }
 
-            // Head turn detection (yaw already computed above)
+            // Head turn detection
             if (yaw > HEAD_YAW_THRESHOLD) {
               setState((s) => {
                 if (!s.blinkDetected || s.headTurnDetected) return s;
@@ -187,6 +204,8 @@ export function useLivenessDetection() {
     lowEarFrames.current = 0;
     wasEyeClosed.current = false;
     startedAt.current = null;
+    earSamples.current = [];
+    earBaseline.current = null;
     setState({
       isLive: false,
       currentChallenge: 'blink',
