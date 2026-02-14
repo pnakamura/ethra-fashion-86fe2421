@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -15,7 +15,12 @@ interface AdminHookResult {
   demoteToUser: (userId: string) => Promise<void>;
   removeRole: (userId: string) => Promise<void>;
   setupFirstAdmin: (secretKey: string) => Promise<boolean>;
+  banUser: (userId: string) => Promise<void>;
+  unbanUser: (userId: string) => Promise<void>;
+  changeUserPlan: (userId: string, planId: string) => Promise<void>;
 }
+
+export function useAdmin(): AdminHookResult {
 
 export function useAdmin(): AdminHookResult {
   const { user } = useAuth();
@@ -93,27 +98,50 @@ export function useAdmin(): AdminHookResult {
     return demoteToUser(userId);
   };
 
-  const setupFirstAdmin = async (secretKey: string): Promise<boolean> => {
-    if (!user) return false;
-
-    const { data, error } = await supabase.rpc('setup_first_admin', {
-      _user_id: user.id,
-      _secret_key: secretKey,
-    });
+  const banUser = async (userId: string) => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ is_banned: true, banned_at: new Date().toISOString() } as any)
+      .eq('user_id', userId);
 
     if (error) {
-      toast({ title: 'Erro', description: 'Falha ao configurar admin', variant: 'destructive' });
-      return false;
+      toast({ title: 'Erro', description: 'Não foi possível banir usuário', variant: 'destructive' });
+      throw error;
     }
 
-    if (data) {
-      toast({ title: 'Sucesso!', description: 'Você agora é administrador' });
-      queryClient.invalidateQueries({ queryKey: ['user-role'] });
-    } else {
-      toast({ title: 'Erro', description: 'Chave inválida ou admin já existe', variant: 'destructive' });
+    toast({ title: 'Usuário banido', description: 'O usuário foi banido com sucesso' });
+    queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+  };
+
+  const unbanUser = async (userId: string) => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ is_banned: false, banned_at: null } as any)
+      .eq('user_id', userId);
+
+    if (error) {
+      toast({ title: 'Erro', description: 'Não foi possível desbanir usuário', variant: 'destructive' });
+      throw error;
     }
 
-    return !!data;
+    toast({ title: 'Usuário desbanido', description: 'O ban foi removido com sucesso' });
+    queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+  };
+
+  const changeUserPlan = async (userId: string, planId: string) => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ subscription_plan_id: planId })
+      .eq('user_id', userId);
+
+    if (error) {
+      toast({ title: 'Erro', description: 'Não foi possível alterar o plano', variant: 'destructive' });
+      throw error;
+    }
+
+    toast({ title: 'Plano alterado', description: 'O plano do usuário foi atualizado' });
+    queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    queryClient.invalidateQueries({ queryKey: ['admin-subscriber-counts'] });
   };
 
   return {
@@ -126,5 +154,8 @@ export function useAdmin(): AdminHookResult {
     demoteToUser,
     removeRole,
     setupFirstAdmin,
+    banUser,
+    unbanUser,
+    changeUserPlan,
   };
 }
