@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Plus, Filter, Check, Minus, AlertTriangle, Crown, Search, Shirt, Footprints, Gem, Glasses, Diamond } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Header } from '@/components/layout/Header';
@@ -74,7 +74,7 @@ export default function Wardrobe() {
   const [categoryFilter, setCategoryFilter] = useState<CategoryGroup>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('all');
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { profile } = useProfile();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -84,6 +84,12 @@ export default function Wardrobe() {
   const { items, idealItems, neutralItems, avoidItems, capsuleItems, capsuleCount, invalidate } = useWardrobeItems();
   
   const firstName = getFirstName(profile?.username);
+
+  // Auth guard
+  useEffect(() => {
+    if (!authLoading && !user) navigate('/welcome');
+  }, [authLoading, user, navigate]);
+
 
   const filteredItems = useMemo(() => {
     let base = viewMode === 'capsule' ? items.filter(i => i.is_capsule) : items;

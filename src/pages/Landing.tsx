@@ -28,7 +28,7 @@ export default function Landing() {
             .from('profiles')
             .select('onboarding_complete')
             .eq('user_id', user.id)
-            .single();
+            .maybeSingle();
           
           if (profile && !profile.onboarding_complete) {
             navigate('/onboarding');

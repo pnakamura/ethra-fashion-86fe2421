@@ -63,7 +63,7 @@ export function useGarmentColorAnalysis() {
         .from('profiles')
         .select('color_analysis')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       const colorAnalysis = profile?.color_analysis as any;
       const compatibility = calculateCompatibility(dominantColors, colorAnalysis);
@@ -93,7 +93,7 @@ export function useGarmentColorAnalysis() {
         .from('profiles')
         .select('color_analysis')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       const colorAnalysis = profile?.color_analysis as any;
       if (!colorAnalysis) return;

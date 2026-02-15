@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -39,7 +40,8 @@ interface CanvasItem {
 }
 
 export default function Canvas() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -60,6 +62,11 @@ export default function Canvas() {
     },
     enabled: !!user,
   });
+
+  // Auth guard
+  useEffect(() => {
+    if (!authLoading && !user) navigate('/welcome');
+  }, [authLoading, user, navigate]);
 
   // Create items map for quick lookup
   const itemsMap = useMemo(() => {

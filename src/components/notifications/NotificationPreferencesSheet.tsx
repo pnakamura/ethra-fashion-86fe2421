@@ -45,7 +45,7 @@ export function NotificationPreferencesSheet({ trigger }: NotificationPreference
         .from('notification_preferences')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       return data;
     },
     enabled: !!user,

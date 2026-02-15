@@ -48,7 +48,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         .from('profiles')
         .select('subscription_plan_id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       if (error) return 'muse';
       return data?.subscription_plan_id || 'muse';
     },
