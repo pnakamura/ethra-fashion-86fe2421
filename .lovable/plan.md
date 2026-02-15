@@ -1,49 +1,90 @@
 
+# Analise de Estabilidade do Aplicativo Ethra
 
-# Corrigir Deteccao de Piscada com Threshold Adaptativo
+## Resultado Geral: ESTAVEL com ajustes recomendados
 
-## Problema
+A aplicacao esta funcional e bem arquitetada. O preview carrega sem erros no console, a landing page e a pagina de autenticacao renderizam corretamente. Abaixo segue o diagnostico completo.
 
-O `EAR_THRESHOLD` fixo de 0.25 nao funciona para todos os usuarios. O EAR (Eye Aspect Ratio) varia conforme formato dos olhos, distancia da camera e angulo. Para alguns usuarios, o EAR com olhos abertos ja fica proximo ou abaixo de 0.25, fazendo o sistema nunca detectar a transicao "fechou e abriu".
+---
 
-## Solucao: Threshold Adaptativo
+## 1. Pontos Positivos (ja implementados)
 
-Em vez de um valor fixo, o sistema vai:
+- **Arquitetura de Providers**: hierarquia correta com `QueryClientProvider` > `AuthProvider` > demais contextos
+- **ErrorBoundary**: envolve todas as rotas, captura erros de renderizacao
+- **Lazy Loading**: todas as rotas secundarias usam `lazy()` com `Suspense` e `PageLoader`
+- **React Query**: configuracao saudavel (staleTime 5min, gcTime 30min, retry 1)
+- **useProfile**: usa `.maybeSingle()` corretamente, evitando erro PGRST116
+- **useAuth**: trata falha de refresh de token e sessao invalida
+- **useMissions**: usa `pendingCompletionsRef` para evitar loops de re-renderizacao
 
-1. **Calibrar** nos primeiros 15 frames: medir o EAR medio com olhos abertos (baseline)
-2. **Calcular threshold** como 75% do baseline (ex: se baseline = 0.30, threshold = 0.225)
-3. Detectar piscada quando EAR cai abaixo do threshold e depois volta acima
+---
 
-## Mudancas
+## 2. Problemas Identificados
 
-### Arquivo: `src/hooks/useLivenessDetection.ts`
+### 2.1 `.single()` residual em 10 arquivos (Risco: MEDIO)
+
+Varios hooks e componentes ainda usam `.single()` em vez de `.maybeSingle()` para queries SELECT. Se o perfil nao existir ainda (usuario recém-criado), `.single()` lanca erro PGRST116.
+
+**Arquivos afetados:**
+- `src/pages/Landing.tsx` (linha 31)
+- `src/contexts/SubscriptionContext.tsx` (linha 51)
+- `src/contexts/AccessibilityContext.tsx` (linha 60)
+- `src/hooks/useGarmentColorAnalysis.ts` (linhas 66, 96)
+- `src/hooks/useFaceEmbedding.ts` (linhas 22, 82)
+- `src/hooks/useColorAnalysis.ts` (linha 116)
+- `src/components/notifications/NotificationPreferencesSheet.tsx` (linha 48)
+
+**Correcao**: substituir `.single()` por `.maybeSingle()` em todas as queries SELECT que buscam perfil/preferencias do usuario.
+
+### 2.2 Ausencia de Auth Guards em rotas protegidas (Risco: BAIXO)
+
+As paginas `/wardrobe`, `/chromatic`, `/canvas`, `/voyager`, `/events`, `/settings` nao verificam autenticacao diretamente. Se um usuario nao logado acessar essas rotas pela URL, os hooks farao queries que retornam dados vazios, mas nao redirecionam para `/auth`.
+
+**Correcao**: adicionar verificacao de autenticacao nas paginas protegidas (redirecionar para `/welcome` se `!user`).
+
+### 2.3 Warning `cdn.tailwindcss.com` no console (Risco: NENHUM)
+
+Este aviso vem do ambiente de desenvolvimento do Lovable, nao do aplicativo. O `index.html` da aplicacao nao inclui nenhum CDN do Tailwind. Pode ser ignorado.
+
+---
+
+## 3. Plano de Correcao
+
+### Etapa 1: Substituir `.single()` por `.maybeSingle()` (8 arquivos)
+
+Trocar todas as chamadas `.single()` de queries SELECT por `.maybeSingle()` nos arquivos listados acima. Queries de INSERT que usam `.select().single()` para retornar o registro criado estao corretas e nao precisam ser alteradas.
+
+### Etapa 2: Adicionar redirecionamento de autenticacao
+
+Adicionar um padrão simples nas paginas protegidas:
 
 ```text
-Remover:
-- EAR_THRESHOLD constante fixa
-
-Adicionar:
-- CALIBRATION_FRAMES = 15 (numero de frames para calibrar)
-- EAR_RATIO = 0.75 (percentual do baseline para definir threshold)
-- earSamples ref (array para coletar amostras durante calibracao)
-- earBaseline ref (baseline calculado)
-- isCalibrating ref (flag de calibracao)
-
-Logica de calibracao:
-- Nos primeiros 15 frames com rosto detectado, coletar valores de EAR
-- Calcular media dos valores coletados como baseline
-- Definir threshold como baseline * 0.75
-- Logar valores para debug: "[Liveness] Calibrated: baseline=X, threshold=Y"
-
-Logica de blink mantida igual, mas usando threshold calculado em vez de fixo
+if (!loading && !user) {
+  navigate('/welcome');
+  return null;
+}
 ```
 
-### Resumo da mudanca
+Paginas a proteger: Wardrobe, Chromatic, Canvas, Voyager, Events, Settings, Recommendations.
 
-| Item | Antes | Depois |
-|---|---|---|
-| EAR Threshold | Fixo 0.25 | Adaptativo (75% do baseline) |
-| Calibracao | Nenhuma | 15 frames iniciais |
-| Compatibilidade | Baixa (depende do usuario) | Alta (adapta a cada usuario) |
+### Etapa 3: Validacao
 
-Apenas o arquivo `src/hooks/useLivenessDetection.ts` sera modificado.
+- Navegar por todas as rotas no preview para verificar ausencia de erros
+- Testar fluxo de usuario nao logado acessando rotas protegidas
+- Verificar console limpo em todas as paginas
+
+---
+
+## Resumo Tecnico
+
+| Item | Status | Risco |
+|------|--------|-------|
+| Providers e contextos | OK | - |
+| ErrorBoundary | OK | - |
+| Lazy loading | OK | - |
+| React Query | OK | - |
+| Auth hook | OK | - |
+| `.maybeSingle()` no useProfile | OK | - |
+| `.single()` residual (10 locais) | Corrigir | Medio |
+| Auth guards em rotas | Corrigir | Baixo |
+| Console warnings CDN | Ignorar | Nenhum |
