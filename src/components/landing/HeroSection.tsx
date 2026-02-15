@@ -1,60 +1,51 @@
 import { motion } from 'framer-motion';
+import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Sparkles, ArrowRight, Sun, Moon } from 'lucide-react';
+import { Sparkles, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from 'next-themes';
 
 export function HeroSection() {
   const navigate = useNavigate();
-  const { resolvedTheme, setTheme } = useTheme();
 
-  const toggleTheme = () => {
-    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
-  };
+  // Memoize particles to prevent recreation on every render
+  const particles = useMemo(() => {
+    return [...Array(20)].map((_, i) => ({
+      id: i,
+      initialX: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1920),
+      initialY: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1080),
+      scale: Math.random() * 0.5 + 0.5,
+      yOffset: Math.random() * -200 - 100,
+      duration: Math.random() * 10 + 10,
+    }));
+  }, []);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden dark:bg-transparent">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-transparent">
       {/* Animated background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background via-secondary/30 to-primary/10 dark:from-transparent dark:via-transparent dark:to-transparent" />
-      
+      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-secondary/10 to-primary/5" />
+
       {/* Floating particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
+        {particles.map((particle) => (
           <motion.div
-            key={i}
+            key={particle.id}
             className="absolute w-1 h-1 rounded-full bg-primary/30"
             initial={{
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight,
-              scale: Math.random() * 0.5 + 0.5,
+              x: particle.initialX,
+              y: particle.initialY,
+              scale: particle.scale,
             }}
             animate={{
-              y: [null, Math.random() * -200 - 100],
+              y: [null, particle.yOffset],
               opacity: [0.3, 0.8, 0.3],
             }}
             transition={{
-              duration: Math.random() * 10 + 10,
+              duration: particle.duration,
               repeat: Infinity,
               ease: 'linear',
             }}
           />
         ))}
-      </div>
-
-      {/* Theme toggle */}
-      <div className="absolute top-6 right-6 z-20">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={toggleTheme}
-          className="rounded-full border-primary/30 hover:bg-primary/10 dark:border-primary/40 dark:hover:bg-primary/20"
-        >
-          {resolvedTheme === 'dark' ? (
-            <Sun className="w-5 h-5 text-primary" />
-          ) : (
-            <Moon className="w-5 h-5 text-primary" />
-          )}
-        </Button>
       </div>
 
       {/* Content */}
@@ -90,7 +81,7 @@ export function HeroSection() {
             <Button
               size="lg"
               className="group text-lg px-8 py-6 gradient-primary text-primary-foreground shadow-glow hover:shadow-elevated transition-all duration-300"
-              onClick={() => navigate('/auth?mode=signup')}
+              onClick={() => navigate('/quiz')}
             >
               Descobrir meu estilo
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />

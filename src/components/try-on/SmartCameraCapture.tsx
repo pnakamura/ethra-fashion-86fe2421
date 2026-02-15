@@ -32,6 +32,7 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from '@/components/ui/tooltip';
+import { BiometricConsentModal } from '@/components/legal/BiometricConsentModal';
 import { useSmartCamera, CameraAnalysis } from '@/hooks/useSmartCamera';
 import { blurFaceInImage, PRIVACY_INFO } from '@/lib/privacy-utils';
 import { cn } from '@/lib/utils';
@@ -49,6 +50,8 @@ export function SmartCameraCapture({
   mode = 'avatar'
 }: SmartCameraCaptureProps) {
   const webcamRef = useRef<Webcam>(null);
+  const [showConsentModal, setShowConsentModal] = useState(mode === 'avatar');
+  const [hasConsented, setHasConsented] = useState(mode !== 'avatar');
   const [isReady, setIsReady] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [blurFace, setBlurFace] = useState(false);
@@ -177,6 +180,29 @@ export function SmartCameraCapture({
         ? 'bg-amber-500'
         : 'bg-red-500'
     : 'bg-muted';
+
+  // Handle consent
+  const handleConsentAccept = useCallback(() => {
+    setShowConsentModal(false);
+    setHasConsented(true);
+  }, []);
+
+  const handleConsentDecline = useCallback(() => {
+    setShowConsentModal(false);
+    onCancel();
+  }, [onCancel]);
+
+  // Show consent modal for avatar mode
+  if (mode === 'avatar' && !hasConsented) {
+    return (
+      <BiometricConsentModal
+        isOpen={showConsentModal}
+        onAccept={handleConsentAccept}
+        onDecline={handleConsentDecline}
+        processingType="try-on"
+      />
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm flex flex-col">

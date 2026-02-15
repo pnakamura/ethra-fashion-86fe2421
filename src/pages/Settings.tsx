@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Sun, Moon, Monitor, Type, Bell, MapPin, Clock, 
   LogOut, CreditCard, User, ChevronRight, Sparkles,
-  Calendar, CloudSun, Image, EyeOff, Palette, Upload, Trash2, Loader2, Mail, Shield, AlertTriangle
+  Calendar, CloudSun, Image, EyeOff, Palette, Upload, Trash2, Loader2, Mail, Shield, AlertTriangle, Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -91,6 +91,45 @@ export default function Settings() {
     event_reminder_hours: 2,
     city: '',
   });
+  const [isExporting, setIsExporting] = useState(false);
+
+  // Export user data (LGPD Art. 18)
+  const handleExportData = useCallback(async () => {
+    try {
+      setIsExporting(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        toast.error('Sessão expirada. Faça login novamente.');
+        return;
+      }
+
+      const response = await supabase.functions.invoke('export-user-data', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      // Create and download the JSON file
+      const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ethra-meus-dados-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success('Dados exportados com sucesso!');
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Erro ao exportar dados. Tente novamente.');
+    } finally {
+      setIsExporting(false);
+    }
+  }, []);
 
   // Fetch notification preferences
   const { data: savedPrefs, isLoading: prefsLoading } = useQuery({
@@ -146,14 +185,59 @@ export default function Settings() {
     },
   });
 
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     await signOut();
     navigate('/auth');
-  };
+  }, [signOut, navigate]);
 
-  const handleSaveNotifications = () => {
+  const handleSaveNotifications = useCallback(() => {
     saveNotifMutation.mutate(notifPrefs);
-  };
+  }, [saveNotifMutation, notifPrefs]);
+
+  // File upload handler
+  const handleFileUpload = useCallback(async (mode: ThemeMode, file: File) => {
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Imagem muito grande. Máximo 5MB.');
+      return;
+    }
+    const result = await uploadCustomBackground(mode, file);
+    if (result) {
+      toast.success('Fundo personalizado salvo!');
+    } else {
+      toast.error('Erro ao enviar imagem');
+    }
+  }, [uploadCustomBackground]);
+
+  // Delete custom background handler
+  const handleDeleteBackground = useCallback(async (mode: ThemeMode) => {
+    await deleteCustomBackground(mode);
+    toast.success('Fundo personalizado removido');
+  }, [deleteCustomBackground]);
+
+  // Notification preference change handlers
+  const handleLookTimeChange = useCallback((value: string) => {
+    setNotifPrefs(p => ({ ...p, look_of_day_time: value }));
+  }, []);
+
+  const handleLookEnabledChange = useCallback((checked: boolean) => {
+    setNotifPrefs(p => ({ ...p, look_of_day_enabled: checked }));
+  }, []);
+
+  const handleWeatherEnabledChange = useCallback((checked: boolean) => {
+    setNotifPrefs(p => ({ ...p, weather_alerts_enabled: checked }));
+  }, []);
+
+  const handleEventReminderHoursChange = useCallback((value: number) => {
+    setNotifPrefs(p => ({ ...p, event_reminder_hours: value }));
+  }, []);
+
+  const handleEventEnabledChange = useCallback((checked: boolean) => {
+    setNotifPrefs(p => ({ ...p, event_reminders_enabled: checked }));
+  }, []);
+
+  const handleCityChange = useCallback((value: string) => {
+    setNotifPrefs(p => ({ ...p, city: value }));
+  }, []);
 
   return (
     <>
@@ -312,16 +396,7 @@ export default function Settings() {
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (file) {
-                              if (file.size > 5 * 1024 * 1024) {
-                                toast.error('Imagem muito grande. Máximo 5MB.');
-                                return;
-                              }
-                              const result = await uploadCustomBackground(mode, file);
-                              if (result) {
-                                toast.success('Fundo personalizado salvo!');
-                              } else {
-                                toast.error('Erro ao enviar imagem');
-                              }
+                              await handleFileUpload(mode, file);
                             }
                             e.target.value = '';
                           }}
@@ -355,10 +430,7 @@ export default function Settings() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={async () => {
-                                    await deleteCustomBackground(mode);
-                                    toast.success('Fundo personalizado removido');
-                                  }}
+                                  onClick={() => handleDeleteBackground(mode)}
                                   className="text-xs bg-background/80 backdrop-blur-sm text-destructive hover:text-destructive"
                                 >
                                   <Trash2 className="w-3 h-3" />
@@ -451,13 +523,13 @@ export default function Settings() {
                   <Input
                     type="time"
                     value={notifPrefs.look_of_day_time}
-                    onChange={(e) => setNotifPrefs(p => ({ ...p, look_of_day_time: e.target.value }))}
+                    onChange={(e) => handleLookTimeChange(e.target.value)}
                     className="w-24 text-xs rounded-lg"
                     disabled={!notifPrefs.look_of_day_enabled}
                   />
                   <Switch
                     checked={notifPrefs.look_of_day_enabled}
-                    onCheckedChange={(checked) => setNotifPrefs(p => ({ ...p, look_of_day_enabled: checked }))}
+                    onCheckedChange={handleLookEnabledChange}
                   />
                 </div>
               </div>
@@ -477,7 +549,7 @@ export default function Settings() {
                 </div>
                 <Switch
                   checked={notifPrefs.weather_alerts_enabled}
-                  onCheckedChange={(checked) => setNotifPrefs(p => ({ ...p, weather_alerts_enabled: checked }))}
+                  onCheckedChange={handleWeatherEnabledChange}
                 />
               </div>
 
@@ -497,7 +569,7 @@ export default function Settings() {
                 <div className="flex items-center gap-2">
                   <select
                     value={notifPrefs.event_reminder_hours}
-                    onChange={(e) => setNotifPrefs(p => ({ ...p, event_reminder_hours: Number(e.target.value) }))}
+                    onChange={(e) => handleEventReminderHoursChange(Number(e.target.value))}
                     className="text-xs rounded-lg border border-input bg-background px-2 py-1"
                     disabled={!notifPrefs.event_reminders_enabled}
                   >
@@ -508,7 +580,7 @@ export default function Settings() {
                   </select>
                   <Switch
                     checked={notifPrefs.event_reminders_enabled}
-                    onCheckedChange={(checked) => setNotifPrefs(p => ({ ...p, event_reminders_enabled: checked }))}
+                    onCheckedChange={handleEventEnabledChange}
                   />
                 </div>
               </div>
@@ -523,7 +595,7 @@ export default function Settings() {
                 </label>
                 <Input
                   value={notifPrefs.city}
-                  onChange={(e) => setNotifPrefs(p => ({ ...p, city: e.target.value }))}
+                  onChange={(e) => handleCityChange(e.target.value)}
                   placeholder="Ex: São Paulo, SP"
                   className="rounded-xl"
                 />
@@ -637,6 +709,30 @@ export default function Settings() {
                   <div className="text-left">
                     <p className="text-sm font-medium">Privacidade e Permissões</p>
                     <p className="text-xs text-muted-foreground">Câmera, notificações e localização</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-muted-foreground" />
+              </button>
+
+              <Separator />
+
+              {/* Export Data (LGPD Art. 18) */}
+              <button
+                onClick={handleExportData}
+                disabled={isExporting}
+                className="w-full flex items-center justify-between p-4 hover:bg-secondary/50 transition-colors disabled:opacity-50"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-full bg-primary/10">
+                    {isExporting ? (
+                      <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                    ) : (
+                      <Download className="w-4 h-4 text-primary" />
+                    )}
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-medium">Exportar meus dados</p>
+                    <p className="text-xs text-muted-foreground">Baixar em formato JSON (LGPD)</p>
                   </div>
                 </div>
                 <ChevronRight className="w-5 h-5 text-muted-foreground" />

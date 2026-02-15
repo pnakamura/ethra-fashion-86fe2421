@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { SeasonDetailModal } from './SeasonDetailModal';
 import { AIDisclaimer } from '@/components/legal/AIDisclaimer';
-import { chromaticSeasons } from '@/data/chromatic-seasons';
+import { CelebrityDisclaimer } from '@/components/legal/CelebrityDisclaimer';
+import { getCachedSeasons } from '@/hooks/useChromaticSeasons';
 import { toast } from 'sonner';
 import { normalizeColor } from '@/lib/normalize-color';
 import type { ColorAnalysisResult as AnalysisType } from '@/hooks/useColorAnalysis';
@@ -21,11 +22,12 @@ interface ColorAnalysisResultProps {
 // Helper to find season data
 function findSeasonData(seasonName?: string, subtype?: string) {
   if (!seasonName || !subtype) return undefined;
-  
+
+  const seasons = getCachedSeasons();
   const seasonId = `${seasonName.toLowerCase().replace('ã', 'a').replace('é', 'e')}-${subtype.toLowerCase().replace('ã', 'a').replace('é', 'e')}`;
-  return chromaticSeasons.find(s => s.id === seasonId) || 
-         chromaticSeasons.find(s => 
-           s.name.toLowerCase() === seasonName.toLowerCase() && 
+  return seasons.find(s => s.id === seasonId) ||
+         seasons.find(s =>
+           s.name.toLowerCase() === seasonName.toLowerCase() &&
            s.subtype.toLowerCase() === subtype.toLowerCase()
          );
 }
@@ -259,9 +261,7 @@ export function ColorAnalysisResult({
               </motion.span>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground mt-3">
-            Celebridades com a mesma paleta cromática
-          </p>
+          <CelebrityDisclaimer className="mt-3" />
         </motion.div>
       )}
 

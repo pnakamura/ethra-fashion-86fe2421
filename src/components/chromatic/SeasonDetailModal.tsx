@@ -4,12 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { CelebrityDisclaimer } from '@/components/legal/CelebrityDisclaimer';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import type { SeasonData } from '@/data/chromatic-seasons';
 import { useTemporarySeason } from '@/contexts/TemporarySeasonContext';
 import { MakeupSwatchGrid } from '@/components/makeup/MakeupSwatchGrid';
-import { getMakeupForSeason } from '@/data/makeup-palettes';
+import { getMakeupForSeason } from '@/hooks/useMakeupPalettes';
 
 interface SeasonDetailModalProps {
   season: SeasonData | null;
@@ -386,6 +387,7 @@ export function SeasonDetailModal({
                       </div>
                     ))}
                   </div>
+                  <CelebrityDisclaimer className="mt-4" />
                 </div>
               </TabsContent>
             </Tabs>

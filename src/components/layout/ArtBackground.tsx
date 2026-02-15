@@ -1,9 +1,16 @@
 import { useTheme } from 'next-themes';
 import { useBackgroundSettings, BackgroundVariant, ThemeMode } from '@/contexts/BackgroundSettingsContext';
 
-const defaultBackgroundImages: Record<Exclude<BackgroundVariant, 'none' | 'custom'>, string> = {
-  abstract: '/images/backgrounds/art-background-2.png',
-  portrait: '/images/backgrounds/art-background-1.png',
+// Separate default images for light and dark modes
+const defaultBackgroundImages: Record<ThemeMode, Record<Exclude<BackgroundVariant, 'none' | 'custom'>, string>> = {
+  light: {
+    abstract: '/images/backgrounds/abstract-light.jpeg',
+    portrait: '/images/backgrounds/portrait-light.jpeg',
+  },
+  dark: {
+    abstract: '/images/backgrounds/abstract-dark.png',
+    portrait: '/images/backgrounds/portrait-dark.png',
+  },
 };
 
 export function ArtBackground() {
@@ -17,12 +24,12 @@ export function ArtBackground() {
   // Don't render if disabled for current mode
   if (modeSettings.variant === 'none') return null;
   
-  // Get image URL - use custom if set, otherwise use default
+  // Get image URL - use custom if set, otherwise use default for current mode
   const imageUrl = modeSettings.variant === 'custom' && modeSettings.customImageUrl 
     ? modeSettings.customImageUrl 
     : modeSettings.variant !== 'custom' 
-      ? defaultBackgroundImages[modeSettings.variant] 
-      : defaultBackgroundImages.abstract;
+      ? defaultBackgroundImages[currentMode][modeSettings.variant] 
+      : defaultBackgroundImages[currentMode].abstract;
   
   // Different overlay gradients for dark and light modes
   const overlayGradient = currentMode === 'dark'

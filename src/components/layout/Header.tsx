@@ -1,4 +1,4 @@
-import { Settings, LogOut, Home, Shirt, Palette, Sparkles, Calendar, Camera } from 'lucide-react';
+import { Settings, LogOut, Home, Shirt, Palette, Sparkles, Calendar, Camera, Plane } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
@@ -21,6 +21,7 @@ const navLinks = [
   { path: '/recommendations', label: 'Looks', icon: Sparkles },
   { path: '/chromatic', label: 'Cores', icon: Palette },
   { path: '/provador', label: 'Provador', icon: Camera },
+  { path: '/voyager', label: 'Voyager', icon: Plane },
   { path: '/events', label: 'Agenda', icon: Calendar },
 ];
 
@@ -85,6 +86,34 @@ export function Header({ title }: HeaderProps) {
             return data || [];
           },
           staleTime: 1000 * 60 * 2,
+        });
+        break;
+      case '/voyager':
+        queryClient.prefetchQuery({
+          queryKey: ['trips', user.id],
+          queryFn: async () => {
+            const { data } = await supabase
+              .from('trips')
+              .select('*')
+              .eq('user_id', user.id)
+              .order('start_date', { ascending: false });
+            return data || [];
+          },
+          staleTime: 1000 * 60 * 5,
+        });
+        break;
+      case '/events':
+        queryClient.prefetchQuery({
+          queryKey: ['user-events', user.id],
+          queryFn: async () => {
+            const { data } = await supabase
+              .from('user_events')
+              .select('*')
+              .eq('user_id', user.id)
+              .order('event_date', { ascending: true });
+            return data || [];
+          },
+          staleTime: 1000 * 60 * 5,
         });
         break;
     }

@@ -17,31 +17,45 @@ import { SuggestedLooks } from './SuggestedLooks';
 import { TripBrief } from './TripBrief';
 import { PackingChecklist, type PackingList, type PackingItem } from './PackingChecklist';
 import { MissingItemsSuggestion } from './MissingItemsSuggestion';
+import { LocationPicker, type LocationOption } from './LocationPicker';
 import { useTripWeather, TripWeatherResult } from '@/hooks/useTripWeather';
+import type { TripAnalysis, CreateTripParams } from '@/types/trip';
 
 interface TripPlannerProps {
   wardrobeItems: { id: string; image_url: string; category: string; name?: string }[];
-  onCreateTrip: (trip: {
-    destination: string;
-    start_date: string;
-    end_date: string;
-    trip_type: string;
-    packed_items: string[];
-    packing_list?: PackingList;
-  }) => void;
+  onCreateTrip: (trip: CreateTripParams) => void;
   userId?: string;
 }
 
 export function TripPlanner({ wardrobeItems, onCreateTrip, userId }: TripPlannerProps) {
   const [destination, setDestination] = useState('');
+  const [resolvedDestination, setResolvedDestination] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [tripType, setTripType] = useState('leisure');
   const [packedItems, setPackedItems] = useState<string[]>([]);
-  const [step, setStep] = useState<'details' | 'analyzing' | 'packing'>('details');
+  const [step, setStep] = useState<'details' | 'location' | 'analyzing' | 'packing'>('details');
   const [weatherData, setWeatherData] = useState<TripWeatherResult | null>(null);
+  const [locationOptions, setLocationOptions] = useState<LocationOption[]>([]);
+  const [selectedLocation, setSelectedLocation] = useState<LocationOption | null>(null);
   
-  const { analyze, isLoading } = useTripWeather();
+  const { analyze, geocode, isLoading, isGeocoding } = useTripWeather();
+
+  // Check if there's real ambiguity between locations
+  const checkAmbiguity = (locations: LocationOption[]): boolean => {
+    if (locations.length <= 1) return false;
+    
+    // Check for different countries
+    const countries = new Set(locations.map(l => l.country_code));
+    if (countries.size > 1) return true;
+    
+    // Check for different states/regions in the same country
+    const regions = new Set(locations.map(l => l.admin1 || ''));
+    if (regions.size > 1) return true;
+    
+    // Same country and region = no ambiguity
+    return false;
+  };
 
   const toggleItem = (id: string) => {
     setPackedItems((prev) =>
@@ -56,17 +70,42 @@ export function TripPlanner({ wardrobeItems, onCreateTrip, userId }: TripPlanner
     });
   };
 
-  const handleAnalyze = async () => {
+  const handleSearchLocation = async () => {
     if (!destination || !startDate || !endDate) return;
     
+    // First geocode to check for multiple results
+    const locations = await geocode(destination);
+    
+    if (!locations || locations.length === 0) {
+      return; // Error already handled by hook
+    }
+    
+    // Check if there's real ambiguity
+    const needsDisambiguation = checkAmbiguity(locations);
+    
+    if (locations.length === 1 || !needsDisambiguation) {
+      // Single result or no ambiguity - proceed directly
+      await handleSelectLocation(locations[0]);
+    } else {
+      // Multiple ambiguous results - show picker
+      setLocationOptions(locations);
+      setStep('location');
+    }
+  };
+
+  const handleSelectLocation = async (location: LocationOption) => {
+    setSelectedLocation(location);
+    setResolvedDestination(location.display_name);
+    setLocationOptions([]);
     setStep('analyzing');
     
     const result = await analyze({
-      destination,
+      destination: location.display_name,
       startDate,
       endDate,
       tripType,
       userId,
+      coordinates: { lat: location.lat, lon: location.lon },
     });
     
     if (result) {
@@ -94,26 +133,71 @@ export function TripPlanner({ wardrobeItems, onCreateTrip, userId }: TripPlanner
   };
 
   const handleCreate = () => {
+    // Build trip_analysis object with all the data
+    const tripAnalysis: TripAnalysis | undefined = weatherData ? {
+      weather: weatherData.weather,
+      trip_brief: weatherData.trip_brief,
+      tips: weatherData.recommendations.tips,
+      suggested_looks: weatherData.recommendations.suggested_looks,
+    } : undefined;
+
     onCreateTrip({
-      destination,
+      destination: resolvedDestination || destination,
       start_date: startDate,
       end_date: endDate,
       trip_type: tripType,
       packed_items: packedItems,
       packing_list: weatherData?.packing_list,
+      trip_analysis: tripAnalysis,
     });
+    
+    // Reset form
     setDestination('');
+    setResolvedDestination('');
     setStartDate('');
     setEndDate('');
     setTripType('leisure');
     setPackedItems([]);
     setWeatherData(null);
+    setSelectedLocation(null);
     setStep('details');
   };
 
   const tripDays = startDate && endDate
     ? Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1
     : 0;
+
+  const displayDestination = resolvedDestination || destination;
+
+  // Location picker modal
+  if (step === 'location') {
+    return (
+      <>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex flex-col items-center justify-center py-16 space-y-4"
+        >
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Buscando localizações...</p>
+        </motion.div>
+        
+        <LocationPicker
+          open={locationOptions.length > 0}
+          onOpenChange={(open) => {
+            if (!open) {
+              setStep('details');
+              setLocationOptions([]);
+            }
+          }}
+          locations={locationOptions}
+          searchTerm={destination}
+          onSelectLocation={handleSelectLocation}
+          isLoading={isGeocoding}
+        />
+      </>
+    );
+  }
 
   // Analyzing step - loading state
   if (step === 'analyzing') {
@@ -132,7 +216,7 @@ export function TripPlanner({ wardrobeItems, onCreateTrip, userId }: TripPlanner
         <div className="text-center space-y-2">
           <h3 className="text-xl font-display font-semibold">Consultando Aura...</h3>
           <p className="text-muted-foreground text-sm">
-            Analisando clima e preparando looks para {destination}
+            Analisando clima e preparando looks para {displayDestination}
           </p>
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -177,7 +261,7 @@ export function TripPlanner({ wardrobeItems, onCreateTrip, userId }: TripPlanner
         <div className="text-center">
           <h3 className="text-2xl font-display font-semibold mb-1">Monte sua Mala</h3>
           <p className="text-muted-foreground">
-            {tripDays} dias em {destination}
+            {tripDays} dias em {displayDestination}
           </p>
         </div>
 
@@ -315,6 +399,8 @@ export function TripPlanner({ wardrobeItems, onCreateTrip, userId }: TripPlanner
             onClick={() => {
               setStep('details');
               setWeatherData(null);
+              setSelectedLocation(null);
+              setResolvedDestination('');
             }}
             className="flex-1 rounded-xl"
           >
@@ -408,14 +494,14 @@ export function TripPlanner({ wardrobeItems, onCreateTrip, userId }: TripPlanner
       </div>
 
       <Button
-        onClick={handleAnalyze}
-        disabled={!destination || !startDate || !endDate || isLoading}
+        onClick={handleSearchLocation}
+        disabled={!destination || !startDate || !endDate || isLoading || isGeocoding}
         className="w-full h-12 rounded-xl gradient-primary text-primary-foreground"
       >
-        {isLoading ? (
+        {isLoading || isGeocoding ? (
           <>
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Consultando Aura...
+            {isGeocoding ? 'Buscando local...' : 'Consultando Aura...'}
           </>
         ) : (
           <>

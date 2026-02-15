@@ -51,7 +51,7 @@ export default function Landing() {
   }
 
   return (
-    <main className="min-h-screen bg-background dark:bg-transparent">
+    <main className="min-h-screen bg-transparent">
       <HeroSection />
       <FeaturesGrid />
       <DemoSection />

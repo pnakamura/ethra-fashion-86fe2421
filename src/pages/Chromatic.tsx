@@ -20,7 +20,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTemporarySeason } from '@/contexts/TemporarySeasonContext';
 import { useWardrobeItems } from '@/hooks/useWardrobeItems';
 import { Loader2, Palette, Sparkles, Compass, Heart } from 'lucide-react';
-import { getSeasonById, chromaticSeasons } from '@/data/chromatic-seasons';
+import { useChromaticSeasons, getSeasonById } from '@/hooks/useChromaticSeasons';
 import { calculateWardrobeStats } from '@/lib/chromatic-match';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -34,6 +34,9 @@ export default function Chromatic() {
   const [showSeasonDetail, setShowSeasonDetail] = useState(false);
   const [showAnalysisForm, setShowAnalysisForm] = useState(false);
   const [referenceAvatarUrl, setReferenceAvatarUrl] = useState<string | null>(null);
+
+  // Preload chromatic seasons data (lazy loaded)
+  const { isLoading: seasonsLoading } = useChromaticSeasons();
 
   // Use centralized hook - only fetch needed fields for stats
   const { items: wardrobeItems } = useWardrobeItems();
@@ -110,7 +113,7 @@ export default function Chromatic() {
   const currentSeason = savedAnalysis ? getSeasonById(savedAnalysis.season_id) : null;
   const hasAnalysis = !!savedAnalysis || isUsingTemporary;
 
-  if (loading) {
+  if (loading || seasonsLoading) {
     return (
       <>
         <Header title="Cores" />

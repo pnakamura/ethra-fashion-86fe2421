@@ -1,12 +1,14 @@
 import { motion } from 'framer-motion';
 import { Wand2, X, Check, Sparkles, AlertTriangle, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { CelebrityDisclaimer } from '@/components/legal/CelebrityDisclaimer';
 import { useTemporarySeason } from '@/contexts/TemporarySeasonContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { getSeasonById, type SeasonData } from '@/data/chromatic-seasons';
+import { getSeasonById } from '@/hooks/useChromaticSeasons';
+import type { SeasonData } from '@/data/chromatic-seasons';
 import type { ColorAnalysisResult } from '@/hooks/useColorAnalysis';
 
 interface TemporaryPalettePreviewProps {
@@ -220,6 +222,7 @@ export function TemporaryPalettePreview({ temporarySeason, savedAnalysis }: Temp
               </span>
             ))}
           </div>
+          <CelebrityDisclaimer className="mt-2" />
         </div>
       )}
 

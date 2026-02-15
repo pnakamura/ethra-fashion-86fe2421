@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { AIDisclaimer } from '@/components/legal/AIDisclaimer';
 
 interface LookSuggestion {
   look_name: string;
@@ -63,7 +64,10 @@ export function EventLookSuggestion({ suggestion, eventType }: EventLookSuggesti
       {/* Header */}
       <div className="p-4 bg-gradient-to-r from-primary/5 to-transparent">
         <div className="flex items-center justify-between mb-2">
-          <h4 className="font-medium text-sm">{suggestion.look_name}</h4>
+          <div className="flex items-center gap-2">
+            <h4 className="font-medium text-sm">{suggestion.look_name}</h4>
+            <AIDisclaimer variant="compact" />
+          </div>
           {suggestion.score && (
             <Badge variant="secondary" className="text-xs">
               <Sparkles className="w-3 h-3 mr-1" />

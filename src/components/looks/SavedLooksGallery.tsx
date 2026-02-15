@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2, FolderOpen, Heart } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { SavedLookCard } from './SavedLookCard';
 
 interface WardrobeItem {
@@ -11,6 +12,7 @@ interface WardrobeItem {
   image_url: string;
   category: string;
   name?: string | null;
+  chromatic_compatibility?: string | null;
 }
 
 interface Outfit {
@@ -59,9 +61,12 @@ export function SavedLooksGallery({
   });
 
   // Collect all item IDs from all outfits
-  const allItemIds = [...new Set(outfits.flatMap(o => o.items || []))];
+  const allItemIds = useMemo(() => 
+    [...new Set(outfits.flatMap(o => o.items || []))],
+    [outfits]
+  );
 
-  // Fetch wardrobe items details
+  // Fetch wardrobe items details with chromatic compatibility
   const { data: itemsMap = {} } = useQuery({
     queryKey: ['outfit-items-details', allItemIds.join(',')],
     queryFn: async () => {
@@ -69,7 +74,7 @@ export function SavedLooksGallery({
       
       const { data, error } = await supabase
         .from('wardrobe_items')
-        .select('id, image_url, category, name')
+        .select('id, image_url, category, name, chromatic_compatibility')
         .in('id', allItemIds);
       
       if (error) throw error;
@@ -82,9 +87,10 @@ export function SavedLooksGallery({
   });
 
   // Filter outfits based on selected tab
-  const filteredOutfits = filter === 'favorites'
-    ? outfits.filter(o => o.is_favorite)
-    : outfits;
+  const filteredOutfits = useMemo(() => 
+    filter === 'favorites' ? outfits.filter(o => o.is_favorite) : outfits,
+    [filter, outfits]
+  );
 
   // Get items for a specific outfit
   const getOutfitItems = (outfit: Outfit): WardrobeItem[] => {
@@ -131,24 +137,26 @@ export function SavedLooksGallery({
           <p className="text-sm text-muted-foreground max-w-[200px]">
             {filter === 'favorites'
               ? 'Marque looks com ♥ para vê-los aqui'
-              : 'Crie looks arrastando peças para o canvas'}
+              : 'Toque nas peças e monte seu look no canvas'}
           </p>
         </div>
       ) : (
-        /* Grid of saved looks */
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {filteredOutfits.map(outfit => (
-            <SavedLookCard
-              key={outfit.id}
-              outfit={outfit}
-              items={getOutfitItems(outfit)}
-              onOpen={() => onOpenLook(outfit, getOutfitItems(outfit))}
-              onDelete={() => onDeleteLook(outfit.id)}
-              onToggleFavorite={() => onToggleFavorite(outfit.id, outfit.is_favorite || false)}
-              onShare={() => onShareLook(outfit, getOutfitItems(outfit))}
-            />
-          ))}
-        </div>
+        /* Grid of saved looks - wrapped in TooltipProvider */
+        <TooltipProvider delayDuration={300}>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {filteredOutfits.map(outfit => (
+              <SavedLookCard
+                key={outfit.id}
+                outfit={outfit}
+                items={getOutfitItems(outfit)}
+                onOpen={() => onOpenLook(outfit, getOutfitItems(outfit))}
+                onDelete={() => onDeleteLook(outfit.id)}
+                onToggleFavorite={() => onToggleFavorite(outfit.id, outfit.is_favorite || false)}
+                onShare={() => onShareLook(outfit, getOutfitItems(outfit))}
+              />
+            ))}
+          </div>
+        </TooltipProvider>
       )}
     </div>
   );

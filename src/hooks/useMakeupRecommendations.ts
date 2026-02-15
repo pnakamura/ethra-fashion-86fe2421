@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import { useProfile } from '@/hooks/useProfile';
 import { useTemporarySeason } from '@/contexts/TemporarySeasonContext';
-import { chromaticSeasons } from '@/data/chromatic-seasons';
-import { getMakeupForSeason, type SeasonMakeup, type MakeupProduct, type MakeupCategory } from '@/data/makeup-palettes';
+import { getCachedSeasons } from '@/hooks/useChromaticSeasons';
+import { useMakeupPalettes, getMakeupForSeason } from '@/hooks/useMakeupPalettes';
+import type { SeasonMakeup, MakeupProduct, MakeupCategory } from '@/data/makeup-palettes';
 
 export interface MakeupRecommendationsResult {
   // Season info
@@ -37,7 +38,10 @@ export interface MakeupRecommendationsResult {
 export function useMakeupRecommendations(): MakeupRecommendationsResult {
   const { profile, isLoading } = useProfile();
   const { temporarySeason, isUsingTemporary } = useTemporarySeason();
-  
+
+  // Preload makeup palettes data (lazy loaded)
+  const { isLoading: palettesLoading } = useMakeupPalettes();
+
   const result = useMemo(() => {
     // Determine the effective season
     let seasonId: string | null = null;
@@ -51,7 +55,7 @@ export function useMakeupRecommendations(): MakeupRecommendationsResult {
     } else if (profile?.color_season) {
       seasonId = profile.color_season;
       // Find season details from chromatic seasons
-      const season = chromaticSeasons.find(s => s.id === seasonId);
+      const season = getCachedSeasons().find(s => s.id === seasonId);
       if (season) {
         seasonName = season.name;
         seasonSubtype = season.subtype;
@@ -85,9 +89,9 @@ export function useMakeupRecommendations(): MakeupRecommendationsResult {
       avoidBlush: makeup?.avoid.blush || emptyProducts,
       
       hasMakeupData: !!makeup,
-      isLoading,
+      isLoading: isLoading || palettesLoading,
     };
-  }, [profile?.color_season, temporarySeason, isUsingTemporary, isLoading]);
+  }, [profile?.color_season, temporarySeason, isUsingTemporary, isLoading, palettesLoading]);
   
   return result;
 }

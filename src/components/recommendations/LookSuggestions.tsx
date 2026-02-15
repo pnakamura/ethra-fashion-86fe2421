@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { memo, useMemo, useEffect, useState } from 'react';
 import { Sparkles, RefreshCw, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LookCard } from './LookCard';
+import { AIDisclaimer } from '@/components/legal/AIDisclaimer';
 import { useLookRecommendations, RecommendedLook } from '@/hooks/useLookRecommendations';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,7 +13,7 @@ interface LookSuggestionsProps {
   onOpenInCanvas?: (look: RecommendedLook) => void;
 }
 
-export function LookSuggestions({ 
+export const LookSuggestions = memo(function LookSuggestions({ 
   autoLoad = true, 
   maxLooks = 3,
   showHeader = true,
@@ -44,6 +44,20 @@ export function LookSuggestions({
     navigate('/canvas');
   };
 
+  // Memoize the displayed looks
+  const displayedLooks = useMemo(() => looks.slice(0, maxLooks), [looks, maxLooks]);
+
+  // Memoize skeletons
+  const skeletons = useMemo(() => (
+    [...Array(maxLooks)].map((_, i) => (
+      <div
+        key={i}
+        className="aspect-[3/4] rounded-2xl bg-muted animate-pulse"
+        style={{ animationDelay: `${i * 100}ms` }}
+      />
+    ))
+  ), [maxLooks]);
+
   if (error && looks.length === 0) {
     return (
       <div className="text-center py-8">
@@ -58,6 +72,7 @@ export function LookSuggestions({
   return (
     <div className="space-y-4">
       {showHeader && (
+        <>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
@@ -85,23 +100,17 @@ export function LookSuggestions({
             </Button>
           </div>
         </div>
+        <AIDisclaimer variant="compact" />
+        </>
       )}
 
       {isLoading && looks.length === 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(maxLooks)].map((_, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: i * 0.1 }}
-              className="aspect-[3/4] rounded-2xl bg-muted animate-pulse"
-            />
-          ))}
+          {skeletons}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {looks.slice(0, maxLooks).map((look, index) => (
+          {displayedLooks.map((look, index) => (
             <LookCard
               key={`${look.name}-${index}`}
               look={look}
@@ -113,4 +122,4 @@ export function LookSuggestions({
       )}
     </div>
   );
-}
+});

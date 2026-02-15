@@ -26,21 +26,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { WardrobeSelector } from './WardrobeSelector';
-
-interface BenchmarkModel {
-  id: string;
-  name: string;
-  icon: typeof Zap;
-  color: string;
-  description: string;
-  apiProvider: 'replicate' | 'lovable' | 'google-cloud' | 'fal';
-}
+import {
+  BenchmarkModelSelector,
+  BenchmarkGarmentInput,
+  BenchmarkAvatarAnalysis,
+  BENCHMARK_MODELS,
+  type BenchmarkModel
+} from './benchmark';
 
 interface ModelResult {
   model: string;
@@ -64,57 +60,6 @@ interface BenchmarkResponse {
     fastestModel: string | null;
   };
 }
-
-const BENCHMARK_MODELS: BenchmarkModel[] = [
-  {
-    id: 'idm-vton',
-    name: 'IDM-VTON',
-    icon: Sparkles,
-    color: 'text-rose-500 bg-rose-500/10 border-rose-500/30',
-    description: 'Replicate - Especializado VTO',
-    apiProvider: 'replicate'
-  },
-  {
-    id: 'leffa',
-    name: 'Leffa',
-    icon: Sparkles,
-    color: 'text-cyan-500 bg-cyan-500/10 border-cyan-500/30',
-    description: 'FAL.AI - VTO Comercial',
-    apiProvider: 'fal'
-  },
-  {
-    id: 'seedream-4.5',
-    name: 'Seedream 4.5',
-    icon: Crown,
-    color: 'text-purple-500 bg-purple-500/10 border-purple-500/30',
-    description: 'ByteDance - Alta qualidade',
-    apiProvider: 'replicate'
-  },
-  {
-    id: 'seedream-4.0',
-    name: 'Seedream 4.0',
-    icon: Sparkles,
-    color: 'text-blue-500 bg-blue-500/10 border-blue-500/30',
-    description: 'ByteDance - Balanceado',
-    apiProvider: 'replicate'
-  },
-  {
-    id: 'vertex-ai',
-    name: 'Vertex AI Imagen',
-    icon: Crown,
-    color: 'text-green-500 bg-green-500/10 border-green-500/30',
-    description: 'Google Cloud - Alta fidelidade',
-    apiProvider: 'google-cloud'
-  },
-  {
-    id: 'gemini',
-    name: 'Gemini 3 Pro',
-    icon: Zap,
-    color: 'text-amber-500 bg-amber-500/10 border-amber-500/30',
-    description: 'Lovable AI - Incluído',
-    apiProvider: 'lovable'
-  },
-] as const;
 
 // Timeout constants - Reduced with parallel execution by provider groups
 const BENCHMARK_TIMEOUT_MS = 180000; // 3 minutes (parallel execution)
@@ -523,202 +468,26 @@ export function ModelBenchmark({ avatarImageUrl, onSelectResult }: ModelBenchmar
       </div>
 
       {/* Model Selection */}
-      <Card className="border-border/50">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-primary" />
-            Modelos para Comparar
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {BENCHMARK_MODELS.map((model) => {
-            const Icon = model.icon;
-            const isSelected = selectedModels.includes(model.id);
-            
-            return (
-              <button
-                key={model.id}
-                onClick={() => toggleModel(model.id)}
-                disabled={isRunning}
-                className={cn(
-                  "w-full flex items-center gap-3 p-3 rounded-lg border transition-all",
-                  isSelected 
-                    ? model.color + " border-2"
-                    : "bg-secondary/30 border-border/50 hover:bg-secondary/50",
-                  isRunning && "opacity-50 cursor-not-allowed"
-                )}
-              >
-                <div className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center",
-                  isSelected ? "bg-background" : "bg-secondary"
-                )}>
-                  <Icon className={cn("w-5 h-5", isSelected && model.color.split(' ')[0])} />
-                </div>
-                <div className="flex-1 text-left">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-sm">{model.name}</p>
-                    <Badge variant="outline" className="text-[9px] px-1.5 py-0 opacity-60">
-                    {model.apiProvider === 'replicate' ? (
-                        <><ExternalLink className="w-2.5 h-2.5 mr-0.5" /> Replicate</>
-                      ) : model.apiProvider === 'google-cloud' ? (
-                        <><ExternalLink className="w-2.5 h-2.5 mr-0.5" /> Google Cloud</>
-                      ) : model.apiProvider === 'fal' ? (
-                        <><ExternalLink className="w-2.5 h-2.5 mr-0.5" /> FAL.AI</>
-                      ) : (
-                        'Lovable AI'
-                      )}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{model.description}</p>
-                </div>
-                <div className={cn(
-                  "w-5 h-5 rounded-full border-2 transition-colors",
-                  isSelected 
-                    ? "bg-primary border-primary" 
-                    : "border-muted-foreground/30"
-                )}>
-                  {isSelected && (
-                    <CheckCircle2 className="w-full h-full text-primary-foreground" />
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </CardContent>
-      </Card>
+      <BenchmarkModelSelector
+        selectedModels={selectedModels}
+        onToggleModel={toggleModel}
+        disabled={isRunning}
+      />
 
       {/* Garment Selection */}
-      <Card className="border-border/50">
-        <CardContent className="pt-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-xs text-muted-foreground">
-              Roupa para testar
-            </label>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowWardrobeSelector(true)}
-              disabled={isRunning}
-              className="h-7 text-xs"
-            >
-              <Shirt className="w-3 h-3 mr-1.5" />
-              Usar do closet
-            </Button>
-          </div>
-          
-          {selectedClosetItem ? (
-            <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/10 border border-primary/30">
-              <Shirt className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium flex-1">{selectedClosetItem.name}</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 px-2 text-xs"
-                onClick={() => {
-                  setSelectedClosetItem(null);
-                  setGarmentUrl('');
-                }}
-              >
-                Limpar
-              </Button>
-            </div>
-          ) : (
-            <input
-              type="url"
-              value={garmentUrl}
-              onChange={(e) => setGarmentUrl(e.target.value)}
-              placeholder="Cole URL da imagem ou selecione do closet"
-              disabled={isRunning}
-              className="w-full px-3 py-2 text-sm rounded-lg bg-secondary/50 border border-border focus:border-primary focus:outline-none disabled:opacity-50"
-            />
-          )}
-          
-          {!garmentUrl && !selectedClosetItem && (
-            <p className="text-[10px] text-muted-foreground">
-              Uma roupa padrão será usada se nenhuma for selecionada
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      <BenchmarkGarmentInput
+        garmentUrl={garmentUrl}
+        onGarmentUrlChange={setGarmentUrl}
+        selectedClosetItem={selectedClosetItem}
+        onSelectClosetItem={setSelectedClosetItem}
+        disabled={isRunning}
+      />
 
-      {/* Wardrobe Selector Sheet */}
-      <Sheet open={showWardrobeSelector} onOpenChange={setShowWardrobeSelector}>
-        <SheetContent side="bottom" className="h-[70vh]">
-          <SheetHeader className="mb-4">
-            <SheetTitle>Selecionar do Closet</SheetTitle>
-          </SheetHeader>
-          <WardrobeSelector
-            onSelect={(item) => {
-              setGarmentUrl(item.imageUrl);
-              setSelectedClosetItem({ id: item.id, name: item.name || item.category });
-              setShowWardrobeSelector(false);
-              toast.success(`${item.name || item.category} selecionado`);
-            }}
-            selectedId={selectedClosetItem?.id}
-          />
-        </SheetContent>
-      </Sheet>
-
-      {/* Avatar Warning */}
-      {!avatarImageUrl && (
-        <Card className="border-amber-500/30 bg-amber-500/5">
-          <CardContent className="pt-4 flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0" />
-            <p className="text-sm text-amber-600 dark:text-amber-400">
-              Configure um avatar acima para executar o benchmark
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Avatar Quality Tips */}
-      {avatarImageUrl && avatarAnalysis && (
-        <Card className="border-border/50 bg-blue-500/5 border-blue-500/20">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <Info className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
-              <div className="space-y-2 text-sm">
-                <p className="font-medium text-blue-600 dark:text-blue-400">
-                  Análise do Avatar
-                </p>
-                <ul className="space-y-1 text-muted-foreground">
-                  <li className="flex items-center gap-2">
-                    {avatarAnalysis.isPortrait ? (
-                      <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-                    ) : (
-                      <XCircle className="w-3.5 h-3.5 text-amber-500" />
-                    )}
-                    Orientação: {avatarAnalysis.isPortrait ? 'Retrato ✓' : 'Paisagem (será corrigida)'}
-                  </li>
-                  <li className="flex items-center gap-2">
-                    {Math.abs(avatarAnalysis.aspectRatio - 0.75) < 0.1 ? (
-                      <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-                    ) : (
-                      <XCircle className="w-3.5 h-3.5 text-amber-500" />
-                    )}
-                    Proporção: {avatarAnalysis.aspectRatio.toFixed(2)} 
-                    {Math.abs(avatarAnalysis.aspectRatio - 0.75) < 0.1 ? ' (ótima)' : ' (ideal: 0.75)'}
-                  </li>
-                  <li className="flex items-center gap-2">
-                    {avatarAnalysis.width >= 768 ? (
-                      <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-                    ) : (
-                      <XCircle className="w-3.5 h-3.5 text-amber-500" />
-                    )}
-                    Resolução: {avatarAnalysis.width}×{avatarAnalysis.height}
-                    {avatarAnalysis.width >= 768 ? ' (boa)' : ' (mínimo: 768px)'}
-                  </li>
-                </ul>
-                <p className="text-xs text-muted-foreground/80 pt-1">
-                  {avatarAnalysis.needsProcessing 
-                    ? '⚡ O avatar será otimizado automaticamente antes do benchmark (768×1024, 3:4).'
-                    : '✓ Avatar já está otimizado para os modelos de IA.'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Avatar Analysis & Warning */}
+      <BenchmarkAvatarAnalysis
+        avatarImageUrl={avatarImageUrl}
+        avatarAnalysis={avatarAnalysis}
+      />
 
       {/* Action Buttons */}
       <div className="flex gap-2">

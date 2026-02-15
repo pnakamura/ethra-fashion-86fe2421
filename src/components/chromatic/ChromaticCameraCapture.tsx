@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { BiometricConsentModal } from '@/components/legal/BiometricConsentModal';
 import { cn } from '@/lib/utils';
 import { handleCameraError } from '@/lib/camera-permissions';
 import { LivenessDetector, type LivenessStatus } from '@/lib/liveness-detection';
@@ -54,6 +55,8 @@ export function ChromaticCameraCapture({
   const analysisIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const livenessDetectorRef = useRef(new LivenessDetector());
 
+  const [showConsentModal, setShowConsentModal] = useState(true);
+  const [hasConsented, setHasConsented] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -283,6 +286,29 @@ export function ChromaticCameraCapture({
     if (analysis.livenessStatus === 'suspicious') return 'border-red-400/70';
     return 'border-amber-400/50 border-dashed';
   };
+
+  // Handle consent
+  const handleConsentAccept = useCallback(() => {
+    setShowConsentModal(false);
+    setHasConsented(true);
+  }, []);
+
+  const handleConsentDecline = useCallback(() => {
+    setShowConsentModal(false);
+    onCancel();
+  }, [onCancel]);
+
+  // Show consent modal first
+  if (!hasConsented) {
+    return (
+      <BiometricConsentModal
+        isOpen={showConsentModal}
+        onAccept={handleConsentAccept}
+        onDecline={handleConsentDecline}
+        processingType="color-analysis"
+      />
+    );
+  }
 
   return (
     <motion.div

@@ -10,6 +10,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/90 dark:shadow-[0_0_18px_hsl(42_85%_55%_/_0.35)]",
+        luxury: "luxury-button bg-foreground text-background hover:bg-foreground/90 shadow-sm hover:shadow-md transition-all duration-300 font-medium tracking-wide dark:bg-primary dark:text-primary-foreground dark:shadow-[0_0_20px_hsl(42_85%_55%_/_0.4)]",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground dark:border-[1.5px] dark:border-[hsl(42_85%_55%_/_0.35)] dark:shadow-[0_0_12px_hsl(42_85%_55%_/_0.1)] dark:hover:border-[hsl(42_85%_55%_/_0.55)] dark:hover:shadow-[0_0_18px_hsl(42_85%_55%_/_0.2)]",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 dark:bg-secondary/50 dark:hover:bg-secondary/70 dark:border-[1.5px] dark:border-[hsl(42_85%_55%_/_0.25)]",
@@ -17,9 +18,10 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-10 px-4 py-2 min-h-[44px]",
-        sm: "h-9 rounded-md px-3 min-h-[40px]",
-        lg: "h-11 rounded-md px-8 min-h-[44px]",
+        default: "h-11 px-6 py-2 min-h-[44px]",
+        sm: "h-9 rounded-md px-4 min-h-[40px]",
+        lg: "h-12 rounded-md px-10 min-h-[48px]",
+        xl: "h-14 rounded-md px-12 min-h-[56px] text-base",
         icon: "h-10 w-10 min-h-[44px] min-w-[44px]",
       },
     },

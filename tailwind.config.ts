@@ -7,15 +7,24 @@ export default {
   theme: {
     container: {
       center: true,
-      padding: "1rem",
+      padding: {
+        DEFAULT: "1.5rem",
+        sm: "2rem",
+        md: "3rem",
+        lg: "4rem",
+        xl: "5rem",
+        "2xl": "6rem",
+      },
       screens: {
         "2xl": "1400px",
       },
     },
     extend: {
       fontFamily: {
-        display: ["Cormorant Garamond", "serif"],
-        body: ["Inter", "sans-serif"],
+        display: ["Playfair Display", "Cormorant Garamond", "serif"],
+        serif: ["Cormorant Garamond", "serif"],
+        body: ["DM Sans", "sans-serif"],
+        sans: ["DM Sans", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -75,6 +84,11 @@ export default {
           autumn: "hsl(var(--autumn-warm))",
           winter: "hsl(var(--winter-cool))",
         },
+      },
+      spacing: {
+        '18': '4.5rem',
+        '88': '22rem',
+        '128': '32rem',
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -176,6 +190,26 @@ export default {
           "0%": { transform: "scale(0)", opacity: "0.5" },
           "100%": { transform: "scale(4)", opacity: "0" },
         },
+        // Luxury animations from fashion-frontend skill
+        "heart-beat": {
+          "0%, 100%": { transform: "scale(1)" },
+          "25%": { transform: "scale(1.3)" },
+          "50%": { transform: "scale(0.95)" },
+          "75%": { transform: "scale(1.1)" },
+        },
+        "bag-pulse": {
+          "0%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.15)" },
+          "100%": { transform: "scale(1)" },
+        },
+        "luxury-lift": {
+          "0%": { transform: "translateY(0)" },
+          "100%": { transform: "translateY(-8px)" },
+        },
+        "stagger-fade": {
+          from: { opacity: "0", transform: "translateY(20px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -197,6 +231,11 @@ export default {
         "orb-float": "orb-float 20s ease-in-out infinite",
         "spin-slow": "spin-slow 8s linear infinite",
         ripple: "ripple 1s ease-out",
+        // Luxury animations
+        "heart-beat": "heart-beat 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "bag-pulse": "bag-pulse 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "luxury-lift": "luxury-lift 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
+        "stagger-fade": "stagger-fade 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards",
       },
       boxShadow: {
         xs: "0 1px 2px 0 hsl(0 0% 0% / 0.03)",

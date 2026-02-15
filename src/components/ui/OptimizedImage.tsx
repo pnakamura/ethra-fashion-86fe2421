@@ -1,4 +1,4 @@
-import { useState, useCallback, forwardRef, ImgHTMLAttributes } from 'react';
+import { useState, useCallback, forwardRef, ImgHTMLAttributes, useEffect, useRef } from 'react';
 import { ImageOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -9,6 +9,8 @@ interface OptimizedImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 
   fallbackClassName?: string;
   showPlaceholder?: boolean;
   aspectRatio?: 'square' | 'portrait' | 'landscape' | 'auto';
+  priority?: boolean; // Skip lazy loading for above-the-fold images
+  containerClassName?: string; // Additional classes for the wrapper div
 }
 
 export const OptimizedImage = forwardRef<HTMLImageElement, OptimizedImageProps>(
@@ -21,12 +23,40 @@ export const OptimizedImage = forwardRef<HTMLImageElement, OptimizedImageProps>(
       fallbackClassName,
       showPlaceholder = true,
       aspectRatio = 'auto',
+      priority = false,
+      containerClassName,
       ...props
     },
     ref
   ) => {
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
+    const [isInView, setIsInView] = useState(priority);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    // IntersectionObserver for true lazy loading
+    useEffect(() => {
+      if (priority || !containerRef.current) return;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              setIsInView(true);
+              observer.disconnect();
+            }
+          });
+        },
+        {
+          rootMargin: '200px', // Start loading 200px before entering viewport
+          threshold: 0.01,
+        }
+      );
+
+      observer.observe(containerRef.current);
+
+      return () => observer.disconnect();
+    }, [priority]);
 
     const handleLoad = useCallback(() => {
       setIsLoading(false);
@@ -76,7 +106,10 @@ export const OptimizedImage = forwardRef<HTMLImageElement, OptimizedImageProps>(
     }
 
     return (
-      <div className={cn('relative overflow-hidden', aspectClasses[aspectRatio])}>
+      <div 
+        ref={containerRef}
+        className={cn('relative overflow-hidden', aspectClasses[aspectRatio], containerClassName)}
+      >
         {/* Blur placeholder skeleton */}
         {showPlaceholder && isLoading && (
           <div
@@ -87,22 +120,24 @@ export const OptimizedImage = forwardRef<HTMLImageElement, OptimizedImageProps>(
           />
         )}
 
-        {/* Actual image */}
-        <img
-          ref={ref}
-          src={src}
-          alt={alt}
-          loading="lazy"
-          decoding="async"
-          onLoad={handleLoad}
-          onError={handleError}
-          className={cn(
-            'transition-opacity duration-300',
-            isLoading ? 'opacity-0' : 'opacity-100',
-            className
-          )}
-          {...props}
-        />
+        {/* Only render image when in view */}
+        {isInView && (
+          <img
+            ref={ref}
+            src={src}
+            alt={alt}
+            loading={priority ? 'eager' : 'lazy'}
+            decoding="async"
+            onLoad={handleLoad}
+            onError={handleError}
+            className={cn(
+              'transition-opacity duration-300',
+              isLoading ? 'opacity-0' : 'opacity-100',
+              className
+            )}
+            {...props}
+          />
+        )}
       </div>
     );
   }

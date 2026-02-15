@@ -1,4 +1,5 @@
 import type { PackingList, PackingItem } from '@/components/voyager/PackingChecklist';
+import type { TripAnalysis } from '@/types/trip';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -8,6 +9,7 @@ interface TripData {
   end_date: string;
   trip_type: string;
   packing_list?: PackingList | null;
+  trip_analysis?: TripAnalysis | null;
 }
 
 const tripTypeLabels: Record<string, string> = {
@@ -93,6 +95,135 @@ function generateCategorySection(category: keyof PackingList, items: PackingItem
   `;
 }
 
+function generateWeatherSection(weather: TripAnalysis['weather']): string {
+  const conditionEmojis: Record<string, string> = {
+    sunny: '☀️',
+    partly_cloudy: '⛅',
+    cloudy: '☁️',
+    rainy: '🌧️',
+    stormy: '⛈️',
+    snowy: '❄️',
+    foggy: '🌫️',
+  };
+
+  const conditions = weather.conditions
+    .map(c => conditionEmojis[c] || '🌤️')
+    .join(' ');
+
+  return `
+    <div style="margin-bottom: 32px; padding: 20px; background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%); border-radius: 16px;">
+      <h3 style="font-size: 18px; color: #4338ca; margin-bottom: 12px;">
+        ☁️ Previsão do Clima
+      </h3>
+      <p style="font-size: 14px; color: #4b5563; margin-bottom: 16px;">
+        ${escapeHtml(weather.summary)}
+      </p>
+      <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+        <div style="text-align: center; padding: 12px; background: white; border-radius: 12px; min-width: 100px;">
+          <div style="font-size: 24px; font-weight: bold; color: #1f2937;">
+            ${weather.temp_min}° - ${weather.temp_max}°
+          </div>
+          <div style="font-size: 12px; color: #6b7280;">Temperatura</div>
+        </div>
+        <div style="text-align: center; padding: 12px; background: white; border-radius: 12px; min-width: 80px;">
+          <div style="font-size: 24px; font-weight: bold; color: #3b82f6;">
+            ${weather.rain_probability}%
+          </div>
+          <div style="font-size: 12px; color: #6b7280;">Chuva</div>
+        </div>
+        <div style="text-align: center; padding: 12px; background: white; border-radius: 12px; min-width: 80px;">
+          <div style="font-size: 24px;">${conditions}</div>
+          <div style="font-size: 12px; color: #6b7280;">Condições</div>
+        </div>
+      </div>
+      ${weather.packing_mood ? `
+        <p style="margin-top: 16px; font-style: italic; color: #6366f1; font-size: 14px;">
+          ✨ "${escapeHtml(weather.packing_mood)}"
+        </p>
+      ` : ''}
+    </div>
+  `;
+}
+
+function generateTripBriefSection(tripBrief: string): string {
+  return `
+    <div style="margin-bottom: 32px; padding: 20px; background: #faf5ff; border-left: 4px solid #8b5cf6; border-radius: 0 12px 12px 0;">
+      <h3 style="font-size: 16px; color: #6d28d9; margin-bottom: 8px;">
+        ✨ Sobre seu Destino
+      </h3>
+      <p style="font-size: 14px; color: #4b5563; line-height: 1.6;">
+        ${escapeHtml(tripBrief)}
+      </p>
+    </div>
+  `;
+}
+
+function generateTipsSection(tips: TripAnalysis['tips']): string {
+  const sections = [
+    { key: 'essentials', label: '⭐ Essenciais', items: tips?.essentials || [], color: '#f59e0b' },
+    { key: 'local_culture', label: '🌍 Cultura Local', items: tips?.local_culture || [], color: '#3b82f6' },
+    { key: 'avoid', label: '⚠️ Evitar', items: tips?.avoid || [], color: '#ef4444' },
+    { key: 'pro_tips', label: '💡 Dicas Pro', items: tips?.pro_tips || [], color: '#10b981' },
+  ].filter(section => section.items.length > 0);
+
+  if (sections.length === 0) return '';
+
+  return `
+    <div style="margin-bottom: 32px; page-break-inside: avoid;">
+      <h3 style="font-size: 18px; color: #374151; margin-bottom: 16px;">
+        📝 Dicas de Viagem
+      </h3>
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+        ${sections.map(section => `
+          <div style="padding: 16px; background: #f9fafb; border-radius: 12px; border-left: 3px solid ${section.color};">
+            <h4 style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 8px;">
+              ${section.label}
+            </h4>
+            <ul style="margin: 0; padding-left: 16px; font-size: 13px; color: #6b7280;">
+              ${section.items.map(tip => `<li style="margin-bottom: 4px;">${escapeHtml(tip)}</li>`).join('')}
+            </ul>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function generateSuggestedLooksSection(looks: TripAnalysis['suggested_looks']): string {
+  if (!looks || looks.length === 0) return '';
+
+  return `
+    <div style="margin-bottom: 32px; page-break-inside: avoid;">
+      <h3 style="font-size: 18px; color: #374151; margin-bottom: 16px;">
+        👗 Looks Sugeridos
+      </h3>
+      <div style="display: grid; gap: 16px;">
+        ${looks.map((look, index) => `
+          <div style="padding: 16px; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 12px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <span style="font-size: 18px;">✨</span>
+              <h4 style="font-size: 14px; font-weight: 600; color: #92400e; margin: 0;">
+                ${escapeHtml(look.name)}
+              </h4>
+              <span style="font-size: 12px; color: #a16207; background: white; padding: 2px 8px; border-radius: 8px;">
+                ${escapeHtml(look.occasion)}
+              </span>
+            </div>
+            <p style="font-size: 13px; color: #78350f; margin-bottom: 8px;">
+              ${escapeHtml(look.description)}
+            </p>
+            ${look.style_tip ? `
+              <p style="font-size: 12px; color: #92400e; font-style: italic;">
+                💡 ${escapeHtml(look.style_tip)}
+              </p>
+            ` : ''}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
 export function generatePackingListHTML(trip: TripData): string {
   const startDate = format(new Date(trip.start_date), "d 'de' MMMM", { locale: ptBR });
   const endDate = format(new Date(trip.end_date), "d 'de' MMMM 'de' yyyy", { locale: ptBR });
@@ -101,6 +232,7 @@ export function generatePackingListHTML(trip: TripData): string {
   ) + 1;
 
   const packingList = trip.packing_list || { roupas: [], calcados: [], acessorios: [], chapeus: [] };
+  const tripAnalysis = trip.trip_analysis;
   
   const allItems = [
     ...packingList.roupas,
@@ -146,6 +278,18 @@ export function generatePackingListHTML(trip: TripData): string {
           ${startDate} a ${endDate} • ${tripDays} dias • ${tripTypeLabels[trip.trip_type] || trip.trip_type}
         </p>
       </div>
+
+      <!-- Trip Brief -->
+      ${tripAnalysis?.trip_brief ? generateTripBriefSection(tripAnalysis.trip_brief) : ''}
+
+      <!-- Weather Section -->
+      ${tripAnalysis?.weather ? generateWeatherSection(tripAnalysis.weather) : ''}
+
+      <!-- Tips Section -->
+      ${tripAnalysis?.tips ? generateTipsSection(tripAnalysis.tips) : ''}
+
+      <!-- Suggested Looks -->
+      ${tripAnalysis?.suggested_looks ? generateSuggestedLooksSection(tripAnalysis.suggested_looks) : ''}
 
       <!-- Summary Cards -->
       <div style="display: flex; gap: 16px; margin-bottom: 32px;">

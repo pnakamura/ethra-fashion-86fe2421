@@ -59,6 +59,17 @@ export interface TripWeatherResult {
   packing_list?: PackingList;
 }
 
+export interface LocationOption {
+  lat: number;
+  lon: number;
+  name: string;
+  admin1?: string;
+  country: string;
+  country_code: string;
+  flag: string;
+  display_name: string;
+}
+
 interface UseTripWeatherResult {
   analyze: (params: {
     destination: string;
@@ -66,8 +77,11 @@ interface UseTripWeatherResult {
     endDate: string;
     tripType: string;
     userId?: string;
+    coordinates?: { lat: number; lon: number };
   }) => Promise<TripWeatherResult | null>;
+  geocode: (destination: string) => Promise<LocationOption[] | null>;
   isLoading: boolean;
+  isGeocoding: boolean;
   error: string | null;
   data: TripWeatherResult | null;
   reset: () => void;
@@ -75,9 +89,48 @@ interface UseTripWeatherResult {
 
 export function useTripWeather(): UseTripWeatherResult {
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeocoding, setIsGeocoding] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<TripWeatherResult | null>(null);
   const { toast } = useToast();
+
+  const geocode = async (destination: string): Promise<LocationOption[] | null> => {
+    setIsGeocoding(true);
+    setError(null);
+
+    try {
+      const { data: result, error: invokeError } = await supabase.functions.invoke(
+        'get-trip-weather',
+        {
+          body: {
+            destination,
+            mode: 'geocode',
+          },
+        }
+      );
+
+      if (invokeError) {
+        throw new Error(invokeError.message || 'Failed to geocode');
+      }
+
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+
+      return result?.locations || [];
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao buscar localização';
+      setError(message);
+      toast({
+        title: 'Erro na busca',
+        description: message,
+        variant: 'destructive',
+      });
+      return null;
+    } finally {
+      setIsGeocoding(false);
+    }
+  };
 
   const analyze = async (params: {
     destination: string;
@@ -85,6 +138,7 @@ export function useTripWeather(): UseTripWeatherResult {
     endDate: string;
     tripType: string;
     userId?: string;
+    coordinates?: { lat: number; lon: number };
   }): Promise<TripWeatherResult | null> => {
     setIsLoading(true);
     setError(null);
@@ -102,6 +156,11 @@ export function useTripWeather(): UseTripWeatherResult {
             end_date: params.endDate,
             trip_type: params.tripType,
             user_id: params.userId,
+            // Pass coordinates if available for precise geocoding
+            ...(params.coordinates && {
+              lat: params.coordinates.lat,
+              lon: params.coordinates.lon,
+            }),
           },
           headers: token ? { Authorization: `Bearer ${token}` } : undefined
         }
@@ -184,11 +243,14 @@ export function useTripWeather(): UseTripWeatherResult {
     setData(null);
     setError(null);
     setIsLoading(false);
+    setIsGeocoding(false);
   };
 
   return {
     analyze,
+    geocode,
     isLoading,
+    isGeocoding,
     error,
     data,
     reset,

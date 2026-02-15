@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Save, Trash2, RotateCcw, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,11 @@ interface LookCanvasProps {
 
 export function LookCanvas({ availableItems, onSave, preloadItems }: LookCanvasProps) {
   const [canvasItems, setCanvasItems] = useState<CanvasItem[]>([]);
+  const [draggedItem, setDraggedItem] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const preloadedRef = useRef<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const initialPosRef = useRef<{ [key: string]: { x: number; y: number } }>({});
 
   // Preload items when opening a saved look
   useEffect(() => {
@@ -39,10 +43,8 @@ export function LookCanvas({ availableItems, onSave, preloadItems }: LookCanvasP
       }
     }
   }, [preloadItems]);
-  const [draggedItem, setDraggedItem] = useState<string | null>(null);
-  const canvasRef = useRef<HTMLDivElement>(null);
 
-  const addToCanvas = (item: { id: string; image_url: string }) => {
+  const addToCanvas = useCallback((item: { id: string; image_url: string }) => {
     const newItem: CanvasItem = {
       id: `${item.id}:::${Date.now()}`,
       image_url: item.image_url,
@@ -50,38 +52,64 @@ export function LookCanvas({ availableItems, onSave, preloadItems }: LookCanvasP
       y: 50 + Math.random() * 100,
       scale: 1,
     };
-    setCanvasItems([...canvasItems, newItem]);
-  };
+    setCanvasItems(prev => [...prev, newItem]);
+  }, []);
 
-  const removeFromCanvas = (id: string) => {
-    setCanvasItems(canvasItems.filter((item) => item.id !== id));
-  };
+  const removeFromCanvas = useCallback((id: string) => {
+    setCanvasItems(prev => prev.filter((item) => item.id !== id));
+    if (selectedItem === id) {
+      setSelectedItem(null);
+    }
+  }, [selectedItem]);
 
-  const clearCanvas = () => {
+  const clearCanvas = useCallback(() => {
     setCanvasItems([]);
-  };
+    setSelectedItem(null);
+  }, []);
 
-  const handleDrag = (id: string, x: number, y: number) => {
-    setCanvasItems(
-      canvasItems.map((item) =>
-        item.id === id ? { ...item, x, y } : item
+  const handleDragStart = useCallback((itemId: string, x: number, y: number) => {
+    initialPosRef.current[itemId] = { x, y };
+    setDraggedItem(itemId);
+    setSelectedItem(itemId);
+  }, []);
+
+  const handleDragEnd = useCallback((itemId: string, offsetX: number, offsetY: number) => {
+    const initial = initialPosRef.current[itemId];
+    if (!initial) return;
+
+    // Calculate new position based on offset from drag start
+    const newX = Math.max(0, initial.x + offsetX);
+    const newY = Math.max(0, initial.y + offsetY);
+
+    setCanvasItems(prev =>
+      prev.map((item) =>
+        item.id === itemId ? { ...item, x: newX, y: newY } : item
       )
     );
-  };
+    setDraggedItem(null);
+  }, []);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     if (canvasItems.length > 0) {
       onSave(canvasItems, `Look ${new Date().toLocaleDateString('pt-BR')}`);
     }
-  };
+  }, [canvasItems, onSave]);
+
+  // Handle click outside to deselect
+  const handleCanvasClick = useCallback((e: React.MouseEvent) => {
+    if (e.target === containerRef.current) {
+      setSelectedItem(null);
+    }
+  }, []);
 
   return (
     <div className="space-y-4">
       {/* Canvas area */}
-      <Card className="relative aspect-[3/4] bg-gradient-to-b from-ivory to-champagne border-0 shadow-soft overflow-hidden">
+      <Card className="relative aspect-[3/4] bg-gradient-to-b from-ivory to-champagne dark:from-background dark:to-card border-0 shadow-soft overflow-hidden">
         <div
-          ref={canvasRef}
-          className="absolute inset-0"
+          ref={containerRef}
+          className="absolute inset-0 touch-none"
+          onClick={handleCanvasClick}
         >
           {canvasItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center px-6">
@@ -92,7 +120,7 @@ export function LookCanvas({ availableItems, onSave, preloadItems }: LookCanvasP
                 Seu Canvas
               </p>
               <p className="text-sm text-muted-foreground">
-                Arraste peças do seu closet para criar um look
+                Toque nas peças abaixo para adicionar ao look
               </p>
             </div>
           ) : (
@@ -100,32 +128,41 @@ export function LookCanvas({ availableItems, onSave, preloadItems }: LookCanvasP
               <motion.div
                 key={item.id}
                 drag
+                dragConstraints={containerRef}
                 dragMomentum={false}
-                onDrag={(_, info) => {
-                  handleDrag(item.id, info.point.x, info.point.y);
-                }}
-                onDragStart={() => setDraggedItem(item.id)}
-                onDragEnd={() => setDraggedItem(null)}
+                dragElastic={0.1}
+                onDragStart={() => handleDragStart(item.id, item.x, item.y)}
+                onDragEnd={(_, info) => handleDragEnd(item.id, info.offset.x, info.offset.y)}
+                initial={false}
+                animate={{ x: item.x, y: item.y }}
                 className={`absolute cursor-grab active:cursor-grabbing ${
-                  draggedItem === item.id ? 'z-10' : 'z-0'
+                  draggedItem === item.id ? 'z-20' : selectedItem === item.id ? 'z-10' : 'z-0'
                 }`}
                 style={{
-                  left: item.x,
-                  top: item.y,
                   transform: `scale(${item.scale})`,
                 }}
                 whileDrag={{ scale: 1.1 }}
+                onClick={() => setSelectedItem(item.id)}
               >
-                <div className="relative group">
+                <div className={`relative group ${
+                  selectedItem === item.id ? 'ring-2 ring-primary ring-offset-2 rounded-xl' : ''
+                }`}>
                   <img
                     src={item.image_url}
                     alt="Item"
                     className="w-24 h-24 object-cover rounded-xl shadow-elevated"
                     draggable={false}
                   />
+                  {/* Delete button - always visible on mobile, hover on desktop */}
                   <button
-                    onClick={() => removeFromCanvas(item.id)}
-                    className="absolute -top-2 -right-2 p-1.5 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeFromCanvas(item.id);
+                    }}
+                    className="absolute -top-2 -right-2 p-1.5 rounded-full bg-destructive text-destructive-foreground 
+                      opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity
+                      touch-manipulation"
+                    aria-label="Remover peça"
                   >
                     <Trash2 className="w-3 h-3" />
                   </button>
@@ -162,12 +199,13 @@ export function LookCanvas({ availableItems, onSave, preloadItems }: LookCanvasP
         <h4 className="text-sm font-medium text-muted-foreground mb-3">
           Peças do Closet
         </h4>
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
           {availableItems.map((item) => (
             <button
               key={item.id}
               onClick={() => addToCanvas(item)}
-              className="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden shadow-soft hover:shadow-elevated transition-shadow"
+              className="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden shadow-soft hover:shadow-elevated transition-shadow 
+                active:scale-95 touch-manipulation"
             >
               <img
                 src={item.image_url}
