@@ -190,19 +190,27 @@ export default function PrivacyPolicy() {
               <tbody className="text-muted-foreground">
                 <tr className="border-b">
                   <td className="py-2">Fotos para análise cromática</td>
-                  <td className="py-2">Processadas e descartadas imediatamente</td>
+                  <td className="py-2">Processamento imediato, sem armazenamento</td>
                 </tr>
                 <tr className="border-b">
-                  <td className="py-2">Avatares temporários</td>
-                  <td className="py-2">7 dias</td>
+                  <td className="py-2">Avatares (provador virtual)</td>
+                  <td className="py-2">12 meses após o último uso</td>
                 </tr>
                 <tr className="border-b">
-                  <td className="py-2">Avatares permanentes</td>
-                  <td className="py-2">Enquanto a conta estiver ativa</td>
+                  <td className="py-2">Resultados de prova virtual</td>
+                  <td className="py-2">7 dias (URLs externas) / 12 meses (armazenados)</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-2">Guarda-roupa (peças e looks)</td>
+                  <td className="py-2">Vigência da conta + 30 dias</td>
                 </tr>
                 <tr className="border-b">
                   <td className="py-2">Dados de perfil</td>
-                  <td className="py-2">Enquanto a conta estiver ativa</td>
+                  <td className="py-2">Vigência da conta + 30 dias</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-2">Logs de consentimento biométrico</td>
+                  <td className="py-2">5 anos (obrigação legal — LGPD Art. 16)</td>
                 </tr>
                 <tr className="border-b">
                   <td className="py-2">Dados após exclusão de conta</td>

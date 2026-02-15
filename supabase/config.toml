@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.delete-user-data]
 verify_jwt = false
+
+[functions.cleanup-retention-data]
+verify_jwt = false
