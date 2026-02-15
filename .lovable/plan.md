@@ -1,90 +1,91 @@
 
-# Analise de Estabilidade do Aplicativo Ethra
 
-## Resultado Geral: ESTAVEL com ajustes recomendados
+# Correcao do Sistema de Prova de Vida
 
-A aplicacao esta funcional e bem arquitetada. O preview carrega sem erros no console, a landing page e a pagina de autenticacao renderizam corretamente. Abaixo segue o diagnostico completo.
+## Problema Principal
 
----
+Existem **dois detectores de liveness rodando ao mesmo tempo**, gerando conflitos:
 
-## 1. Pontos Positivos (ja implementados)
+| Aspecto | Detector Pixel (`LivenessDetector`) | Detector MediaPipe (`useLivenessDetection`) |
+|---------|-------------------------------------|---------------------------------------------|
+| Controla o botao Capturar | Nao | Sim |
+| Controla badges visuais (oval, barra) | Sim | Nao |
+| Controla o overlay de desafio | Nao | Sim |
 
-- **Arquitetura de Providers**: hierarquia correta com `QueryClientProvider` > `AuthProvider` > demais contextos
-- **ErrorBoundary**: envolve todas as rotas, captura erros de renderizacao
-- **Lazy Loading**: todas as rotas secundarias usam `lazy()` com `Suspense` e `PageLoader`
-- **React Query**: configuracao saudavel (staleTime 5min, gcTime 30min, retry 1)
-- **useProfile**: usa `.maybeSingle()` corretamente, evitando erro PGRST116
-- **useAuth**: trata falha de refresh de token e sessao invalida
-- **useMissions**: usa `pendingCompletionsRef` para evitar loops de re-renderizacao
+Isso causa situacoes onde o badge visual mostra "Verificada" (pixel detector confirmou), mas o botao continua desabilitado (MediaPipe ainda nao confirmou), ou o contrario.
 
 ---
 
-## 2. Problemas Identificados
+## Solucao: Unificar em torno do MediaPipe
 
-### 2.1 `.single()` residual em 10 arquivos (Risco: MEDIO)
-
-Varios hooks e componentes ainda usam `.single()` em vez de `.maybeSingle()` para queries SELECT. Se o perfil nao existir ainda (usuario recém-criado), `.single()` lanca erro PGRST116.
-
-**Arquivos afetados:**
-- `src/pages/Landing.tsx` (linha 31)
-- `src/contexts/SubscriptionContext.tsx` (linha 51)
-- `src/contexts/AccessibilityContext.tsx` (linha 60)
-- `src/hooks/useGarmentColorAnalysis.ts` (linhas 66, 96)
-- `src/hooks/useFaceEmbedding.ts` (linhas 22, 82)
-- `src/hooks/useColorAnalysis.ts` (linha 116)
-- `src/components/notifications/NotificationPreferencesSheet.tsx` (linha 48)
-
-**Correcao**: substituir `.single()` por `.maybeSingle()` em todas as queries SELECT que buscam perfil/preferencias do usuario.
-
-### 2.2 Ausencia de Auth Guards em rotas protegidas (Risco: BAIXO)
-
-As paginas `/wardrobe`, `/chromatic`, `/canvas`, `/voyager`, `/events`, `/settings` nao verificam autenticacao diretamente. Se um usuario nao logado acessar essas rotas pela URL, os hooks farao queries que retornam dados vazios, mas nao redirecionam para `/auth`.
-
-**Correcao**: adicionar verificacao de autenticacao nas paginas protegidas (redirecionar para `/welcome` se `!user`).
-
-### 2.3 Warning `cdn.tailwindcss.com` no console (Risco: NENHUM)
-
-Este aviso vem do ambiente de desenvolvimento do Lovable, nao do aplicativo. O `index.html` da aplicacao nao inclui nenhum CDN do Tailwind. Pode ser ignorado.
+Remover o detector pixel (`LivenessDetector`) e usar exclusivamente o hook `useLivenessDetection` (MediaPipe), que e mais preciso e ja possui calibracao adaptativa.
 
 ---
 
-## 3. Plano de Correcao
+## Alteracoes
 
-### Etapa 1: Substituir `.single()` por `.maybeSingle()` (8 arquivos)
+### 1. ChromaticCameraCapture.tsx (arquivo principal)
 
-Trocar todas as chamadas `.single()` de queries SELECT por `.maybeSingle()` nos arquivos listados acima. Queries de INSERT que usam `.select().single()` para retornar o registro criado estao corretas e nao precisam ser alteradas.
+**Remover:**
+- Import do `LivenessDetector` e `LivenessStatus` de `src/lib/liveness-detection.ts`
+- A ref `livenessDetectorRef`
+- Toda a logica de `livenessDetectorRef.current.addFrame(imageData)` dentro de `analyzeFrame`
+- Os campos `livenessStatus` e `livenessMessage` do estado `analysis`
 
-### Etapa 2: Adicionar redirecionamento de autenticacao
+**Modificar:**
+- O tipo `CameraAnalysis` perde os campos `livenessStatus` e `livenessMessage`
+- A funcao `analyzeFrame` passa a verificar apenas iluminacao e presenca de rosto (skin-tone)
+- A condicao `isReady` do frame: `faceDetected && overallScore >= QUALITY_THRESHOLD` (sem liveness do pixel)
+- A condicao geral `canCapture`: usa apenas `liveness.isLive` do hook MediaPipe
+- Os badges visuais (oval border, barra de progresso "Prova de Vida") passam a ler o estado do hook `liveness` em vez de `analysis.livenessStatus`
+- As funcoes `getOvalBorderClass`, `getLivenessIcon`, `getLivenessText` passam a usar `liveness.currentChallenge` e `liveness.isLive`
 
-Adicionar um padrão simples nas paginas protegidas:
+### 2. Logica do botao Capturar
+
+Atualizar para:
+- `canCapture = isReady && !isCapturing && (liveness.isLive || liveness.timeoutReached || !livenessEnabled)`
+- O botao fica habilitado quando:
+  - Liveness esta desabilitada (flag off), OU
+  - MediaPipe confirmou (`liveness.isLive`), OU
+  - Timeout atingido (`liveness.timeoutReached`)
+
+### 3. Badges visuais unificados
+
+O oval border e a barra de progresso "Prova de Vida" usarao:
+- `liveness.isLive` para estado "verificado" (verde)
+- `liveness.currentChallenge === 'blink'` ou `'head_turn'` para estado "desafio" (azul)
+- `!liveness.faceDetected` para estado "sem rosto" (vermelho)
+
+### 4. Remocao do skip sem registro
+
+Manter o botao "Pular Verificacao" no timeout, mas registrar no console que a verificacao foi pulada, para auditoria futura.
+
+---
+
+## Arquivos Modificados
+
+1. **`src/components/chromatic/ChromaticCameraCapture.tsx`** - remover detector pixel, unificar visual com hook MediaPipe
+2. **`src/lib/liveness-detection.ts`** - nenhuma alteracao (mantido por compatibilidade, mas sem uso ativo)
+
+## Secao Tecnica
+
+### Mapeamento de estados (antes vs depois)
 
 ```text
-if (!loading && !user) {
-  navigate('/welcome');
-  return null;
-}
+ANTES (conflitante):
+  Badge visual  <-- LivenessDetector (pixel)  --> status: waiting/analyzing/challenge/alive/suspicious
+  Botao captura <-- useLivenessDetection (MP)  --> isLive: true/false
+  Overlay       <-- useLivenessDetection (MP)  --> currentChallenge: blink/head_turn/complete
+
+DEPOIS (unificado):
+  Badge visual  <-- useLivenessDetection (MP)  --> currentChallenge + isLive + faceDetected
+  Botao captura <-- useLivenessDetection (MP)  --> isLive || timeoutReached
+  Overlay       <-- useLivenessDetection (MP)  --> currentChallenge: blink/head_turn/complete
 ```
 
-Paginas a proteger: Wardrobe, Chromatic, Canvas, Voyager, Events, Settings, Recommendations.
+### Impacto em performance
 
-### Etapa 3: Validacao
+A remocao do `setInterval(analyzeFrame, 300)` que alimentava o detector pixel elimina ~3.3 chamadas/segundo de processamento de ImageData redundante. O `requestAnimationFrame` do MediaPipe ja cobre a deteccao facial.
 
-- Navegar por todas as rotas no preview para verificar ausencia de erros
-- Testar fluxo de usuario nao logado acessando rotas protegidas
-- Verificar console limpo em todas as paginas
+**Nota:** O `analyzeFrame` permanece para a analise de iluminacao e deteccao basica de rosto por skin-tone (necessaria para o score de qualidade), mas sem a parte de liveness.
 
----
-
-## Resumo Tecnico
-
-| Item | Status | Risco |
-|------|--------|-------|
-| Providers e contextos | OK | - |
-| ErrorBoundary | OK | - |
-| Lazy loading | OK | - |
-| React Query | OK | - |
-| Auth hook | OK | - |
-| `.maybeSingle()` no useProfile | OK | - |
-| `.single()` residual (10 locais) | Corrigir | Medio |
-| Auth guards em rotas | Corrigir | Baixo |
-| Console warnings CDN | Ignorar | Nenhum |
