@@ -69,6 +69,9 @@ export function ChromaticCameraCapture({
   const livenessEnabled = isEnabled('liveness_detection');
   const liveness = useLivenessDetection();
 
+  const mediapipeFaceDetectedRef = useRef(false);
+  mediapipeFaceDetectedRef.current = liveness.faceDetected;
+
   const QUALITY_THRESHOLD = 60;
 
   // Unified: capture blocked only by MediaPipe hook state
@@ -137,7 +140,8 @@ export function ChromaticCameraCapture({
 
     const avgBrightness = totalBrightness / totalPixels;
     const skinRatio = skinPixelCount / totalPixels;
-    const faceDetected = skinRatio >= 0.15;
+    // MediaPipe primary, skin-tone fallback while model loads
+    const faceDetected = mediapipeFaceDetectedRef.current || skinRatio >= 0.15;
 
     let lighting: 'good' | 'low' | 'overexposed';
     let lightingScore: number;
@@ -182,10 +186,11 @@ export function ChromaticCameraCapture({
   const handleWebcamReady = useCallback(() => {
     setIsReady(true);
     analysisIntervalRef.current = setInterval(analyzeFrame, 300);
-    if (livenessEnabled && webcamRef.current?.video) {
+    // Always start MediaPipe for reliable face detection
+    if (webcamRef.current?.video) {
       liveness.startDetection(webcamRef.current.video);
     }
-  }, [analyzeFrame, livenessEnabled, liveness]);
+  }, [analyzeFrame, liveness]);
 
   // Cleanup on unmount
   useEffect(() => {
