@@ -7,6 +7,7 @@ import { SeasonDetailModal } from './SeasonDetailModal';
 import { AIDisclaimer } from '@/components/legal/AIDisclaimer';
 import { chromaticSeasons } from '@/data/chromatic-seasons';
 import { toast } from 'sonner';
+import { normalizeColor } from '@/lib/normalize-color';
 import type { ColorAnalysisResult as AnalysisType } from '@/hooks/useColorAnalysis';
 
 interface ColorAnalysisResultProps {
@@ -49,6 +50,10 @@ export function ColorAnalysisResult({
   
   // Find matching season data
   const seasonData = findSeasonData(result.season_name, result.subtype);
+
+  // Normalize colors to handle both string and {hex, name} formats
+  const normalizedRecommended = (result.recommended_colors || []).map(normalizeColor);
+  const normalizedAvoid = (result.avoid_colors || []).map(normalizeColor);
 
   const copyColorHex = (hex: string, name: string) => {
     navigator.clipboard.writeText(hex);
@@ -142,9 +147,9 @@ export function ColorAnalysisResult({
         <h4 className="font-display text-lg font-medium mb-3">Cores que te valorizam</h4>
         
         <div className="grid grid-cols-6 gap-2">
-          {result.recommended_colors.slice(0, demoMode ? 3 : 6).map((color, index) => (
+          {normalizedRecommended.slice(0, demoMode ? 3 : 6).map((color, index) => (
             <motion.button
-              key={color.hex}
+              key={color.hex + index}
               onClick={() => !demoMode && copyColorHex(color.hex, color.name)}
               className="text-center group cursor-pointer"
               initial={{ opacity: 0, scale: 0.8 }}
@@ -166,9 +171,9 @@ export function ColorAnalysisResult({
           ))}
           
           {/* Demo mode: show locked colors */}
-          {demoMode && result.recommended_colors.slice(3, 6).map((color, index) => (
+          {demoMode && normalizedRecommended.slice(3, 6).map((color, index) => (
             <motion.div
-              key={color.hex}
+              key={color.hex + '-locked-' + index}
               className="text-center opacity-50"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 0.5, scale: 1 }}
@@ -205,9 +210,9 @@ export function ColorAnalysisResult({
           </h4>
           
           <div className="grid grid-cols-3 gap-3">
-            {result.avoid_colors.map((color, index) => (
+            {normalizedAvoid.map((color, index) => (
               <motion.div
-                key={color.hex}
+                key={color.hex + '-avoid-' + index}
                 className="text-center"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
