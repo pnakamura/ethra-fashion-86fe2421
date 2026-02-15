@@ -47,7 +47,7 @@ const getColorHex = (color: ColorItem): string | undefined =>
   typeof color === 'object' ? color.hex : undefined;
 
 export default function Recommendations() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [selectedOccasion, setSelectedOccasion] = useState('all');
   const [capsuleOnly, setCapsuleOnly] = useState(false);
@@ -70,6 +70,11 @@ export default function Recommendations() {
       loadCachedVIPLooks();
     }
   }, [loadCachedLooks, loadCachedVIPLooks, hasVIPAccess]);
+
+  // Auth guard
+  useEffect(() => {
+    if (!authLoading && !user) navigate('/welcome');
+  }, [authLoading, user, navigate]);
 
   // Get effective color analysis (considering temporary season)
   const userSeasonData = colorSeason

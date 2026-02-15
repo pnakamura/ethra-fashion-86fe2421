@@ -113,7 +113,7 @@ export function useColorAnalysis() {
         .from('profiles')
         .select('color_season, color_analysis')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (profileError) throw profileError;
 

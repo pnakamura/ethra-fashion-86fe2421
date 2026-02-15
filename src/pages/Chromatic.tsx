@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
@@ -26,7 +27,8 @@ import { calculateWardrobeStats } from '@/lib/chromatic-match';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function Chromatic() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const { loadFromProfile, saveToProfile, result, reset } = useColorAnalysis();
   const { temporarySeason, isUsingTemporary, getEffectiveSeason } = useTemporarySeason();
   const [loading, setLoading] = useState(true);
@@ -114,7 +116,12 @@ export default function Chromatic() {
   const currentSeason = savedAnalysis ? getSeasonById(savedAnalysis.season_id) : null;
   const hasAnalysis = !!savedAnalysis || isUsingTemporary;
 
-  if (loading || seasonsLoading) {
+  // Auth guard
+  useEffect(() => {
+    if (!authLoading && !user) navigate('/welcome');
+  }, [authLoading, user, navigate]);
+
+  if (!user || loading || seasonsLoading) {
     return (
       <>
         <Header title="Cores" />

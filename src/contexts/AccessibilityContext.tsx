@@ -57,7 +57,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
           .from('profiles')
           .select('theme_preference, font_size')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (data) {
           if (data.font_size) {

@@ -66,7 +66,7 @@ const backgroundOptions: { value: BackgroundVariant; label: string; icon: React.
 ];
 
 export default function Settings() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading: authLoading } = useAuth();
   const { profile } = useProfile();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -92,6 +92,11 @@ export default function Settings() {
     city: '',
   });
   const [isExporting, setIsExporting] = useState(false);
+
+  // Auth guard
+  useEffect(() => {
+    if (!authLoading && !user) navigate('/welcome');
+  }, [authLoading, user, navigate]);
 
   // Export user data (LGPD Art. 18)
   const handleExportData = useCallback(async () => {

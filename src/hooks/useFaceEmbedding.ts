@@ -19,7 +19,7 @@ export function useFaceEmbedding() {
         .from('profiles')
         .select('face_embedding_hash')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       return !!(data as any)?.face_embedding_hash;
     },
     enabled: !!user,
@@ -79,7 +79,7 @@ export function useFaceEmbedding() {
       .from('profiles')
       .select('face_embedding_hash')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     const refEmbedding = (data as any)?.face_embedding_hash as number[] | null;
     if (!refEmbedding) {

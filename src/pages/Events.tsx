@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -11,6 +12,7 @@ import { AddEventSheet } from '@/components/events/AddEventSheet';
 import { EventDetailSheet } from '@/components/events/EventDetailSheet';
 import { useUserEvents, type UserEvent } from '@/hooks/useUserEvents';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 const eventTypeIcons: Record<string, React.ComponentType<any>> = {
   meeting: Briefcase,
@@ -37,10 +39,17 @@ const eventTypeLabels: Record<string, string> = {
 };
 
 export default function Events() {
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<UserEvent | null>(null);
   const { events, getEventsForDate, deleteEvent, upcomingEvents, isLoading, refetch } = useUserEvents();
+
+  // Auth guard
+  useEffect(() => {
+    if (!authLoading && !user) navigate('/welcome');
+  }, [authLoading, user, navigate]);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
