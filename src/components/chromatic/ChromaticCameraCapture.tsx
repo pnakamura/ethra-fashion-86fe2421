@@ -311,10 +311,10 @@ export function ChromaticCameraCapture({
   // Unified: oval border reads from MediaPipe hook
   const getOvalBorderClass = () => {
     if (!analysis?.faceDetected) return 'border-red-400/70 border-dashed';
-    if (liveness.isLive && analysis.isReady) return 'border-green-500/70';
-    if (liveness.isLive) return 'border-amber-500/70';
-    if (liveness.currentChallenge === 'blink' || liveness.currentChallenge === 'head_turn') return 'border-blue-400/70';
-    if (!liveness.faceDetected) return 'border-red-400/70';
+    if (analysis.isReady) return 'border-green-500/70';
+    if (livenessEnabled && (liveness.currentChallenge === 'blink' || liveness.currentChallenge === 'head_turn')) return 'border-blue-400/70';
+    if (livenessEnabled && !liveness.faceDetected) return 'border-red-400/70';
+    if (analysis.overallScore >= QUALITY_THRESHOLD) return 'border-amber-500/70';
     return 'border-amber-400/50 border-dashed';
   };
 
