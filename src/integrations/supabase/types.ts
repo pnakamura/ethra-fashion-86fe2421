@@ -38,6 +38,39 @@ export type Database = {
         }
         Relationships: []
       }
+      biometric_consent_logs: {
+        Row: {
+          consent_granted: boolean
+          consent_type: string
+          context: string | null
+          created_at: string
+          id: string
+          term_version: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          consent_granted?: boolean
+          consent_type: string
+          context?: string | null
+          created_at?: string
+          id?: string
+          term_version?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          consent_granted?: boolean
+          consent_type?: string
+          context?: string | null
+          created_at?: string
+          id?: string
+          term_version?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       external_garments: {
         Row: {
           created_at: string
