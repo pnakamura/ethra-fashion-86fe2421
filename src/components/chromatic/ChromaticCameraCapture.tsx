@@ -68,6 +68,7 @@ export function ChromaticCameraCapture({
   const { isEnabled } = useFeatureFlags();
   const livenessEnabled = isEnabled('liveness_detection');
   const liveness = useLivenessDetection();
+  const { startDetection, stopDetection, reset: resetLiveness } = liveness;
 
   const mediapipeFaceDetectedRef = useRef(false);
   mediapipeFaceDetectedRef.current = liveness.faceDetected;
@@ -188,19 +189,19 @@ export function ChromaticCameraCapture({
     analysisIntervalRef.current = setInterval(analyzeFrame, 300);
     // Always start MediaPipe for reliable face detection
     if (webcamRef.current?.video) {
-      liveness.startDetection(webcamRef.current.video);
+      startDetection(webcamRef.current.video);
     }
-  }, [analyzeFrame, liveness]);
+  }, [analyzeFrame, startDetection]);
 
-  // Cleanup on unmount
+  // Cleanup on unmount only (stopDetection is a stable ref from useCallback([]))
   useEffect(() => {
     return () => {
       if (analysisIntervalRef.current) {
         clearInterval(analysisIntervalRef.current);
       }
-      liveness.stopDetection();
+      stopDetection();
     };
-  }, [liveness]);
+  }, [stopDetection]);
 
   // Handle capture
   const handleCapture = useCallback(async () => {
@@ -236,11 +237,11 @@ export function ChromaticCameraCapture({
   }, [onCapture, analyzeFrame, livenessEnabled, liveness.timeoutReached, liveness.isLive]);
 
   const handleRetryLiveness = useCallback(() => {
-    liveness.reset();
+    resetLiveness();
     if (webcamRef.current?.video) {
-      liveness.startDetection(webcamRef.current.video);
+      startDetection(webcamRef.current.video);
     }
-  }, [liveness]);
+  }, [resetLiveness, startDetection]);
 
   const getStatusIcon = (lighting: string) => {
     const iconClass = 'w-4 h-4';
