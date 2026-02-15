@@ -186,7 +186,6 @@ export default function Chromatic() {
             <TabsContent value="discover" className="mt-4">
               <AnimatePresence mode="wait">
                 {!hasAnalysis && !showAnalysisFlow ? (
-                {!hasAnalysis && !showAnalysisFlow ? (
                   <motion.div
                     key="onboarding"
                     initial={{ opacity: 0 }}
@@ -194,7 +193,6 @@ export default function Chromatic() {
                     exit={{ opacity: 0 }}
                   >
                     <ChromaticOnboarding
-                      onStartAnalysis={() => setShowAnalysisForm(true)}
                       onStartAnalysis={() => setShowAnalysisFlow(true)}
                       onExplore={() => setActiveTab('explore')}
                     />
