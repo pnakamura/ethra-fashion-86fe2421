@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   Sun, Moon, Monitor, Type, Bell, MapPin, Clock, 
@@ -92,6 +93,18 @@ export default function Settings() {
     city: '',
   });
   const [isExporting, setIsExporting] = useState(false);
+  const [isRequestingDeletion, setIsRequestingDeletion] = useState(false);
+  const [searchParams] = useSearchParams();
+  const privacySectionRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to privacy section when ?tab=privacy
+  useEffect(() => {
+    if (searchParams.get('tab') === 'privacy') {
+      setTimeout(() => {
+        privacySectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 500);
+    }
+  }, [searchParams]);
 
   // Auth guard
   useEffect(() => {
@@ -669,6 +682,115 @@ export default function Settings() {
                 </div>
                 <PlanBadge planId={profile?.subscription_plan_id} size="md" />
               </div>
+            </div>
+          </motion.section>
+
+          {/* Privacy & Data Section (LGPD) */}
+          <motion.section
+            ref={privacySectionRef}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.22 }}
+            className="space-y-4"
+          >
+            <h2 className="font-display text-xl font-semibold flex items-center gap-2">
+              <Shield className="w-5 h-5 text-primary" />
+              Privacidade e Dados
+            </h2>
+
+            <div className="bg-card rounded-2xl border border-border p-4 space-y-4">
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Exerça seus direitos previstos na LGPD (Art. 18). Você pode exportar uma cópia
+                dos seus dados ou solicitar a exclusão da sua conta.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button
+                  variant="outline"
+                  onClick={handleExportData}
+                  disabled={isExporting}
+                  className="flex-1 rounded-xl"
+                >
+                  {isExporting ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4 mr-2" />
+                  )}
+                  Exportar meus dados
+                </Button>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="flex-1 rounded-xl text-destructive border-destructive/30 hover:bg-destructive/5"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Solicitar exclusão de conta
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="p-3 rounded-full bg-destructive/10">
+                          <AlertTriangle className="w-6 h-6 text-destructive" />
+                        </div>
+                        <AlertDialogTitle>Solicitar exclusão de conta?</AlertDialogTitle>
+                      </div>
+                      <AlertDialogDescription className="space-y-3">
+                        <p>
+                          Sua solicitação será analisada pela nossa equipe de privacidade.
+                          Todos os seus dados serão excluídos conforme a LGPD.
+                        </p>
+                        <p className="text-sm">
+                          Responderemos em até <strong>15 dias úteis</strong>.
+                        </p>
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction
+                        disabled={isRequestingDeletion}
+                        onClick={async () => {
+                          try {
+                            setIsRequestingDeletion(true);
+                            const { data: { session } } = await supabase.auth.getSession();
+                            if (!session?.access_token) {
+                              toast.error('Sessão expirada. Faça login novamente.');
+                              return;
+                            }
+
+                            const response = await supabase.functions.invoke('delete-user-data', {
+                              headers: { Authorization: `Bearer ${session.access_token}` },
+                            });
+
+                            if (response.error) {
+                              throw new Error(response.error.message);
+                            }
+
+                            toast.success('Solicitação enviada. Responderemos em até 15 dias.');
+                          } catch (error) {
+                            console.error('Error requesting deletion:', error);
+                            toast.error('Erro ao enviar solicitação. Tente novamente.');
+                          } finally {
+                            setIsRequestingDeletion(false);
+                          }
+                        }}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {isRequestingDeletion ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : null}
+                        Confirmar solicitação
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+
+              <p className="text-xs text-muted-foreground/70 italic">
+                Suas solicitações são processadas conforme Art. 18 da LGPD.
+              </p>
             </div>
           </motion.section>
 
