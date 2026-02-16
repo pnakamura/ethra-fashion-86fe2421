@@ -240,7 +240,35 @@ export default function PrivacyPolicy() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-foreground">8. Segurança</h2>
+            <h2 className="text-xl font-semibold text-foreground">8. Encarregada de Proteção de Dados (DPO)</h2>
+            <p className="text-muted-foreground leading-relaxed">
+              Nossa Encarregada de Proteção de Dados é <strong className="text-foreground">Maria Silva</strong>.
+            </p>
+            <p className="text-muted-foreground leading-relaxed mt-3">
+              Para exercer seus direitos previstos na LGPD (acesso, correção, exclusão, portabilidade),
+              entre em contato:
+            </p>
+            <ul className="text-muted-foreground space-y-1 mt-2">
+              <li><strong>Email:</strong>{' '}
+                <a href="mailto:dpo@ethrafashion.com" className="text-primary hover:underline">
+                  dpo@ethrafashion.com
+                </a>
+              </li>
+              <li><strong>Formulário online:</strong>{' '}
+                <Link to="/settings?tab=privacy" className="text-primary hover:underline">
+                  Formulário de Solicitação
+                </Link>
+              </li>
+            </ul>
+            <p className="text-muted-foreground leading-relaxed mt-3">
+              A DPO é responsável por receber e responder solicitações dos titulares de dados,
+              prestar esclarecimentos à Autoridade Nacional de Proteção de Dados (ANPD) e
+              garantir a conformidade do Ethra com a LGPD.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-foreground">9. Segurança</h2>
             <p className="text-muted-foreground leading-relaxed">
               Implementamos medidas técnicas e organizacionais para proteger seus dados:
             </p>
@@ -254,7 +282,7 @@ export default function PrivacyPolicy() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-foreground">9. Cookies e Tecnologias Similares</h2>
+            <h2 className="text-xl font-semibold text-foreground">10. Cookies e Tecnologias Similares</h2>
             <p className="text-muted-foreground leading-relaxed">
               Utilizamos armazenamento local (localStorage) para:
             </p>
@@ -266,7 +294,7 @@ export default function PrivacyPolicy() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-foreground">10. Alterações nesta Política</h2>
+            <h2 className="text-xl font-semibold text-foreground">11. Alterações nesta Política</h2>
             <p className="text-muted-foreground leading-relaxed">
               Podemos atualizar esta Política periodicamente. Alterações significativas serão 
               comunicadas por email ou notificação no Aplicativo. Recomendamos revisar esta página 
@@ -275,7 +303,7 @@ export default function PrivacyPolicy() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-foreground">11. Contato</h2>
+            <h2 className="text-xl font-semibold text-foreground">12. Contato</h2>
             <p className="text-muted-foreground leading-relaxed">
               Para questões sobre esta Política ou para exercer seus direitos previstos
               na LGPD, entre em contato com nosso Encarregado de Dados (DPO):
