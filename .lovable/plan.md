@@ -1,91 +1,70 @@
 
+# Adicionar DPO nomeado e Formulario de Direitos LGPD
 
-# Correcao do Sistema de Prova de Vida
+## Resumo
 
-## Problema Principal
-
-Existem **dois detectores de liveness rodando ao mesmo tempo**, gerando conflitos:
-
-| Aspecto | Detector Pixel (`LivenessDetector`) | Detector MediaPipe (`useLivenessDetection`) |
-|---------|-------------------------------------|---------------------------------------------|
-| Controla o botao Capturar | Nao | Sim |
-| Controla badges visuais (oval, barra) | Sim | Nao |
-| Controla o overlay de desafio | Nao | Sim |
-
-Isso causa situacoes onde o badge visual mostra "Verificada" (pixel detector confirmou), mas o botao continua desabilitado (MediaPipe ainda nao confirmou), ou o contrario.
-
----
-
-## Solucao: Unificar em torno do MediaPipe
-
-Remover o detector pixel (`LivenessDetector`) e usar exclusivamente o hook `useLivenessDetection` (MediaPipe), que e mais preciso e ja possui calibracao adaptativa.
+Adicionar a DPO nomeada (Maria Silva) na pagina de Politica de Privacidade e criar uma nova secao "Privacidade e Dados" na pagina de Configuracoes com botoes de exportar dados e solicitar exclusao, acessivel via link direto da politica.
 
 ---
 
 ## Alteracoes
 
-### 1. ChromaticCameraCapture.tsx (arquivo principal)
+### 1. PrivacyPolicy.tsx - Nova secao DPO
 
-**Remover:**
-- Import do `LivenessDetector` e `LivenessStatus` de `src/lib/liveness-detection.ts`
-- A ref `livenessDetectorRef`
-- Toda a logica de `livenessDetectorRef.current.addFrame(imageData)` dentro de `analyzeFrame`
-- Os campos `livenessStatus` e `livenessMessage` do estado `analysis`
+Adicionar uma nova secao "8. Encarregada de Protecao de Dados (DPO)" logo apos a secao "7. Seus Direitos", renumerando as secoes seguintes (8 vira 9, 9 vira 10, etc.).
 
-**Modificar:**
-- O tipo `CameraAnalysis` perde os campos `livenessStatus` e `livenessMessage`
-- A funcao `analyzeFrame` passa a verificar apenas iluminacao e presenca de rosto (skin-tone)
-- A condicao `isReady` do frame: `faceDetected && overallScore >= QUALITY_THRESHOLD` (sem liveness do pixel)
-- A condicao geral `canCapture`: usa apenas `liveness.isLive` do hook MediaPipe
-- Os badges visuais (oval border, barra de progresso "Prova de Vida") passam a ler o estado do hook `liveness` em vez de `analysis.livenessStatus`
-- As funcoes `getOvalBorderClass`, `getLivenessIcon`, `getLivenessText` passam a usar `liveness.currentChallenge` e `liveness.isLive`
+Conteudo da nova secao:
+- Nome: **Maria Silva**
+- Email: dpo@ethrafashion.com
+- Link para o formulario de solicitacao: `/settings?tab=privacy`
+- Texto explicando como exercer direitos de acesso, correcao, exclusao e portabilidade
 
-### 2. Logica do botao Capturar
+### 2. Settings.tsx - Secao "Privacidade e Dados"
 
-Atualizar para:
-- `canCapture = isReady && !isCapturing && (liveness.isLive || liveness.timeoutReached || !livenessEnabled)`
-- O botao fica habilitado quando:
-  - Liveness esta desabilitada (flag off), OU
-  - MediaPipe confirmou (`liveness.isLive`), OU
-  - Timeout atingido (`liveness.timeoutReached`)
+A pagina Settings nao usa tabs de URL -- usa secoes verticais (Aparencia, Notificacoes, Perfil, Conta). A abordagem sera:
 
-### 3. Badges visuais unificados
+- Ler o parametro `?tab=privacy` da URL via `useSearchParams`
+- Quando presente, fazer scroll automatico ate a nova secao "Privacidade e Dados"
+- Adicionar nova `motion.section` entre "Perfil" e "Conta" contendo:
 
-O oval border e a barra de progresso "Prova de Vida" usarao:
-- `liveness.isLive` para estado "verificado" (verde)
-- `liveness.currentChallenge === 'blink'` ou `'head_turn'` para estado "desafio" (azul)
-- `!liveness.faceDetected` para estado "sem rosto" (vermelho)
+**Botao "Exportar meus dados":**
+- Reutiliza o `handleExportData` ja existente (ja chama `export-user-data`)
+- Mostra `Loader2` durante loading
+- Exibe toast de confirmacao
 
-### 4. Remocao do skip sem registro
+**Botao "Solicitar exclusao de conta":**
+- Abre AlertDialog de confirmacao (reutiliza o padrao ja existente)
+- Chama `delete-user-data` edge function
+- Toast: "Solicitacao enviada. Responderemos em ate 15 dias"
 
-Manter o botao "Pular Verificacao" no timeout, mas registrar no console que a verificacao foi pulada, para auditoria futura.
+**Nota LGPD:**
+- Texto: "Suas solicitacoes sao processadas conforme Art. 18 da LGPD"
+
+**Scroll automatico:**
+- Usar `useRef` + `useSearchParams` para scroll ate a secao quando `?tab=privacy` estiver na URL
 
 ---
 
-## Arquivos Modificados
+## Detalhes Tecnicos
 
-1. **`src/components/chromatic/ChromaticCameraCapture.tsx`** - remover detector pixel, unificar visual com hook MediaPipe
-2. **`src/lib/liveness-detection.ts`** - nenhuma alteracao (mantido por compatibilidade, mas sem uso ativo)
+### PrivacyPolicy.tsx
 
-## Secao Tecnica
+- Inserir nova `<section>` apos linha 240 (fim da secao 7)
+- Renumerar secoes 8-11 para 9-12
+- A nova secao inclui link `<Link to="/settings?tab=privacy">` com texto "Formulario de Solicitacao"
 
-### Mapeamento de estados (antes vs depois)
+### Settings.tsx
 
-```text
-ANTES (conflitante):
-  Badge visual  <-- LivenessDetector (pixel)  --> status: waiting/analyzing/challenge/alive/suspicious
-  Botao captura <-- useLivenessDetection (MP)  --> isLive: true/false
-  Overlay       <-- useLivenessDetection (MP)  --> currentChallenge: blink/head_turn/complete
+- Importar `useSearchParams` de `react-router-dom`
+- Criar `privacySectionRef = useRef<HTMLDivElement>(null)`
+- Adicionar `useEffect` que verifica `searchParams.get('tab') === 'privacy'` e faz `scrollIntoView`
+- Nova secao com icone `Shield`, titulo "Privacidade e Dados"
+- Card com 2 botoes (exportar + excluir) e nota LGPD
+- O botao de exclusao aqui mostra toast "Solicitacao enviada. Responderemos em ate 15 dias" em vez de excluir imediatamente (diferente do botao existente na secao Conta que exclui de fato)
 
-DEPOIS (unificado):
-  Badge visual  <-- useLivenessDetection (MP)  --> currentChallenge + isLive + faceDetected
-  Botao captura <-- useLivenessDetection (MP)  --> isLive || timeoutReached
-  Overlay       <-- useLivenessDetection (MP)  --> currentChallenge: blink/head_turn/complete
-```
+### Arquivos modificados
 
-### Impacto em performance
+1. `src/pages/PrivacyPolicy.tsx`
+2. `src/pages/Settings.tsx`
 
-A remocao do `setInterval(analyzeFrame, 300)` que alimentava o detector pixel elimina ~3.3 chamadas/segundo de processamento de ImageData redundante. O `requestAnimationFrame` do MediaPipe ja cobre a deteccao facial.
-
-**Nota:** O `analyzeFrame` permanece para a analise de iluminacao e deteccao basica de rosto por skin-tone (necessaria para o score de qualidade), mas sem a parte de liveness.
-
+Nenhum arquivo novo. Nenhuma alteracao no banco de dados ou edge functions (ambas ja existem e funcionam).
