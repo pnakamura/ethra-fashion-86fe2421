@@ -1,70 +1,60 @@
 
-# Adicionar DPO nomeado e Formulario de Direitos LGPD
+
+# Correcao de Emails e Criacao do Formulario de Solicitacao LGPD
 
 ## Resumo
 
-Adicionar a DPO nomeada (Maria Silva) na pagina de Politica de Privacidade e criar uma nova secao "Privacidade e Dados" na pagina de Configuracoes com botoes de exportar dados e solicitar exclusao, acessivel via link direto da politica.
+Padronizar todos os emails na Politica de Privacidade para `contato@ethra.com.br` e criar um formulario de solicitacao de direitos LGPD na secao de Privacidade das Configuracoes.
 
 ---
 
-## Alteracoes
+## 1. PrivacyPolicy.tsx - Correcao de emails
 
-### 1. PrivacyPolicy.tsx - Nova secao DPO
+Dois emails precisam ser alterados:
 
-Adicionar uma nova secao "8. Encarregada de Protecao de Dados (DPO)" logo apos a secao "7. Seus Direitos", renumerando as secoes seguintes (8 vira 9, 9 vira 10, etc.).
+| Linha | Email atual | Novo email |
+|-------|-------------|------------|
+| 238 | privacidade@ethra.app | contato@ethra.com.br |
+| 253-254 | dpo@ethrafashion.com | contato@ethra.com.br |
 
-Conteudo da nova secao:
-- Nome: **Maria Silva**
-- Email: dpo@ethrafashion.com
-- Link para o formulario de solicitacao: `/settings?tab=privacy`
-- Texto explicando como exercer direitos de acesso, correcao, exclusao e portabilidade
+Os demais (linhas 65 e 313) ja estao corretos.
 
-### 2. Settings.tsx - Secao "Privacidade e Dados"
+---
 
-A pagina Settings nao usa tabs de URL -- usa secoes verticais (Aparencia, Notificacoes, Perfil, Conta). A abordagem sera:
+## 2. Settings.tsx - Formulario de Solicitacao LGPD
 
-- Ler o parametro `?tab=privacy` da URL via `useSearchParams`
-- Quando presente, fazer scroll automatico ate a nova secao "Privacidade e Dados"
-- Adicionar nova `motion.section` entre "Perfil" e "Conta" contendo:
+Substituir os dois botoes simples (exportar/excluir) na secao "Privacidade e Dados" por um formulario completo com:
 
-**Botao "Exportar meus dados":**
-- Reutiliza o `handleExportData` ja existente (ja chama `export-user-data`)
-- Mostra `Loader2` durante loading
-- Exibe toast de confirmacao
+**Campos do formulario:**
+- **Tipo de solicitacao** (select): Acesso aos dados / Correcao de dados / Portabilidade / Exclusao de dados / Revogacao de consentimento
+- **Detalhes** (textarea, opcional): Campo para o usuario descrever sua solicitacao
+- **Botao "Enviar solicitacao"**: Com loading state
 
-**Botao "Solicitar exclusao de conta":**
-- Abre AlertDialog de confirmacao (reutiliza o padrao ja existente)
-- Chama `delete-user-data` edge function
-- Toast: "Solicitacao enviada. Responderemos em ate 15 dias"
+**Comportamento:**
+- Para "Exclusao de dados": abre AlertDialog de confirmacao antes de enviar (reutiliza o padrao existente)
+- Para "Portabilidade" ou "Acesso aos dados": chama a edge function `export-user-data` e faz download do JSON
+- Para os demais tipos: exibe toast "Solicitacao enviada com sucesso. Responderemos em ate 15 dias uteis conforme Art. 18 da LGPD"
+- Manter a nota LGPD abaixo do formulario
 
-**Nota LGPD:**
-- Texto: "Suas solicitacoes sao processadas conforme Art. 18 da LGPD"
-
-**Scroll automatico:**
-- Usar `useRef` + `useSearchParams` para scroll ate a secao quando `?tab=privacy` estiver na URL
+**Botao rapido de exportar dados:** mantido separadamente acima do formulario para acesso direto
 
 ---
 
 ## Detalhes Tecnicos
 
 ### PrivacyPolicy.tsx
-
-- Inserir nova `<section>` apos linha 240 (fim da secao 7)
-- Renumerar secoes 8-11 para 9-12
-- A nova secao inclui link `<Link to="/settings?tab=privacy">` com texto "Formulario de Solicitacao"
+- Linha 238: trocar `mailto:privacidade@ethra.app` e texto para `contato@ethra.com.br`
+- Linhas 253-254: trocar `mailto:dpo@ethrafashion.com` e texto para `contato@ethra.com.br`
 
 ### Settings.tsx
-
-- Importar `useSearchParams` de `react-router-dom`
-- Criar `privacySectionRef = useRef<HTMLDivElement>(null)`
-- Adicionar `useEffect` que verifica `searchParams.get('tab') === 'privacy'` e faz `scrollIntoView`
-- Nova secao com icone `Shield`, titulo "Privacidade e Dados"
-- Card com 2 botoes (exportar + excluir) e nota LGPD
-- O botao de exclusao aqui mostra toast "Solicitacao enviada. Responderemos em ate 15 dias" em vez de excluir imediatamente (diferente do botao existente na secao Conta que exclui de fato)
+- Adicionar estados: `requestType` (string) e `requestDetails` (string)
+- Importar `Select`, `SelectContent`, `SelectItem`, `SelectTrigger`, `SelectValue` de `@/components/ui/select`
+- Importar `Textarea` de `@/components/ui/textarea`
+- O formulario substitui o conteudo dentro do card da secao "Privacidade e Dados" (linhas ~701-793)
+- A logica de envio reutiliza `handleExportData` para tipos de acesso/portabilidade e a chamada `delete-user-data` para exclusao
+- Validacao: tipo de solicitacao obrigatorio (toast de erro se vazio)
+- Sanitizacao do campo detalhes usando `sanitizeText` de `@/lib/sanitize`
 
 ### Arquivos modificados
-
 1. `src/pages/PrivacyPolicy.tsx`
 2. `src/pages/Settings.tsx`
-
-Nenhum arquivo novo. Nenhuma alteracao no banco de dados ou edge functions (ambas ja existem e funcionam).
