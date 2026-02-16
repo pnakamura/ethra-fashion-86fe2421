@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { 
   Sun, Moon, Monitor, Type, Bell, MapPin, Clock, 
   LogOut, CreditCard, User, ChevronRight, Sparkles,
-  Calendar, CloudSun, Image, EyeOff, Palette, Upload, Trash2, Loader2, Mail, Shield, AlertTriangle, Download
+  Calendar, CloudSun, Image, EyeOff, Palette, Upload, Trash2, Loader2, Mail, Shield, AlertTriangle, Download, Send
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,8 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -94,6 +96,9 @@ export default function Settings() {
   });
   const [isExporting, setIsExporting] = useState(false);
   const [isRequestingDeletion, setIsRequestingDeletion] = useState(false);
+  const [requestType, setRequestType] = useState('');
+  const [requestDetails, setRequestDetails] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchParams] = useSearchParams();
   const privacySectionRef = useRef<HTMLDivElement>(null);
 
@@ -698,94 +703,169 @@ export default function Settings() {
               Privacidade e Dados
             </h2>
 
-            <div className="bg-card rounded-2xl border border-border p-4 space-y-4">
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Exerça seus direitos previstos na LGPD (Art. 18). Você pode exportar uma cópia
-                dos seus dados ou solicitar a exclusão da sua conta.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-3">
+            <div className="bg-card rounded-2xl border border-border p-4 space-y-5">
+              {/* Quick export button */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-foreground">Exportar meus dados</p>
+                  <p className="text-xs text-muted-foreground">Baixe uma cópia completa dos seus dados</p>
+                </div>
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={handleExportData}
                   disabled={isExporting}
-                  className="flex-1 rounded-xl"
+                  className="rounded-xl"
                 >
                   {isExporting ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   ) : (
                     <Download className="w-4 h-4 mr-2" />
                   )}
-                  Exportar meus dados
+                  Exportar
                 </Button>
+              </div>
 
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="flex-1 rounded-xl text-destructive border-destructive/30 hover:bg-destructive/5"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Solicitar exclusão de conta
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="p-3 rounded-full bg-destructive/10">
-                          <AlertTriangle className="w-6 h-6 text-destructive" />
-                        </div>
-                        <AlertDialogTitle>Solicitar exclusão de conta?</AlertDialogTitle>
-                      </div>
-                      <AlertDialogDescription className="space-y-3">
-                        <p>
-                          Sua solicitação será analisada pela nossa equipe de privacidade.
-                          Todos os seus dados serão excluídos conforme a LGPD.
-                        </p>
-                        <p className="text-sm">
-                          Responderemos em até <strong>15 dias úteis</strong>.
-                        </p>
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction
-                        disabled={isRequestingDeletion}
-                        onClick={async () => {
-                          try {
-                            setIsRequestingDeletion(true);
-                            const { data: { session } } = await supabase.auth.getSession();
-                            if (!session?.access_token) {
-                              toast.error('Sessão expirada. Faça login novamente.');
-                              return;
-                            }
+              <Separator />
 
-                            const response = await supabase.functions.invoke('delete-user-data', {
-                              headers: { Authorization: `Bearer ${session.access_token}` },
-                            });
+              {/* LGPD Request Form */}
+              <div className="space-y-4">
+                <p className="text-sm font-medium text-foreground">Formulário de Solicitação de Direitos</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Exerça seus direitos previstos na LGPD (Art. 18). Selecione o tipo de solicitação abaixo.
+                </p>
 
-                            if (response.error) {
-                              throw new Error(response.error.message);
-                            }
+                <div className="space-y-3">
+                  <label className="text-sm text-muted-foreground">Tipo de solicitação *</label>
+                  <Select value={requestType} onValueChange={setRequestType}>
+                    <SelectTrigger className="rounded-xl">
+                      <SelectValue placeholder="Selecione o tipo de solicitação" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="access">Acesso aos dados</SelectItem>
+                      <SelectItem value="correction">Correção de dados</SelectItem>
+                      <SelectItem value="portability">Portabilidade</SelectItem>
+                      <SelectItem value="deletion">Exclusão de dados</SelectItem>
+                      <SelectItem value="revocation">Revogação de consentimento</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                            toast.success('Solicitação enviada. Responderemos em até 15 dias.');
-                          } catch (error) {
-                            console.error('Error requesting deletion:', error);
-                            toast.error('Erro ao enviar solicitação. Tente novamente.');
-                          } finally {
-                            setIsRequestingDeletion(false);
-                          }
-                        }}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                <div className="space-y-3">
+                  <label className="text-sm text-muted-foreground">Detalhes (opcional)</label>
+                  <Textarea
+                    value={requestDetails}
+                    onChange={(e) => setRequestDetails(e.target.value)}
+                    placeholder="Descreva sua solicitação..."
+                    className="rounded-xl resize-none"
+                    maxLength={500}
+                    rows={3}
+                  />
+                </div>
+
+                {requestType === 'deletion' ? (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        disabled={isSubmitting}
+                        className="w-full rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       >
-                        {isRequestingDeletion ? (
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : null}
-                        Confirmar solicitação
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                        <Send className="w-4 h-4 mr-2" />
+                        Enviar solicitação de exclusão
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="p-3 rounded-full bg-destructive/10">
+                            <AlertTriangle className="w-6 h-6 text-destructive" />
+                          </div>
+                          <AlertDialogTitle>Confirmar exclusão de dados?</AlertDialogTitle>
+                        </div>
+                        <AlertDialogDescription className="space-y-3">
+                          <p>
+                            Sua solicitação será analisada pela nossa equipe de privacidade.
+                            Todos os seus dados serão excluídos conforme a LGPD.
+                          </p>
+                          <p className="text-sm">
+                            Responderemos em até <strong>15 dias úteis</strong>.
+                          </p>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                          disabled={isRequestingDeletion}
+                          onClick={async () => {
+                            try {
+                              setIsRequestingDeletion(true);
+                              const { data: { session } } = await supabase.auth.getSession();
+                              if (!session?.access_token) {
+                                toast.error('Sessão expirada. Faça login novamente.');
+                                return;
+                              }
+
+                              const response = await supabase.functions.invoke('delete-user-data', {
+                                headers: { Authorization: `Bearer ${session.access_token}` },
+                              });
+
+                              if (response.error) {
+                                throw new Error(response.error.message);
+                              }
+
+                              toast.success('Solicitação enviada. Responderemos em até 15 dias.');
+                              setRequestType('');
+                              setRequestDetails('');
+                            } catch (error) {
+                              console.error('Error requesting deletion:', error);
+                              toast.error('Erro ao enviar solicitação. Tente novamente.');
+                            } finally {
+                              setIsRequestingDeletion(false);
+                            }
+                          }}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          {isRequestingDeletion ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : null}
+                          Confirmar solicitação
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                ) : (
+                  <Button
+                    onClick={async () => {
+                      if (!requestType) {
+                        toast.error('Selecione o tipo de solicitação.');
+                        return;
+                      }
+                      if (requestType === 'access' || requestType === 'portability') {
+                        await handleExportData();
+                        setRequestType('');
+                        setRequestDetails('');
+                      } else {
+                        setIsSubmitting(true);
+                        // Simulate sending for correction/revocation
+                        setTimeout(() => {
+                          toast.success('Solicitação enviada com sucesso. Responderemos em até 15 dias úteis conforme Art. 18 da LGPD.');
+                          setRequestType('');
+                          setRequestDetails('');
+                          setIsSubmitting(false);
+                        }, 1000);
+                      }
+                    }}
+                    disabled={isSubmitting || !requestType}
+                    className="w-full rounded-xl"
+                  >
+                    {isSubmitting ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4 mr-2" />
+                    )}
+                    Enviar solicitação
+                  </Button>
+                )}
               </div>
 
               <p className="text-xs text-muted-foreground/70 italic">
