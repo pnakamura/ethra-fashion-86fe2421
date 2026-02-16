@@ -235,7 +235,7 @@ export default function PrivacyPolicy() {
             </ul>
             <p className="text-muted-foreground leading-relaxed mt-4">
               Para exercer qualquer destes direitos, acesse as Configurações do Aplicativo ou entre 
-              em contato pelo email <a href="mailto:privacidade@ethra.app" className="text-primary hover:underline">privacidade@ethra.app</a>.
+              em contato pelo email <a href="mailto:contato@ethra.com.br" className="text-primary hover:underline">contato@ethra.com.br</a>.
             </p>
           </section>
 
@@ -250,8 +250,8 @@ export default function PrivacyPolicy() {
             </p>
             <ul className="text-muted-foreground space-y-1 mt-2">
               <li><strong>Email:</strong>{' '}
-                <a href="mailto:dpo@ethrafashion.com" className="text-primary hover:underline">
-                  dpo@ethrafashion.com
+                <a href="mailto:contato@ethra.com.br" className="text-primary hover:underline">
+                  contato@ethra.com.br
                 </a>
               </li>
               <li><strong>Formulário online:</strong>{' '}
