@@ -3,10 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Sparkles, ArrowRight, Sun, Moon, Gift } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export function HeroSection() {
   const navigate = useNavigate();
   const { resolvedTheme, setTheme } = useTheme();
+  const isMobile = useIsMobile();
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
@@ -17,29 +19,30 @@ export function HeroSection() {
       {/* Animated background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-secondary/20 to-primary/5 dark:from-transparent dark:via-transparent dark:to-transparent" />
 
-      {/* Floating particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 rounded-full bg-primary/30"
-            initial={{
-              x: Math.random() * window.innerWidth,
-              y: Math.random() * window.innerHeight,
-              scale: Math.random() * 0.5 + 0.5,
-            }}
-            animate={{
-              y: [null, Math.random() * -200 - 100],
-              opacity: [0.3, 0.8, 0.3],
-            }}
-            transition={{
-              duration: Math.random() * 10 + 10,
-              repeat: Infinity,
-              ease: 'linear',
-            }}
-          />
-        ))}
-      </div>
+      {!isMobile && (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {[...Array(20)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-1 h-1 rounded-full bg-primary/30"
+              initial={{
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                scale: Math.random() * 0.5 + 0.5,
+              }}
+              animate={{
+                y: [null, Math.random() * -200 - 100],
+                opacity: [0.3, 0.8, 0.3],
+              }}
+              transition={{
+                duration: Math.random() * 10 + 10,
+                repeat: Infinity,
+                ease: 'linear',
+              }}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Theme toggle */}
       <div className="absolute top-6 right-6 z-20">
