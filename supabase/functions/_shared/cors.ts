@@ -13,6 +13,7 @@ const ALLOWED_ORIGINS: string[] = [
 /** Patterns for dynamic origins (preview deploys, local dev). */
 const ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^https:\/\/[a-z0-9-]+\.lovable\.app$/,
+  /^https:\/\/[a-z0-9-]+\.lovableproject\.com$/,
   /^http:\/\/localhost:\d+$/,
 ];
 
