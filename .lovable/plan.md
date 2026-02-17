@@ -1,28 +1,33 @@
 
-# Atualizar endpoint Vertex AI VTO: preview-08-04 para 001
 
-## Resumo
+# Corrigir CORS para dominio lovableproject.com
 
-Substituir o modelo descontinuado `virtual-try-on-preview-08-04` pelo novo `virtual-try-on-001` no endpoint do Vertex AI. Mudanca de uma unica linha.
+## Problema
+
+O arquivo `supabase/functions/_shared/cors.ts` define padroes de origem permitidos que nao incluem o dominio `lovableproject.com`. Requests vindos do preview (`*.lovableproject.com`) sao bloqueados pelo browser na etapa de preflight CORS, resultando em "Failed to fetch".
+
+## Causa
+
+O dominio do preview mudou de `*.lovable.app` para `*.lovableproject.com`, mas o CORS nao foi atualizado.
 
 ## Alteracao
 
-### Arquivo: `supabase/functions/vertex-try-on/index.ts`
+### Arquivo: `supabase/functions/_shared/cors.ts`
 
-**Linha 155** - Trocar o nome do modelo no endpoint:
+Adicionar um novo pattern ao array `ALLOWED_ORIGIN_PATTERNS` (linha 16):
 
-De:
 ```
-.../models/virtual-try-on-preview-08-04:predict
-```
-
-Para:
-```
-.../models/virtual-try-on-001:predict
+/^https:\/\/[a-z0-9-]+\.lovableproject\.com$/
 ```
 
-Nenhuma outra alteracao necessaria. Os arquivos `virtual-try-on/index.ts` e `test-vto-models/index.ts` chamam esta edge function via HTTP, entao herdam a mudanca automaticamente.
+O array ficara com 3 patterns:
+1. `*.lovable.app` (existente)
+2. `*.lovableproject.com` (novo)
+3. `localhost:*` (existente)
 
-## Validacao pos-deploy
+Nenhum outro arquivo precisa ser alterado. Todas as edge functions importam este modulo compartilhado, entao o fix se propaga automaticamente apos deploy.
 
-Apos o deploy automatico da edge function, testar com o benchmark existente (`test-vto-models`) para confirmar que o formato de request/response permanece compativel com o modelo GA.
+## Validacao
+
+Apos o deploy automatico, testar o provador normalmente. O request POST para `virtual-try-on` deve passar o preflight e ser processado pela funcao.
+
