@@ -152,7 +152,7 @@ const callVertexTryOn = async (
   ]);
 
   // Vertex AI Virtual Try-On endpoint (modelo oficial)
-  const endpoint = `${VERTEX_API_BASE}/projects/${projectId}/locations/us-central1/publishers/google/models/virtual-try-on-preview-08-04:predict`;
+  const endpoint = `${VERTEX_API_BASE}/projects/${projectId}/locations/us-central1/publishers/google/models/virtual-try-on-001:predict`;
 
   // Build request no formato oficial da API Virtual Try-On
   const requestBody = {
