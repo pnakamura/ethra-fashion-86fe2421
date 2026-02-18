@@ -1,94 +1,71 @@
 
-# Transformar /welcome em Pagina de Recrutamento de Testers
+
+# Melhorias na Pagina /welcome: Enfase Beta, Remover Login, Closet com Imagens
 
 ## Resumo
 
-Recriar a pagina /welcome como uma experiencia completa de recrutamento de beta testers com: formulario de cadastro proprio (separado do /auth normal), marcacao de testers no banco de dados, notificacao por email aos administradores, e uma terceira simulacao interativa mostrando o Closet Inteligente com Armario Capsula.
+Tres alteracoes principais: (1) reforcar a identidade BETA em toda a pagina, (2) remover o botao "Ja tenho acesso", e (3) transformar o ClosetSim numa experiencia visual com imagens reais de roupas e um mockup final de closet organizado.
 
 ## Alteracoes
 
-### 1. Banco de Dados - Adicionar flag `is_tester` na tabela `profiles`
+### 1. `src/components/landing/BetaHero.tsx`
 
-Migracoes SQL:
-```sql
-ALTER TABLE profiles ADD COLUMN is_tester boolean DEFAULT false;
-ALTER TABLE profiles ADD COLUMN tester_registered_at timestamptz;
-```
+- Remover o botao "Ja tenho acesso" (linhas 163-172)
+- Reforcar a mensagem BETA no badge: "BETA Exclusivo -- Vagas Limitadas para Testadores"
+- Alterar headline para enfatizar que e um programa BETA: "Seja um dos primeiros a testar"
+- Adicionar badge "PROGRAMA BETA" proeminente acima do logo
+- Atualizar o subtitulo para deixar claro que e um teste fechado
 
-Isso permite identificar quem entrou como tester vs usuario normal.
+### 2. `src/components/landing/demo/ClosetSim.tsx` -- Reescrita completa
 
-### 2. Nova Edge Function: `notify-tester-signup`
+Substituir a simulacao atual (botoes com cores solidas) por uma experiencia visual com:
 
-Enviara email para `contato@ethra.com.br` e `paulo.nakamura@atitude45.com.br` sempre que um tester se cadastrar, passando nome e email do novo tester.
+**Fase 1 - Selecao de pecas (com imagens reais):**
+- Grid visual com imagens de roupas usando URLs de imagens de banco gratuito (Unsplash) para pecas basicas: camiseta branca, blazer preto, jeans, saia midi, tenis, scarpin, etc.
+- Cards com thumbnail da peca + nome, clicaveis para selecionar
+- Organizados por categoria (Tops, Bottoms, Calcados, Acessorios)
+- Explicacao educativa do conceito de Armario Capsula no topo
 
-Usara a API do Lovable AI (nao precisa de chave extra) nao -- na verdade, para envio de email, usaremos o Supabase Auth hooks ou a Resend API. Como alternativa mais simples e sem dependencia externa, a edge function chamara o endpoint interno do Supabase para enviar emails via o SMTP ja configurado, ou usaremos uma abordagem pragmatica: salvar os dados de notificacao e usar `fetch` para enviar via um servico. 
+**Fase 2 - Geracao por IA (animacao):**
+- Manter a animacao de progresso atual (funciona bem)
 
-**Abordagem escolhida**: Criar a edge function que usa o Supabase `auth.admin` para buscar o email do usuario e envia notificacao usando o servico de email integrado do Supabase (via `supabase.auth.admin.sendRawEmail` ou construindo um request SMTP simples). Se nao houver SMTP configurado, a funcao registrara a notificacao em uma tabela `tester_notifications` como fallback.
+**Fase 3 - Resultado: Mockup de closet organizado**
+- Em vez de listar looks como cards de texto, mostrar um mockup visual de "closet organizado"
+- Layout em grid simulando um armario aberto com as pecas posicionadas por categoria
+- As pecas selecionadas aparecem organizadas visualmente como num closet real
+- Abaixo, cards de looks sugeridos com as imagens das pecas lado a lado (mini-composicoes visuais)
+- Cada look mostra as 3-4 pecas combinadas em uma faixa horizontal com thumbnails
 
-**Alternativa mais robusta**: Criar tabela `tester_notifications` para log + usar Resend/SMTP. Como nao ha chave Resend configurada, vou criar a tabela de log e a edge function que tenta enviar via Supabase internamente.
+**Imagens utilizadas:**
+- Usarei URLs de Unsplash para roupas basicas (camiseta, blazer, jeans, saia, tenis, scarpin, bolsa, colar)
+- Sao URLs publicas e gratuitas, otimizadas para thumbnails pequenos
 
-### 3. Nova pagina/formulario: Cadastro de Tester inline no /welcome
+### 3. `src/components/landing/TesterSignupForm.tsx`
 
-Em vez de redirecionar para /auth, criar um formulario de cadastro embedded diretamente na pagina /welcome (dentro de um modal ou secao dedicada). Campos: nome, email, senha. Ao submeter:
-1. Cria usuario via `supabase.auth.signUp`
-2. Atualiza profile com `is_tester = true` e `tester_registered_at = now()`
-3. Chama edge function `notify-tester-signup` para notificar admins
-4. Mostra tela de confirmacao
+- Reforcar a linguagem BETA no header: "Programa Beta -- Testadores Exclusivos"
+- Alterar botao de submit para "Quero ser BETA tester"
 
-### 4. Nova simulacao: `ClosetSim` (Closet Inteligente / Armario Capsula)
+### 4. `src/components/landing/DemoSection.tsx`
 
-Terceira aba na DemoSection que simula:
-- Visualizacao de um closet organizado por categorias (tops, bottoms, shoes, accessories)
-- Conceito de Armario Capsula: selecionar 15-20 pecas versateis
-- IA gerando combinacoes de looks a partir dessas pecas
-- Animacao mostrando 3 looks diferentes criados a partir das mesmas pecas capsulares
-
-### 5. Atualizar `BetaHero.tsx`
-
-- Todos os CTAs apontam para scroll ate o formulario de tester (ou abrem modal)
-- Adicionar contador real de testers cadastrados (query na tabela profiles)
-- Reforcar messaging de exclusividade
-
-### 6. Atualizar `DemoSection.tsx`
-
-- Adicionar terceira aba "Closet Inteligente" com icone LayoutGrid
-- Atualizar CTA_TEXTS para 4 niveis (3 abas + estado final)
-- Atualizar contagem "X de 3 recursos"
-- Todos os CTAs internos apontam para o formulario de tester
-
-### 7. Atualizar CTAs nas simulacoes existentes
-
-- `ChromaticSim.tsx` linha 367: mudar navigate para scroll ao formulario de tester
-- `TryOnSim.tsx` linha 299: idem
+- Atualizar a descricao da aba Closet para mencionar o conceito visual
 
 ## Secao Tecnica
 
-### Arquivos criados
-- `src/components/landing/demo/ClosetSim.tsx` - Simulacao do closet inteligente
-- `src/components/landing/TesterSignupForm.tsx` - Formulario de cadastro de tester inline
-- `supabase/functions/notify-tester-signup/index.ts` - Edge function para notificacao por email
-
 ### Arquivos modificados
-- `src/pages/Landing.tsx` - Adicionar TesterSignupForm, remover links para /auth
-- `src/components/landing/BetaHero.tsx` - CTAs para formulario de tester, contador real
-- `src/components/landing/DemoSection.tsx` - Adicionar aba Closet, CTAs para tester form
-- `src/components/landing/demo/ChromaticSim.tsx` - CTA para formulario de tester
-- `src/components/landing/demo/TryOnSim.tsx` - CTA para formulario de tester
+- `src/components/landing/BetaHero.tsx` -- Remover botao login, enfatizar BETA
+- `src/components/landing/demo/ClosetSim.tsx` -- Reescrever com imagens reais e mockup de closet
+- `src/components/landing/TesterSignupForm.tsx` -- Reforcar linguagem BETA
+- `src/components/landing/DemoSection.tsx` -- Atualizar descricao da aba closet
 
-### Migracoes de banco
-- Adicionar colunas `is_tester` e `tester_registered_at` na tabela `profiles`
+### Estrategia de imagens
+Usar URLs do Unsplash com parametros de redimensionamento (w=200, h=200, fit=crop) para manter thumbnails leves e rapidos. Exemplo: `https://images.unsplash.com/photo-XXXXX?w=200&h=250&fit=crop`
 
-### Edge Function `notify-tester-signup`
-- Recebe `user_id` no body
-- Busca dados do usuario (email, nome) via service role
-- Envia email para os dois enderecos usando Resend (sera necessario configurar a chave RESEND_API_KEY)
-- Fallback: loga a notificacao no console se email falhar
+### Mockup de closet organizado
+O resultado final sera um layout CSS grid simulando um armario aberto:
+- Linha superior: tops pendurados
+- Linha do meio: bottoms dobrados
+- Linha inferior: calcados alinhados
+- Lateral: acessorios
 
-### Fluxo do tester
-1. Visitante chega em /welcome
-2. Interage com simulacoes (colorimetria, provador, closet)
-3. Clica em CTA ou scrolls ate formulario de cadastro
-4. Preenche nome, email, senha + aceita termos
-5. Sistema cria conta, marca como tester, notifica admins
-6. Tela de confirmacao celebratoria aparece
-7. Botao "Explorar o Ethra" leva ao dashboard (/)
+Cada posicao mostra a imagem real da peca com um leve efeito de sombra e borda arredondada, como se estivessem organizadas num closet fisico.
+
