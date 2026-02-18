@@ -138,7 +138,7 @@ export default function Auth() {
               ? 'Seu DNA de estilo foi salvo. Bem-vinda ao Ethra!'
               : 'Bem-vinda ao Ethra.',
           });
-          navigate('/onboarding');
+          navigate('/');
         } else {
           navigate('/');
         }
