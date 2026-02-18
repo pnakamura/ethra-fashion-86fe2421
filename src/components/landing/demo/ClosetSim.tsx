@@ -6,24 +6,24 @@ import { Progress } from '@/components/ui/progress';
 /* ── Capsule items with real Unsplash images ── */
 const CAPSULE_ITEMS = {
   tops: [
-    { name: 'Blusa Branca', image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=200&h=250&fit=crop', icon: '👚' },
-    { name: 'Camiseta Preta', image: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=200&h=250&fit=crop', icon: '👕' },
-    { name: 'Blusa Terracota', image: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=200&h=250&fit=crop', icon: '👚' },
-    { name: 'Camisa Azul', image: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=200&h=250&fit=crop', icon: '👔' },
+    { name: 'Regata Seda Off-White', image: 'https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=200&h=250&fit=crop', icon: '👚' },
+    { name: 'Blazer Oversized Bege', image: 'https://images.unsplash.com/photo-1591369822096-ffd140ec948f?w=200&h=250&fit=crop', icon: '🧥' },
+    { name: 'Blusa de Laço Preta', image: 'https://images.unsplash.com/photo-1618932260643-eee4a2f652a6?w=200&h=250&fit=crop', icon: '👚' },
+    { name: 'Suéter Cashmere Caramelo', image: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=200&h=250&fit=crop', icon: '🧶' },
   ],
   bottoms: [
-    { name: 'Jeans Escuro', image: 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=200&h=250&fit=crop', icon: '👖' },
-    { name: 'Saia Midi Bege', image: 'https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=200&h=250&fit=crop', icon: '🩳' },
-    { name: 'Calça Preta', image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=200&h=250&fit=crop', icon: '👖' },
+    { name: 'Calça Alfaiataria Creme', image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=200&h=250&fit=crop', icon: '👖' },
+    { name: 'Saia Midi Plissada Preta', image: 'https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=200&h=250&fit=crop', icon: '👗' },
+    { name: 'Jeans Wide Leg Claro', image: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=200&h=250&fit=crop', icon: '👖' },
   ],
   shoes: [
-    { name: 'Tênis Branco', image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=200&h=250&fit=crop', icon: '👟' },
     { name: 'Scarpin Nude', image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=200&h=250&fit=crop', icon: '👠' },
-    { name: 'Bota Marrom', image: 'https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=200&h=250&fit=crop', icon: '🥾' },
+    { name: 'Sapatilha Ballet Preta', image: 'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=200&h=250&fit=crop', icon: '🥿' },
+    { name: 'Sandália Tiras Dourada', image: 'https://images.unsplash.com/photo-1603487742131-4160ec999306?w=200&h=250&fit=crop', icon: '👡' },
   ],
   accessories: [
-    { name: 'Bolsa Caramelo', image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=200&h=250&fit=crop', icon: '👜' },
-    { name: 'Colar Dourado', image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=200&h=250&fit=crop', icon: '📿' },
+    { name: 'Bolsa Estruturada Caramelo', image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=200&h=250&fit=crop', icon: '👜' },
+    { name: 'Brincos Dourados Delicados', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=200&h=250&fit=crop', icon: '✨' },
   ],
 };
 
@@ -43,21 +43,21 @@ const CATEGORY_ICONS: Record<string, string> = {
 
 const AI_LOOKS = [
   {
-    name: 'Casual Chic',
-    items: ['Blusa Branca', 'Jeans Escuro', 'Tênis Branco', 'Colar Dourado'],
-    occasion: 'Dia a dia',
+    name: 'Office Elegante',
+    items: ['Blazer Oversized Bege', 'Calça Alfaiataria Creme', 'Scarpin Nude', 'Bolsa Estruturada Caramelo'],
+    occasion: 'Trabalho',
+    harmony: 96,
+  },
+  {
+    name: 'Passeio Sofisticado',
+    items: ['Blusa de Laço Preta', 'Saia Midi Plissada Preta', 'Sandália Tiras Dourada', 'Brincos Dourados Delicados'],
+    occasion: 'Passeio',
     harmony: 94,
   },
   {
-    name: 'Reunião Elegante',
-    items: ['Camisa Azul', 'Calça Preta', 'Scarpin Nude', 'Bolsa Caramelo'],
-    occasion: 'Trabalho',
-    harmony: 91,
-  },
-  {
-    name: 'Boho Weekend',
-    items: ['Blusa Terracota', 'Saia Midi Bege', 'Bota Marrom', 'Colar Dourado'],
-    occasion: 'Passeio',
+    name: 'Casual Refinado',
+    items: ['Suéter Cashmere Caramelo', 'Jeans Wide Leg Claro', 'Sapatilha Ballet Preta', 'Bolsa Estruturada Caramelo'],
+    occasion: 'Dia a dia',
     harmony: 97,
   },
 ];
