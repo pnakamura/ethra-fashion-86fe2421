@@ -1,49 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
-import { HeroSection } from '@/components/landing/HeroSection';
-import { SocialProofBar } from '@/components/landing/SocialProofBar';
-import { FeaturesGrid } from '@/components/landing/FeaturesGrid';
+import { BetaHero } from '@/components/landing/BetaHero';
 import { DemoSection } from '@/components/landing/DemoSection';
-import { SpecialOfferBanner } from '@/components/landing/SpecialOfferBanner';
-import { TestimonialsCarousel } from '@/components/landing/TestimonialsCarousel';
-import { PersonasSection } from '@/components/landing/PersonasSection';
-import { PricingPreview } from '@/components/landing/PricingPreview';
-import { TrustBadges } from '@/components/landing/TrustBadges';
-import { CTASection } from '@/components/landing/CTASection';
 import { Footer } from '@/components/landing/Footer';
 
 export default function Landing() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [checkingProfile, setCheckingProfile] = useState(false);
 
   useEffect(() => {
-    async function checkAndRedirect() {
-      if (!loading && user) {
-        setCheckingProfile(true);
-        try {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('onboarding_complete')
-            .eq('user_id', user.id)
-            .maybeSingle();
-          
-          if (profile && !profile.onboarding_complete) {
-            navigate('/onboarding');
-          } else {
-            navigate('/');
-          }
-        } catch {
-          navigate('/');
-        }
-      }
+    if (!loading && user) {
+      navigate('/');
     }
-    checkAndRedirect();
   }, [user, loading, navigate]);
 
-  if (loading || checkingProfile) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center gradient-soft">
         <div className="text-center">
@@ -56,16 +28,8 @@ export default function Landing() {
 
   return (
     <main className="min-h-screen bg-transparent">
-      <HeroSection />
-      <SocialProofBar />
-      <FeaturesGrid />
+      <BetaHero />
       <DemoSection />
-      <SpecialOfferBanner />
-      <TestimonialsCarousel />
-      <PersonasSection />
-      <PricingPreview />
-      <TrustBadges />
-      <CTASection />
       <Footer />
     </main>
   );
