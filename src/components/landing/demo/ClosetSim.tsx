@@ -1,29 +1,51 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ChevronRight, Check, Loader2, Shuffle, Shirt, LayoutGrid } from 'lucide-react';
+import { Sparkles, ChevronRight, Check, Loader2, Shuffle, Shirt, LayoutGrid, Palette } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
-/* ── Capsule items with real Unsplash images ── */
-const CAPSULE_ITEMS = {
+/* ── Types ── */
+interface CapsuleItem {
+  name: string;
+  image: string;
+  icon: string;
+  color: string;
+}
+
+interface HarmonyBreakdown {
+  colorHarmony: number;
+  styleCoherence: number;
+  versatility: number;
+}
+
+interface AILook {
+  name: string;
+  items: string[];
+  occasion: string;
+  harmony: number;
+  breakdown: HarmonyBreakdown;
+}
+
+/* ── Capsule items with verified Unsplash images + color hex ── */
+const CAPSULE_ITEMS: Record<string, CapsuleItem[]> = {
   tops: [
-    { name: 'Regata Seda Off-White', image: 'https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=200&h=250&fit=crop', icon: '👚' },
-    { name: 'Blazer Oversized Bege', image: 'https://images.unsplash.com/photo-1591369822096-ffd140ec948f?w=200&h=250&fit=crop', icon: '🧥' },
-    { name: 'Blusa de Laço Preta', image: 'https://images.unsplash.com/photo-1618932260643-eee4a2f652a6?w=200&h=250&fit=crop', icon: '👚' },
-    { name: 'Suéter Cashmere Caramelo', image: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=200&h=250&fit=crop', icon: '🧶' },
+    { name: 'Regata Seda Off-White', image: 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=200&h=250&fit=crop', icon: '👚', color: '#FAF5EF' },
+    { name: 'Blazer Oversized Bege', image: 'https://images.unsplash.com/photo-1591369822096-ffd140ec948f?w=200&h=250&fit=crop', icon: '🧥', color: '#C8B89A' },
+    { name: 'Blusa Elegante Preta', image: 'https://images.unsplash.com/photo-1554568218-0f1715e72254?w=200&h=250&fit=crop', icon: '👚', color: '#1A1A1A' },
+    { name: 'Suéter Cashmere Caramelo', image: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=200&h=250&fit=crop', icon: '🧶', color: '#B5651D' },
   ],
   bottoms: [
-    { name: 'Calça Alfaiataria Creme', image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=200&h=250&fit=crop', icon: '👖' },
-    { name: 'Saia Midi Plissada Preta', image: 'https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=200&h=250&fit=crop', icon: '👗' },
-    { name: 'Jeans Wide Leg Claro', image: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=200&h=250&fit=crop', icon: '👖' },
+    { name: 'Calça Alfaiataria Creme', image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=200&h=250&fit=crop', icon: '👖', color: '#F5E6CA' },
+    { name: 'Saia Midi Plissada Preta', image: 'https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=200&h=250&fit=crop', icon: '👗', color: '#2C2C2C' },
+    { name: 'Jeans Wide Leg Claro', image: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=200&h=250&fit=crop', icon: '👖', color: '#8FA5C4' },
   ],
   shoes: [
-    { name: 'Scarpin Nude', image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=200&h=250&fit=crop', icon: '👠' },
-    { name: 'Sapatilha Ballet Preta', image: 'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=200&h=250&fit=crop', icon: '🥿' },
-    { name: 'Sandália Tiras Dourada', image: 'https://images.unsplash.com/photo-1603487742131-4160ec999306?w=200&h=250&fit=crop', icon: '👡' },
+    { name: 'Scarpin Nude', image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=200&h=250&fit=crop', icon: '👠', color: '#D4A574' },
+    { name: 'Sapatilha Ballet Preta', image: 'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?w=200&h=250&fit=crop', icon: '🥿', color: '#1C1C1C' },
+    { name: 'Sandália Tiras Dourada', image: 'https://images.unsplash.com/photo-1603487742131-4160ec999306?w=200&h=250&fit=crop', icon: '👡', color: '#DAA520' },
   ],
   accessories: [
-    { name: 'Bolsa Estruturada Caramelo', image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=200&h=250&fit=crop', icon: '👜' },
-    { name: 'Brincos Dourados Delicados', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=200&h=250&fit=crop', icon: '✨' },
+    { name: 'Bolsa Estruturada Caramelo', image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=200&h=250&fit=crop', icon: '👜', color: '#8B5E3C' },
+    { name: 'Brincos Dourados Delicados', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=200&h=250&fit=crop', icon: '✨', color: '#C5A02E' },
   ],
 };
 
@@ -41,36 +63,86 @@ const CATEGORY_ICONS: Record<string, string> = {
   accessories: '👜',
 };
 
-const AI_LOOKS = [
+const AI_LOOKS: AILook[] = [
   {
     name: 'Office Elegante',
     items: ['Blazer Oversized Bege', 'Calça Alfaiataria Creme', 'Scarpin Nude', 'Bolsa Estruturada Caramelo'],
     occasion: 'Trabalho',
-    harmony: 96,
+    harmony: 95,
+    breakdown: { colorHarmony: 97, styleCoherence: 96, versatility: 93 },
   },
   {
     name: 'Passeio Sofisticado',
-    items: ['Blusa de Laço Preta', 'Saia Midi Plissada Preta', 'Sandália Tiras Dourada', 'Brincos Dourados Delicados'],
+    items: ['Blusa Elegante Preta', 'Saia Midi Plissada Preta', 'Sandália Tiras Dourada', 'Brincos Dourados Delicados'],
     occasion: 'Passeio',
-    harmony: 94,
+    harmony: 92,
+    breakdown: { colorHarmony: 94, styleCoherence: 93, versatility: 88 },
   },
   {
     name: 'Casual Refinado',
     items: ['Suéter Cashmere Caramelo', 'Jeans Wide Leg Claro', 'Sapatilha Ballet Preta', 'Bolsa Estruturada Caramelo'],
     occasion: 'Dia a dia',
-    harmony: 97,
+    harmony: 94,
+    breakdown: { colorHarmony: 95, styleCoherence: 91, versatility: 96 },
   },
 ];
 
 const GENERATION_STEPS = [
-  { label: 'Analisando suas peças...', duration: 1200 },
-  { label: 'Combinando cores e estilos...', duration: 1200 },
-  { label: 'Gerando looks por IA...', duration: 1200 },
+  { label: 'Analisando suas peças...', duration: 1000 },
+  { label: 'Combinando cores e estilos...', duration: 1000 },
+  { label: 'Calculando harmonia cromática...', duration: 1000 },
+  { label: 'Gerando looks por IA...', duration: 1000 },
 ];
+
+const HARMONY_LABELS: Record<keyof HarmonyBreakdown, string> = {
+  colorHarmony: 'Cromática',
+  styleCoherence: 'Estilo',
+  versatility: 'Versatilidade',
+};
 
 interface ClosetSimProps {
   onInteract: () => void;
 }
+
+/* ── Sub-components ── */
+
+function HarmonyBar({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-[10px] text-muted-foreground w-20 text-right">{label}</span>
+      <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+        <motion.div
+          className="h-full rounded-full bg-primary"
+          initial={{ width: 0 }}
+          animate={{ width: `${value}%` }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
+        />
+      </div>
+      <span className="text-[10px] font-medium text-foreground w-8">{value}%</span>
+    </div>
+  );
+}
+
+function ColorSwatches({ items, allItems }: { items: string[]; allItems: CapsuleItem[] }) {
+  return (
+    <div className="flex items-center gap-1">
+      {items.map((itemName) => {
+        const item = allItems.find((i) => i.name === itemName);
+        if (!item) return null;
+        return (
+          <div
+            key={itemName}
+            className="w-4 h-4 rounded-full border border-border/50 shadow-sm"
+            style={{ backgroundColor: item.color }}
+            title={item.name}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+/* ── Main Component ── */
 
 export function ClosetSim({ onInteract }: ClosetSimProps) {
   const [phase, setPhase] = useState<'closet' | 'generating' | 'looks'>('closet');
@@ -113,7 +185,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
 
   useEffect(() => {
     if (phase !== 'looks') return;
-    const interval = setInterval(() => setActiveLook((l) => (l + 1) % AI_LOOKS.length), 4000);
+    const interval = setInterval(() => setActiveLook((l) => (l + 1) % AI_LOOKS.length), 5000);
     return () => clearInterval(interval);
   }, [phase]);
 
@@ -124,8 +196,6 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
   const scrollToSignup = () => {
     document.getElementById('tester-signup')?.scrollIntoView({ behavior: 'smooth' });
   };
-
-  const getItemByName = (name: string) => allItems.find((i) => i.name === name);
 
   return (
     <div className="flex flex-col items-center gap-6">
@@ -148,7 +218,6 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
               </p>
             </div>
 
-            {/* Categories grid with images */}
             <div className="w-full grid grid-cols-2 gap-4">
               {Object.entries(CAPSULE_ITEMS).map(([category, items]) => (
                 <div key={category} className="space-y-2">
@@ -171,21 +240,19 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
                           whileTap={{ scale: 0.97 }}
                         >
                           <div className="relative w-10 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-border/30">
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                            />
+                            <img src={item.image} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
                             {isSelected && (
                               <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
                                 <Check className="w-4 h-4 text-primary" />
                               </div>
                             )}
                           </div>
-                          <span className={`flex-1 truncate text-xs ${isSelected ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-                            {item.name}
-                          </span>
+                          <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                            <div className="w-3 h-3 rounded-full border border-border/50 flex-shrink-0" style={{ backgroundColor: item.color }} />
+                            <span className={`truncate text-xs ${isSelected ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                              {item.name}
+                            </span>
+                          </div>
                         </motion.button>
                       );
                     })}
@@ -194,7 +261,6 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
               ))}
             </div>
 
-            {/* Footer */}
             <div className="w-full flex items-center justify-between">
               <button onClick={selectAll} className="text-xs text-primary font-medium hover:underline">
                 Selecionar todas ({allItems.length} peças)
@@ -258,7 +324,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
           </motion.div>
         )}
 
-        {/* ─── PHASE: ORGANIZED CLOSET MOCKUP + LOOKS ─── */}
+        {/* ─── PHASE: LOOKS WITH HARMONY SCORES ─── */}
         {phase === 'looks' && (
           <motion.div
             key="looks"
@@ -292,16 +358,12 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
                               transition={{ delay: idx * 0.08 }}
                             >
                               <div className="aspect-[3/4]">
-                                <img
-                                  src={item.image}
-                                  alt={item.name}
-                                  className="w-full h-full object-cover"
-                                  loading="lazy"
-                                />
+                                <img src={item.image} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
                               </div>
-                              <p className="text-[8px] text-center py-0.5 bg-background/80 text-muted-foreground truncate px-1">
-                                {item.name}
-                              </p>
+                              <div className="flex items-center gap-1 py-0.5 bg-background/80 px-1">
+                                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+                                <p className="text-[8px] text-muted-foreground truncate">{item.name}</p>
+                              </div>
                             </motion.div>
                           );
                         })}
@@ -312,65 +374,88 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
               </div>
             </div>
 
-            {/* Suggested looks with image strips */}
+            {/* Suggested looks with harmony scores */}
             <div className="w-full">
               <div className="flex items-center gap-2 mb-3 justify-center">
                 <Sparkles className="w-4 h-4 text-primary" />
                 <h4 className="text-sm font-semibold text-foreground">{AI_LOOKS.length} looks criados pela IA</h4>
               </div>
               <div className="space-y-3">
-                {AI_LOOKS.map((look, idx) => (
-                  <motion.div
-                    key={look.name}
-                    className={`p-3 rounded-2xl border transition-all cursor-pointer ${
-                      idx === activeLook
-                        ? 'border-primary bg-primary/5 shadow-md'
-                        : 'border-border bg-card/50'
-                    }`}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.15 }}
-                    onClick={() => setActiveLook(idx)}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Shirt className="w-3.5 h-3.5 text-primary" />
-                        <span className="text-xs font-semibold text-foreground">{look.name}</span>
+                {AI_LOOKS.map((look, idx) => {
+                  const isActive = idx === activeLook;
+                  return (
+                    <motion.div
+                      key={look.name}
+                      className={`p-3 rounded-2xl border transition-all cursor-pointer ${
+                        isActive ? 'border-primary bg-primary/5 shadow-md' : 'border-border bg-card/50'
+                      }`}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.15 }}
+                      onClick={() => setActiveLook(idx)}
+                    >
+                      {/* Header */}
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Shirt className="w-3.5 h-3.5 text-primary" />
+                          <span className="text-xs font-semibold text-foreground">{look.name}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] text-muted-foreground px-2 py-0.5 rounded-full bg-muted">
+                            {look.occasion}
+                          </span>
+                          <span className="text-[10px] font-bold text-primary px-2 py-0.5 rounded-full bg-primary/10">
+                            {look.harmony}%
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] text-muted-foreground px-2 py-0.5 rounded-full bg-muted">
-                          {look.occasion}
-                        </span>
-                        <span className="text-[10px] font-medium text-primary px-2 py-0.5 rounded-full bg-primary/10">
-                          {look.harmony}%
-                        </span>
-                      </div>
-                    </div>
 
-                    {/* Image strip */}
-                    <div className="flex gap-2">
-                      {look.items.map((itemName) => {
-                        const item = getItemByName(itemName);
-                        if (!item) return null;
-                        return (
-                          <div key={itemName} className="flex-1 rounded-lg overflow-hidden border border-border/30">
-                            <div className="aspect-[3/4]">
-                              <img
-                                src={item.image}
-                                alt={item.name}
-                                className="w-full h-full object-cover"
-                                loading="lazy"
-                              />
+                      {/* Image strip */}
+                      <div className="flex gap-2 mb-2">
+                        {look.items.map((itemName) => {
+                          const item = allItems.find((i) => i.name === itemName);
+                          if (!item) return null;
+                          return (
+                            <div key={itemName} className="flex-1 rounded-lg overflow-hidden border border-border/30">
+                              <div className="aspect-[3/4]">
+                                <img src={item.image} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+                              </div>
+                              <p className="text-[8px] text-center py-0.5 bg-background/60 text-muted-foreground truncate px-0.5">
+                                {itemName}
+                              </p>
                             </div>
-                            <p className="text-[8px] text-center py-0.5 bg-background/60 text-muted-foreground truncate px-0.5">
-                              {itemName}
-                            </p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
-                ))}
+                          );
+                        })}
+                      </div>
+
+                      {/* Harmony breakdown (expanded on active) */}
+                      <AnimatePresence>
+                        {isActive && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="pt-2 border-t border-border/30 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-1.5">
+                                  <Palette className="w-3 h-3 text-primary" />
+                                  <span className="text-[10px] font-semibold text-foreground">Score de Harmonia</span>
+                                </div>
+                                <ColorSwatches items={look.items} allItems={allItems} />
+                              </div>
+                              {(Object.keys(HARMONY_LABELS) as (keyof HarmonyBreakdown)[]).map((key) => (
+                                <HarmonyBar key={key} label={HARMONY_LABELS[key]} value={look.breakdown[key]} />
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  );
+                })}
               </div>
             </div>
 
