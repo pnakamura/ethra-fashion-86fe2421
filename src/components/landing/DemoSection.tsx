@@ -1,25 +1,26 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { Palette, Shirt, Sparkles, ArrowRight } from 'lucide-react';
+import { Palette, Shirt, Sparkles, ArrowRight, LayoutGrid } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ChromaticSim } from './demo/ChromaticSim';
 import { TryOnSim } from './demo/TryOnSim';
+import { ClosetSim } from './demo/ClosetSim';
 
 const TABS = [
   { value: 'colorimetria', label: 'Colorimetria', icon: Palette, title: 'Descubra sua paleta pessoal', description: 'Veja como a IA analisa tom de pele, olhos e cabelo para revelar suas cores ideais' },
   { value: 'provador', label: 'Provador Virtual', icon: Shirt, title: 'Experimente antes de comprar', description: 'Selecione uma peça e veja como ela fica em você com IA generativa' },
+  { value: 'closet', label: 'Closet Inteligente', icon: LayoutGrid, title: 'Monte seu armário cápsula', description: 'Selecione peças versáteis e deixe a IA criar combinações de looks para você' },
 ];
 
 const CTA_TEXTS = [
   'Começar grátis',
   'Quero isso no meu perfil',
-  'Já estou convencida! Criar minha conta',
+  'Estou impressionada!',
+  'Já estou convencida! Quero testar',
 ];
 
 export function DemoSection() {
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('colorimetria');
   const [interactedTabs, setInteractedTabs] = useState<Set<string>>(new Set());
   const [skinTone, setSkinTone] = useState<string | null>(null);
@@ -37,6 +38,10 @@ export function DemoSection() {
   );
 
   const ctaText = CTA_TEXTS[Math.min(interactedTabs.size, CTA_TEXTS.length - 1)];
+
+  const scrollToSignup = () => {
+    document.getElementById('tester-signup')?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
     <section className="py-24 px-6">
@@ -64,7 +69,7 @@ export function DemoSection() {
             <span className="text-gradient">agora</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Veja como a IA do Ethra analisa suas cores e experimenta roupas para você
+            Veja como a IA do Ethra analisa suas cores, experimenta roupas e monta looks para você
           </p>
         </motion.div>
 
@@ -76,7 +81,7 @@ export function DemoSection() {
           transition={{ delay: 0.1 }}
         >
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full grid grid-cols-2 mb-8 h-auto p-1.5">
+            <TabsList className="w-full grid grid-cols-3 mb-8 h-auto p-1.5">
               {TABS.map((tab) => {
                 const Icon = tab.icon;
                 const done = interactedTabs.has(tab.value);
@@ -84,10 +89,11 @@ export function DemoSection() {
                   <TabsTrigger
                     key={tab.value}
                     value={tab.value}
-                    className="relative flex items-center gap-2 py-3 px-4 text-sm"
+                    className="relative flex items-center gap-1.5 py-3 px-2 text-xs md:text-sm"
                   >
-                    <Icon className="w-4 h-4" />
-                    <span>{tab.label}</span>
+                    <Icon className="w-4 h-4 flex-shrink-0" />
+                    <span className="hidden sm:inline">{tab.label}</span>
+                    <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
                     {done && (
                       <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-primary" />
                     )}
@@ -118,6 +124,11 @@ export function DemoSection() {
                       hasSkinTone={!!skinTone}
                     />
                   )}
+                  {tab.value === 'closet' && (
+                    <ClosetSim
+                      onInteract={() => markInteracted('closet')}
+                    />
+                  )}
                 </div>
               </TabsContent>
             ))}
@@ -138,12 +149,12 @@ export function DemoSection() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
-              Você explorou {interactedTabs.size} de 2 recursos
+              Você explorou {interactedTabs.size} de 3 recursos
             </motion.p>
           )}
           <Button
             size="lg"
-            onClick={() => navigate('/auth?mode=signup')}
+            onClick={scrollToSignup}
             className="gradient-primary text-primary-foreground shadow-glow"
           >
             {ctaText}

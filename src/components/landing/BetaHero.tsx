@@ -1,10 +1,11 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 import { Sparkles, Palette, Shirt, LayoutGrid, Clock, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
 import { Switch } from '@/components/ui/switch';
 import { Moon, Sun } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const features = [
   {
@@ -25,8 +26,21 @@ const features = [
 ];
 
 export function BetaHero() {
-  const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
+  const [testerCount, setTesterCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .then(({ count }) => {
+        if (count != null) setTesterCount(count);
+      });
+  }, []);
+
+  const scrollToSignup = () => {
+    document.getElementById('tester-signup')?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-16 overflow-hidden">
@@ -110,18 +124,22 @@ export function BetaHero() {
           ))}
         </motion.div>
 
-        {/* Scarcity */}
+        {/* Scarcity + Social proof */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.7, duration: 0.5 }}
-          className="flex items-center justify-center gap-4 text-sm text-muted-foreground"
+          className="flex items-center justify-center gap-4 text-sm text-muted-foreground flex-wrap"
         >
-          <span className="flex items-center gap-1.5">
-            <Users className="w-4 h-4 text-primary" />
-            Junte-se aos primeiros testers
-          </span>
-          <span className="w-px h-4 bg-border" />
+          {testerCount != null && testerCount > 0 && (
+            <>
+              <span className="flex items-center gap-1.5">
+                <Users className="w-4 h-4 text-primary" />
+                Já somos {testerCount} testers
+              </span>
+              <span className="w-px h-4 bg-border" />
+            </>
+          )}
           <span className="flex items-center gap-1.5">
             <Clock className="w-4 h-4 text-primary" />
             Poucos convites restantes
@@ -137,7 +155,7 @@ export function BetaHero() {
         >
           <Button
             size="lg"
-            onClick={() => navigate('/auth?mode=signup')}
+            onClick={scrollToSignup}
             className="w-full sm:w-auto gradient-primary text-primary-foreground shadow-glow hover:opacity-90 transition-opacity text-base px-8"
           >
             Quero testar primeiro
@@ -145,7 +163,9 @@ export function BetaHero() {
           <Button
             variant="ghost"
             size="lg"
-            onClick={() => navigate('/auth?mode=login')}
+            onClick={() => {
+              window.location.href = '/auth?mode=login';
+            }}
             className="w-full sm:w-auto text-muted-foreground"
           >
             Já tenho acesso

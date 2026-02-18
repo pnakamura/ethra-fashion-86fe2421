@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ChevronRight, Check, Loader2, Clock, ArrowLeftRight } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
-import { useNavigate } from 'react-router-dom';
 import modelBefore from '@/assets/demo/model-before.jpg';
 import garmentDress from '@/assets/demo/garment-dress.jpg';
 import garmentBlazer from '@/assets/demo/garment-blazer.jpg';
@@ -51,7 +50,6 @@ interface TryOnSimProps {
 }
 
 export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
-  const navigate = useNavigate();
   const [selected, setSelected] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [currentStep, setCurrentStep] = useState(-1);
@@ -296,7 +294,7 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.9 }}
-              onClick={() => navigate('/auth?mode=signup')}
+              onClick={() => document.getElementById('tester-signup')?.scrollIntoView({ behavior: 'smooth' })}
             >
               <Sparkles className="w-4 h-4" />
               Experimentar com minha própria foto

@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ChevronRight, Check, X, Eye, Droplets, Scissors, Loader2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
-import { useNavigate } from 'react-router-dom';
 import faceLight from '@/assets/demo/face-light.jpg';
 import faceMedium from '@/assets/demo/face-medium.jpg';
 import faceDark from '@/assets/demo/face-dark.jpg';
@@ -119,7 +118,6 @@ interface ChromaticSimProps {
 }
 
 export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps) {
-  const navigate = useNavigate();
   const [selected, setSelected] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [currentStep, setCurrentStep] = useState(-1);
@@ -364,7 +362,7 @@ export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1.2 }}
-              onClick={() => navigate('/auth?mode=signup')}
+              onClick={() => document.getElementById('tester-signup')?.scrollIntoView({ behavior: 'smooth' })}
             >
               <Sparkles className="w-4 h-4" />
               Descobrir minha paleta real com minha foto
