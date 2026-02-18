@@ -1,13 +1,15 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { BetaHero } from '@/components/landing/BetaHero';
 import { DemoSection } from '@/components/landing/DemoSection';
+import { TesterSignupForm } from '@/components/landing/TesterSignupForm';
 import { Footer } from '@/components/landing/Footer';
 
 export default function Landing() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const signupRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!loading && user) {
@@ -30,6 +32,7 @@ export default function Landing() {
     <main className="min-h-screen bg-transparent">
       <BetaHero />
       <DemoSection />
+      <TesterSignupForm ref={signupRef} />
       <Footer />
     </main>
   );

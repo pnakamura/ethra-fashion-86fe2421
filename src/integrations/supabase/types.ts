@@ -272,6 +272,7 @@ export type Database = {
           font_size: string | null
           id: string
           is_banned: boolean | null
+          is_tester: boolean | null
           onboarding_complete: boolean | null
           privacy_accepted_at: string | null
           privacy_version: string | null
@@ -281,6 +282,7 @@ export type Database = {
           subscription_plan_id: string | null
           terms_accepted_at: string | null
           terms_version: string | null
+          tester_registered_at: string | null
           theme_preference: string | null
           updated_at: string
           user_id: string
@@ -301,6 +303,7 @@ export type Database = {
           font_size?: string | null
           id?: string
           is_banned?: boolean | null
+          is_tester?: boolean | null
           onboarding_complete?: boolean | null
           privacy_accepted_at?: string | null
           privacy_version?: string | null
@@ -310,6 +313,7 @@ export type Database = {
           subscription_plan_id?: string | null
           terms_accepted_at?: string | null
           terms_version?: string | null
+          tester_registered_at?: string | null
           theme_preference?: string | null
           updated_at?: string
           user_id: string
@@ -330,6 +334,7 @@ export type Database = {
           font_size?: string | null
           id?: string
           is_banned?: boolean | null
+          is_tester?: boolean | null
           onboarding_complete?: boolean | null
           privacy_accepted_at?: string | null
           privacy_version?: string | null
@@ -339,6 +344,7 @@ export type Database = {
           subscription_plan_id?: string | null
           terms_accepted_at?: string | null
           terms_version?: string | null
+          tester_registered_at?: string | null
           theme_preference?: string | null
           updated_at?: string
           user_id?: string
@@ -414,6 +420,33 @@ export type Database = {
           price_monthly?: number | null
           price_yearly?: number | null
           sort_order?: number | null
+        }
+        Relationships: []
+      }
+      tester_notifications: {
+        Row: {
+          email: string
+          id: string
+          notification_status: string
+          notified_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          email: string
+          id?: string
+          notification_status?: string
+          notified_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          email?: string
+          id?: string
+          notification_status?: string
+          notified_at?: string
+          user_id?: string
+          username?: string | null
         }
         Relationships: []
       }
