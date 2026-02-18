@@ -10,7 +10,7 @@ import { ClosetSim } from './demo/ClosetSim';
 const TABS = [
   { value: 'colorimetria', label: 'Colorimetria', icon: Palette, title: 'Descubra sua paleta pessoal', description: 'Veja como a IA analisa tom de pele, olhos e cabelo para revelar suas cores ideais' },
   { value: 'provador', label: 'Provador Virtual', icon: Shirt, title: 'Experimente antes de comprar', description: 'Selecione uma peça e veja como ela fica em você com IA generativa' },
-  { value: 'closet', label: 'Closet Inteligente', icon: LayoutGrid, title: 'Monte seu armário cápsula', description: 'Selecione peças versáteis e deixe a IA criar combinações de looks para você' },
+  { value: 'closet', label: 'Closet Inteligente', icon: LayoutGrid, title: 'Monte seu armário cápsula', description: 'Selecione peças reais, organize seu closet e veja a IA criar looks combinando suas peças' },
 ];
 
 const CTA_TEXTS = [

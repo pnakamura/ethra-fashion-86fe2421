@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Palette, Shirt, LayoutGrid, Clock, Users } from 'lucide-react';
+import { Sparkles, Palette, Shirt, LayoutGrid, Clock, Users, FlaskConical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
 import { Switch } from '@/components/ui/switch';
@@ -33,6 +33,7 @@ export function BetaHero() {
     supabase
       .from('profiles')
       .select('id', { count: 'exact', head: true })
+      .eq('is_tester', true)
       .then(({ count }) => {
         if (count != null) setTesterCount(count);
       });
@@ -60,15 +61,21 @@ export function BetaHero() {
       </div>
 
       <div className="relative z-10 max-w-2xl w-full text-center space-y-8">
-        {/* Badge */}
+        {/* BETA Badge */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 text-sm font-medium text-primary"
+          className="flex flex-col items-center gap-3"
         >
-          <Sparkles className="w-4 h-4" />
-          Acesso Antecipado — Vagas Limitadas
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/40 bg-primary/10 text-xs font-bold uppercase tracking-widest text-primary">
+            <FlaskConical className="w-3.5 h-3.5" />
+            Programa Beta
+          </div>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 text-sm font-medium text-primary">
+            <Sparkles className="w-4 h-4" />
+            Vagas Limitadas para Testadores
+          </div>
         </motion.div>
 
         {/* Logo */}
@@ -93,12 +100,12 @@ export function BetaHero() {
           className="space-y-3"
         >
           <h2 className="text-2xl md:text-3xl font-display font-medium text-foreground leading-tight">
-            Seu estilo está prestes a mudar
+            Seja uma das primeiras a testar
           </h2>
           <p className="text-muted-foreground max-w-lg mx-auto leading-relaxed">
-            Estamos criando algo que vai transformar a forma como você se veste.
-            Inteligência artificial aplicada ao seu estilo pessoal — e você pode
-            ser uma das primeiras a experimentar.
+            O Ethra está em <strong className="text-foreground">fase BETA fechada</strong>.
+            Buscamos testadoras que queiram moldar o futuro da moda com inteligência
+            artificial — e ganhar acesso vitalício ao premium como recompensa.
           </p>
         </motion.div>
 
@@ -135,7 +142,7 @@ export function BetaHero() {
             <>
               <span className="flex items-center gap-1.5">
                 <Users className="w-4 h-4 text-primary" />
-                Já somos {testerCount} testers
+                Já somos {testerCount} beta testers
               </span>
               <span className="w-px h-4 bg-border" />
             </>
@@ -146,29 +153,20 @@ export function BetaHero() {
           </span>
         </motion.div>
 
-        {/* CTAs */}
+        {/* CTA */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.85, duration: 0.5 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-3"
+          className="flex flex-col items-center justify-center gap-3"
         >
           <Button
             size="lg"
             onClick={scrollToSignup}
             className="w-full sm:w-auto gradient-primary text-primary-foreground shadow-glow hover:opacity-90 transition-opacity text-base px-8"
           >
-            Quero testar primeiro
-          </Button>
-          <Button
-            variant="ghost"
-            size="lg"
-            onClick={() => {
-              window.location.href = '/auth?mode=login';
-            }}
-            className="w-full sm:w-auto text-muted-foreground"
-          >
-            Já tenho acesso
+            <FlaskConical className="w-4 h-4 mr-2" />
+            Quero ser BETA tester
           </Button>
         </motion.div>
 
@@ -179,7 +177,7 @@ export function BetaHero() {
           transition={{ delay: 1, duration: 0.5 }}
           className="text-xs text-muted-foreground/70 max-w-sm mx-auto"
         >
-          Sua opinião vai moldar o produto. Testers terão acesso vitalício às
+          Sua opinião vai moldar o produto. Beta testers terão acesso vitalício às
           funcionalidades premium.
         </motion.p>
       </div>

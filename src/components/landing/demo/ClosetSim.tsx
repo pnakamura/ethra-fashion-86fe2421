@@ -1,28 +1,29 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ChevronRight, Check, Loader2, Diamond, Shuffle, Shirt } from 'lucide-react';
+import { Sparkles, ChevronRight, Check, Loader2, Shuffle, Shirt, LayoutGrid } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
+/* ── Capsule items with real Unsplash images ── */
 const CAPSULE_ITEMS = {
   tops: [
-    { name: 'Blusa Branca', color: '#F5F5F5', icon: '👚' },
-    { name: 'Camiseta Preta', color: '#2D2D2D', icon: '👕' },
-    { name: 'Blusa Terracota', color: '#C0502D', icon: '👚' },
-    { name: 'Camisa Azul', color: '#4A7CAD', icon: '👔' },
+    { name: 'Blusa Branca', image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=200&h=250&fit=crop', icon: '👚' },
+    { name: 'Camiseta Preta', image: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=200&h=250&fit=crop', icon: '👕' },
+    { name: 'Blusa Terracota', image: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=200&h=250&fit=crop', icon: '👚' },
+    { name: 'Camisa Azul', image: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=200&h=250&fit=crop', icon: '👔' },
   ],
   bottoms: [
-    { name: 'Jeans Escuro', color: '#2C3E6B', icon: '👖' },
-    { name: 'Saia Midi Bege', color: '#D4B896', icon: '🩳' },
-    { name: 'Calça Preta', color: '#1A1A1A', icon: '👖' },
+    { name: 'Jeans Escuro', image: 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=200&h=250&fit=crop', icon: '👖' },
+    { name: 'Saia Midi Bege', image: 'https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=200&h=250&fit=crop', icon: '🩳' },
+    { name: 'Calça Preta', image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=200&h=250&fit=crop', icon: '👖' },
   ],
   shoes: [
-    { name: 'Tênis Branco', color: '#FAFAFA', icon: '👟' },
-    { name: 'Scarpin Nude', color: '#D4A88C', icon: '👠' },
-    { name: 'Bota Marrom', color: '#6B4226', icon: '🥾' },
+    { name: 'Tênis Branco', image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=200&h=250&fit=crop', icon: '👟' },
+    { name: 'Scarpin Nude', image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=200&h=250&fit=crop', icon: '👠' },
+    { name: 'Bota Marrom', image: 'https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=200&h=250&fit=crop', icon: '🥾' },
   ],
   accessories: [
-    { name: 'Bolsa Caramelo', color: '#C68E17', icon: '👜' },
-    { name: 'Colar Dourado', color: '#DAA520', icon: '📿' },
+    { name: 'Bolsa Caramelo', image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=200&h=250&fit=crop', icon: '👜' },
+    { name: 'Colar Dourado', image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=200&h=250&fit=crop', icon: '📿' },
   ],
 };
 
@@ -31,6 +32,13 @@ const CATEGORY_LABELS: Record<string, string> = {
   bottoms: 'Bottoms',
   shoes: 'Calçados',
   accessories: 'Acessórios',
+};
+
+const CATEGORY_ICONS: Record<string, string> = {
+  tops: '👚',
+  bottoms: '👖',
+  shoes: '👟',
+  accessories: '👜',
 };
 
 const AI_LOOKS = [
@@ -103,7 +111,6 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
     return () => clearTimeout(timer);
   }, [phase, currentStep]);
 
-  // Auto-rotate looks
   useEffect(() => {
     if (phase !== 'looks') return;
     const interval = setInterval(() => setActiveLook((l) => (l + 1) % AI_LOOKS.length), 4000);
@@ -118,9 +125,12 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
     document.getElementById('tester-signup')?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const getItemByName = (name: string) => allItems.find((i) => i.name === name);
+
   return (
     <div className="flex flex-col items-center gap-6">
       <AnimatePresence mode="wait">
+        {/* ─── PHASE: CLOSET SELECTION ─── */}
         {phase === 'closet' && (
           <motion.div
             key="closet"
@@ -138,11 +148,12 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
               </p>
             </div>
 
-            {/* Categories grid */}
+            {/* Categories grid with images */}
             <div className="w-full grid grid-cols-2 gap-4">
               {Object.entries(CAPSULE_ITEMS).map(([category, items]) => (
                 <div key={category} className="space-y-2">
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <span>{CATEGORY_ICONS[category]}</span>
                     {CATEGORY_LABELS[category]}
                   </h4>
                   <div className="space-y-1.5">
@@ -152,21 +163,29 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
                         <motion.button
                           key={item.name}
                           onClick={() => toggleItem(item.name)}
-                          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl border text-left text-sm transition-colors ${
+                          className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-xl border text-left text-sm transition-all ${
                             isSelected
-                              ? 'border-primary bg-primary/5 text-foreground'
-                              : 'border-border bg-card/50 text-muted-foreground hover:border-primary/30'
+                              ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+                              : 'border-border bg-card/50 hover:border-primary/30'
                           }`}
                           whileTap={{ scale: 0.97 }}
                         >
-                          <div
-                            className="w-6 h-6 rounded-lg border border-border/50 flex-shrink-0"
-                            style={{ backgroundColor: item.color }}
-                          />
-                          <span className="flex-1 truncate text-xs">{item.name}</span>
-                          {isSelected && (
-                            <Diamond className="w-3.5 h-3.5 text-primary flex-shrink-0" />
-                          )}
+                          <div className="relative w-10 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-border/30">
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                            {isSelected && (
+                              <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                                <Check className="w-4 h-4 text-primary" />
+                              </div>
+                            )}
+                          </div>
+                          <span className={`flex-1 truncate text-xs ${isSelected ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                            {item.name}
+                          </span>
                         </motion.button>
                       );
                     })}
@@ -177,10 +196,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
 
             {/* Footer */}
             <div className="w-full flex items-center justify-between">
-              <button
-                onClick={selectAll}
-                className="text-xs text-primary font-medium hover:underline"
-              >
+              <button onClick={selectAll} className="text-xs text-primary font-medium hover:underline">
                 Selecionar todas ({allItems.length} peças)
               </button>
               <span className="text-xs text-muted-foreground">
@@ -205,6 +221,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
           </motion.div>
         )}
 
+        {/* ─── PHASE: GENERATING ─── */}
         {phase === 'generating' && (
           <motion.div
             key="generating"
@@ -217,9 +234,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
               <Loader2 className="w-5 h-5 text-primary animate-spin" />
               <span className="text-sm font-semibold text-foreground">Criando looks com IA...</span>
             </div>
-
             <Progress value={progressValue} className="h-2 w-full" />
-
             <div className="w-full space-y-2">
               {GENERATION_STEPS.map((step, i) => {
                 const done = currentStep > i;
@@ -234,13 +249,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.1 }}
                   >
-                    {done ? (
-                      <Check className="w-4 h-4 text-primary" />
-                    ) : active ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <div className="w-4 h-4 rounded-full border border-current" />
-                    )}
+                    {done ? <Check className="w-4 h-4 text-primary" /> : active ? <Loader2 className="w-4 h-4 animate-spin" /> : <div className="w-4 h-4 rounded-full border border-current" />}
                     <span>{step.label}</span>
                   </motion.div>
                 );
@@ -249,73 +258,123 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
           </motion.div>
         )}
 
+        {/* ─── PHASE: ORGANIZED CLOSET MOCKUP + LOOKS ─── */}
         {phase === 'looks' && (
           <motion.div
             key="looks"
-            className="w-full max-w-lg flex flex-col items-center gap-5"
+            className="w-full flex flex-col items-center gap-6"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="text-center space-y-1">
-              <h4 className="text-sm font-semibold text-foreground flex items-center gap-2 justify-center">
+            {/* Organized closet mockup */}
+            <div className="w-full">
+              <div className="flex items-center gap-2 mb-3 justify-center">
+                <LayoutGrid className="w-4 h-4 text-primary" />
+                <h4 className="text-sm font-semibold text-foreground">Seu closet organizado</h4>
+              </div>
+              <div className="rounded-2xl border border-border bg-card/60 backdrop-blur-sm p-4 shadow-soft">
+                <div className="grid grid-cols-4 gap-3">
+                  {Object.entries(CAPSULE_ITEMS).map(([category, items]) => (
+                    <div key={category} className="space-y-2">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground text-center">
+                        {CATEGORY_LABELS[category]}
+                      </p>
+                      <div className="space-y-1.5">
+                        {items.map((item, idx) => {
+                          const isSelected = selectedItems.has(item.name);
+                          return (
+                            <motion.div
+                              key={item.name}
+                              className={`relative rounded-lg overflow-hidden border ${isSelected ? 'border-primary/40 shadow-sm' : 'border-border/30 opacity-30'}`}
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: isSelected ? 1 : 0.3, scale: 1 }}
+                              transition={{ delay: idx * 0.08 }}
+                            >
+                              <div className="aspect-[3/4]">
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover"
+                                  loading="lazy"
+                                />
+                              </div>
+                              <p className="text-[8px] text-center py-0.5 bg-background/80 text-muted-foreground truncate px-1">
+                                {item.name}
+                              </p>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Suggested looks with image strips */}
+            <div className="w-full">
+              <div className="flex items-center gap-2 mb-3 justify-center">
                 <Sparkles className="w-4 h-4 text-primary" />
-                {AI_LOOKS.length} looks criados pela IA
-              </h4>
-              <p className="text-xs text-muted-foreground">
-                A partir de {capsuleCount} peças do seu armário cápsula
-              </p>
+                <h4 className="text-sm font-semibold text-foreground">{AI_LOOKS.length} looks criados pela IA</h4>
+              </div>
+              <div className="space-y-3">
+                {AI_LOOKS.map((look, idx) => (
+                  <motion.div
+                    key={look.name}
+                    className={`p-3 rounded-2xl border transition-all cursor-pointer ${
+                      idx === activeLook
+                        ? 'border-primary bg-primary/5 shadow-md'
+                        : 'border-border bg-card/50'
+                    }`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.15 }}
+                    onClick={() => setActiveLook(idx)}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Shirt className="w-3.5 h-3.5 text-primary" />
+                        <span className="text-xs font-semibold text-foreground">{look.name}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] text-muted-foreground px-2 py-0.5 rounded-full bg-muted">
+                          {look.occasion}
+                        </span>
+                        <span className="text-[10px] font-medium text-primary px-2 py-0.5 rounded-full bg-primary/10">
+                          {look.harmony}%
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Image strip */}
+                    <div className="flex gap-2">
+                      {look.items.map((itemName) => {
+                        const item = getItemByName(itemName);
+                        if (!item) return null;
+                        return (
+                          <div key={itemName} className="flex-1 rounded-lg overflow-hidden border border-border/30">
+                            <div className="aspect-[3/4]">
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                            </div>
+                            <p className="text-[8px] text-center py-0.5 bg-background/60 text-muted-foreground truncate px-0.5">
+                              {itemName}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
             </div>
 
-            {/* Look cards */}
-            <div className="w-full grid grid-cols-1 gap-3">
-              {AI_LOOKS.map((look, idx) => (
-                <motion.div
-                  key={look.name}
-                  className={`p-4 rounded-2xl border transition-all ${
-                    idx === activeLook
-                      ? 'border-primary bg-primary/5 shadow-md'
-                      : 'border-border bg-card/50'
-                  }`}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.15 }}
-                  onClick={() => setActiveLook(idx)}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Shirt className="w-4 h-4 text-primary" />
-                      <span className="text-sm font-semibold text-foreground">{look.name}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs text-muted-foreground px-2 py-0.5 rounded-full bg-muted">
-                        {look.occasion}
-                      </span>
-                      <span className="text-xs font-medium text-primary px-2 py-0.5 rounded-full bg-primary/10">
-                        {look.harmony}%
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    {look.items.map((itemName) => {
-                      const item = allItems.find((i) => i.name === itemName);
-                      return (
-                        <div key={itemName} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-background/80 border border-border/50">
-                          <div
-                            className="w-4 h-4 rounded border border-border/30"
-                            style={{ backgroundColor: item?.color ?? '#888' }}
-                          />
-                          <span className="text-[10px] text-muted-foreground whitespace-nowrap">{itemName}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Shuffle button */}
+            {/* Actions */}
             <motion.button
               className="inline-flex items-center gap-2 text-xs text-primary font-medium hover:underline"
               onClick={() => {
@@ -330,7 +389,6 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
               Refazer com outras peças
             </motion.button>
 
-            {/* CTA */}
             <motion.button
               className="inline-flex items-center justify-center gap-2 text-sm font-semibold text-primary hover:underline mt-1"
               initial={{ opacity: 0 }}

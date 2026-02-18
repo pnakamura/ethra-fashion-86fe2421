@@ -170,7 +170,7 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
                   viewport={{ once: true }}
                 >
                   <Sparkles className="w-4 h-4" />
-                  Cadastro exclusivo para testers
+                  Programa BETA — Testadores Exclusivos
                 </motion.div>
 
                 <h2 className="font-display text-3xl md:text-4xl font-semibold">
@@ -257,7 +257,7 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
                   disabled={loading}
                   className="w-full h-12 gradient-primary text-primary-foreground font-medium shadow-glow hover:opacity-90 transition-opacity text-base"
                 >
-                  {loading ? 'Criando sua conta...' : 'Quero ser beta tester'}
+                  {loading ? 'Criando sua conta...' : 'Quero ser BETA tester'}
                 </Button>
 
                 <p className="text-xs text-center text-muted-foreground/70">
