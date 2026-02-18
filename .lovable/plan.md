@@ -1,71 +1,48 @@
 
-
-# Melhorias na Pagina /welcome: Enfase Beta, Remover Login, Closet com Imagens
+# Closet Inteligente: Pecas Femininas Intercambiaveis
 
 ## Resumo
 
-Tres alteracoes principais: (1) reforcar a identidade BETA em toda a pagina, (2) remover o botao "Ja tenho acesso", e (3) transformar o ClosetSim numa experiencia visual com imagens reais de roupas e um mockup final de closet organizado.
+Substituir as pecas atuais do ClosetSim por um guarda-roupa capsula 100% feminino com pecas em paleta neutra/terrosa que sao propositalmente intercambiaveis -- qualquer combinacao entre elas resulta em um look harmonico.
 
-## Alteracoes
+## Alteracoes em `src/components/landing/demo/ClosetSim.tsx`
 
-### 1. `src/components/landing/BetaHero.tsx`
+### Novas pecas (todas femininas, paleta coesa neutra/terrosa)
 
-- Remover o botao "Ja tenho acesso" (linhas 163-172)
-- Reforcar a mensagem BETA no badge: "BETA Exclusivo -- Vagas Limitadas para Testadores"
-- Alterar headline para enfatizar que e um programa BETA: "Seja um dos primeiros a testar"
-- Adicionar badge "PROGRAMA BETA" proeminente acima do logo
-- Atualizar o subtitulo para deixar claro que e um teste fechado
+**Tops (4 pecas):**
+- Regata de Seda Off-White (foto Unsplash feminina)
+- Blazer Oversized Bege (foto Unsplash feminina)
+- Blusa de Laco Preta (foto Unsplash feminina)
+- Sueter de Cashmere Caramelo (foto Unsplash feminina)
 
-### 2. `src/components/landing/demo/ClosetSim.tsx` -- Reescrita completa
+**Bottoms (3 pecas):**
+- Calca Alfaiataria Creme (foto Unsplash feminina)
+- Saia Midi Plissada Preta (foto Unsplash feminina)
+- Jeans Wide Leg Azul Claro (foto Unsplash feminina)
 
-Substituir a simulacao atual (botoes com cores solidas) por uma experiencia visual com:
+**Calcados (3 pecas):**
+- Scarpin Nude (foto Unsplash feminina)
+- Sapatilha Ballet Preta (foto Unsplash feminina)
+- Sandalia de Tiras Dourada (foto Unsplash feminina)
 
-**Fase 1 - Selecao de pecas (com imagens reais):**
-- Grid visual com imagens de roupas usando URLs de imagens de banco gratuito (Unsplash) para pecas basicas: camiseta branca, blazer preto, jeans, saia midi, tenis, scarpin, etc.
-- Cards com thumbnail da peca + nome, clicaveis para selecionar
-- Organizados por categoria (Tops, Bottoms, Calcados, Acessorios)
-- Explicacao educativa do conceito de Armario Capsula no topo
+**Acessorios (2 pecas):**
+- Bolsa Estruturada Caramelo (foto Unsplash feminina)
+- Brincos Dourados Delicados (foto Unsplash feminina)
 
-**Fase 2 - Geracao por IA (animacao):**
-- Manter a animacao de progresso atual (funciona bem)
+### Novos looks (todos com harmonia alta, pois as pecas se intercambiam)
 
-**Fase 3 - Resultado: Mockup de closet organizado**
-- Em vez de listar looks como cards de texto, mostrar um mockup visual de "closet organizado"
-- Layout em grid simulando um armario aberto com as pecas posicionadas por categoria
-- As pecas selecionadas aparecem organizadas visualmente como num closet real
-- Abaixo, cards de looks sugeridos com as imagens das pecas lado a lado (mini-composicoes visuais)
-- Cada look mostra as 3-4 pecas combinadas em uma faixa horizontal com thumbnails
+As combinacoes sao pensadas para que qualquer top + qualquer bottom + qualquer calcado + qualquer acessorio funcione. Os 3 looks destacados serao:
 
-**Imagens utilizadas:**
-- Usarei URLs de Unsplash para roupas basicas (camiseta, blazer, jeans, saia, tenis, scarpin, bolsa, colar)
-- Sao URLs publicas e gratuitas, otimizadas para thumbnails pequenos
+1. **Office Elegante** (96%) - Blazer Bege + Calca Alfaiataria Creme + Scarpin Nude + Bolsa Caramelo
+2. **Passeio Sofisticado** (94%) - Blusa de Laco Preta + Saia Midi Preta + Sandalia Dourada + Brincos Dourados
+3. **Casual Refinado** (97%) - Sueter Caramelo + Jeans Wide Leg + Sapatilha Preta + Bolsa Caramelo
 
-### 3. `src/components/landing/TesterSignupForm.tsx`
+### Selecao de imagens Unsplash
 
-- Reforcar a linguagem BETA no header: "Programa Beta -- Testadores Exclusivos"
-- Alterar botao de submit para "Quero ser BETA tester"
+Todas as imagens serao de pecas femininas fotografadas de forma clean (fundo claro ou em modelo feminina), usando os parametros `w=200&h=250&fit=crop` para thumbnails otimizados.
 
-### 4. `src/components/landing/DemoSection.tsx`
+### Logica mantida
 
-- Atualizar a descricao da aba Closet para mencionar o conceito visual
-
-## Secao Tecnica
-
-### Arquivos modificados
-- `src/components/landing/BetaHero.tsx` -- Remover botao login, enfatizar BETA
-- `src/components/landing/demo/ClosetSim.tsx` -- Reescrever com imagens reais e mockup de closet
-- `src/components/landing/TesterSignupForm.tsx` -- Reforcar linguagem BETA
-- `src/components/landing/DemoSection.tsx` -- Atualizar descricao da aba closet
-
-### Estrategia de imagens
-Usar URLs do Unsplash com parametros de redimensionamento (w=200, h=200, fit=crop) para manter thumbnails leves e rapidos. Exemplo: `https://images.unsplash.com/photo-XXXXX?w=200&h=250&fit=crop`
-
-### Mockup de closet organizado
-O resultado final sera um layout CSS grid simulando um armario aberto:
-- Linha superior: tops pendurados
-- Linha do meio: bottoms dobrados
-- Linha inferior: calcados alinhados
-- Lateral: acessorios
-
-Cada posicao mostra a imagem real da peca com um leve efeito de sombra e borda arredondada, como se estivessem organizadas num closet fisico.
-
+- Toda a mecanica de selecao, animacao de geracao e mockup de closet organizado permanece identica
+- Apenas os dados (CAPSULE_ITEMS e AI_LOOKS) sao substituidos
+- Os nomes das categorias permanecem os mesmos
