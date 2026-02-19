@@ -92,7 +92,7 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
 
   return (
     <div className="flex flex-col items-center gap-6">
-      <p className="text-sm font-medium text-muted-foreground">
+      <p className="text-base font-medium text-muted-foreground">
         Escolha uma peça para experimentar virtualmente
       </p>
 
@@ -119,7 +119,7 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
                 loading="lazy"
               />
             </div>
-            <span className="text-xs font-medium text-center leading-tight">{g.label}</span>
+            <span className="text-sm font-medium text-center leading-tight">{g.label}</span>
             {selected === g.id && showResult && (
               <motion.div
                 className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center"
@@ -145,7 +145,7 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
           >
             <div className="flex items-center gap-2">
               <Loader2 className="w-5 h-5 text-primary animate-spin" />
-              <span className="text-sm font-semibold text-foreground">Processando prova virtual...</span>
+              <span className="text-base font-semibold text-foreground">Processando prova virtual...</span>
             </div>
 
             {/* Model preview while processing */}
@@ -182,7 +182,7 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
               })}
             </div>
 
-            <p className="text-xs text-muted-foreground/60 italic">
+            <p className="text-sm text-muted-foreground/60 italic">
               Tempo estimado: 15-25 segundos
             </p>
           </motion.div>
@@ -209,7 +209,7 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 }}
               >
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Antes</span>
+                <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Antes</span>
                 <div className="w-36 h-48 md:w-44 md:h-56 rounded-2xl overflow-hidden shadow-lg border border-border">
                   <img src={modelBefore} alt="Antes" className="w-full h-full object-cover" />
                 </div>
@@ -231,7 +231,7 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                <span className="text-xs font-semibold text-primary uppercase tracking-wider">Depois</span>
+                <span className="text-sm font-semibold text-primary uppercase tracking-wider">Depois</span>
                 <div className="relative w-36 h-48 md:w-44 md:h-56 rounded-2xl overflow-hidden shadow-lg border-2 border-primary/30">
                   <img src={garment.result} alt="Depois" className="w-full h-full object-cover" />
                   {/* Sparkle overlay */}
@@ -269,7 +269,7 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
               transition={{ delay: 0.5 }}
             >
               {/* Processing time */}
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/80 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/80 text-sm text-muted-foreground">
                 <Clock className="w-3.5 h-3.5" />
                 <span>Processado em {garment.processingTime}s</span>
               </div>
@@ -277,7 +277,7 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
               {/* Harmony badge */}
               {hasSkinTone && (
                 <motion.div
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-sm font-medium text-primary"
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.7 }}
@@ -290,7 +290,7 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
 
             {/* CTA */}
             <motion.button
-              className="inline-flex items-center justify-center gap-2 text-sm font-semibold text-primary hover:underline mt-1"
+              className="inline-flex items-center justify-center gap-2 text-base font-semibold text-primary hover:underline mt-1"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.9 }}
@@ -311,7 +311,7 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
             <img src={modelBefore} alt="Modelo" className="w-full h-full object-cover" />
           </div>
           <motion.p
-            className="text-xs text-muted-foreground/60 italic"
+            className="text-sm text-muted-foreground/60 italic"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}

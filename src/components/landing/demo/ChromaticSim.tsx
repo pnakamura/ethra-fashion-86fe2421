@@ -160,7 +160,7 @@ export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps
 
   return (
     <div className="flex flex-col items-center gap-6">
-      <p className="text-sm font-medium text-muted-foreground">
+      <p className="text-base font-medium text-muted-foreground">
         Selecione um perfil para análise cromática por IA
       </p>
 
@@ -187,7 +187,7 @@ export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps
                 loading="lazy"
               />
             </div>
-            <span className="text-xs font-medium">{p.label}</span>
+            <span className="text-sm font-medium">{p.label}</span>
             {selected === p.id && !analyzing && showResult && (
               <motion.div
                 className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center"
@@ -214,7 +214,7 @@ export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps
           >
             <div className="flex items-center gap-2">
               <Loader2 className="w-5 h-5 text-primary animate-spin" />
-              <span className="text-sm font-semibold text-foreground">Analisando com IA...</span>
+              <span className="text-base font-semibold text-foreground">Analisando com IA...</span>
             </div>
 
             <Progress value={progressValue} className="h-2 w-full" />
@@ -272,16 +272,16 @@ export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <Sparkles className="w-4 h-4 text-primary" />
-                  <span className="font-display text-lg font-bold" style={{ color: profile.seasonColor }}>
+                  <span className="font-display text-xl font-bold" style={{ color: profile.seasonColor }}>
                     {profile.season}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <span>Confiança: {profile.confidence}%</span>
                   <span>•</span>
                   <span>Pele: {profile.skin}</span>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <span>Olhos: {profile.eyes}</span>
                   <span>•</span>
                   <span>Cabelo: {profile.hair}</span>
@@ -291,7 +291,7 @@ export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps
 
             {/* AI explanation */}
             <motion.p
-              className="text-sm text-muted-foreground italic px-1 leading-relaxed"
+              className="text-base text-muted-foreground italic px-1 leading-relaxed"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
@@ -301,7 +301,7 @@ export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps
 
             {/* Recommended colors */}
             <div>
-              <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+              <h4 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2">
                 <Check className="w-4 h-4 text-primary" />
                 12 cores que te valorizam
               </h4>
@@ -315,10 +315,10 @@ export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps
                     transition={{ delay: 0.3 + i * 0.05, type: 'spring', stiffness: 200 }}
                   >
                     <div
-                      className="w-10 h-10 md:w-11 md:h-11 rounded-xl shadow-md border border-border/50"
+                      className="w-11 h-11 rounded-xl shadow-md border border-border/50"
                       style={{ backgroundColor: color.hex }}
                     />
-                    <span className="text-[9px] text-muted-foreground text-center leading-tight">
+                    <span className="text-xs text-muted-foreground text-center leading-tight">
                       {color.name}
                     </span>
                   </motion.div>
@@ -328,7 +328,7 @@ export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps
 
             {/* Colors to avoid */}
             <div>
-              <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+              <h4 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2">
                 <X className="w-4 h-4 text-destructive" />
                 Cores para evitar
               </h4>
@@ -348,7 +348,7 @@ export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps
                       />
                       <X className="absolute inset-0 m-auto w-5 h-5 text-destructive drop-shadow-md" />
                     </div>
-                    <span className="text-[9px] text-muted-foreground text-center leading-tight">
+                    <span className="text-xs text-muted-foreground text-center leading-tight">
                       {color.name}
                     </span>
                   </motion.div>
@@ -358,7 +358,7 @@ export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps
 
             {/* CTA */}
             <motion.button
-              className="inline-flex items-center justify-center gap-2 text-sm font-semibold text-primary hover:underline mt-2"
+              className="inline-flex items-center justify-center gap-2 text-base font-semibold text-primary hover:underline mt-2"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1.2 }}
@@ -375,7 +375,7 @@ export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps
       {/* Placeholder */}
       {!selected && !analyzing && !showResult && (
         <motion.p
-          className="text-xs text-muted-foreground/60 italic"
+          className="text-sm text-muted-foreground/60 italic"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
