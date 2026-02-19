@@ -28,10 +28,10 @@ interface AILook {
 /* ── Capsule items with verified Unsplash images + color hex ── */
 const CAPSULE_ITEMS: Record<string, CapsuleItem[]> = {
   tops: [
-    { name: 'Regata Seda Off-White', image: 'https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=400&h=500&fit=crop&q=80', icon: '👚', color: '#FAF5EF' },
-    { name: 'Blazer Oversized Bege', image: 'https://images.unsplash.com/photo-1591369822096-ffd140ec948f?w=400&h=500&fit=crop&q=80', icon: '🧥', color: '#C8B89A' },
-    { name: 'Blusa Elegante Preta', image: 'https://images.unsplash.com/photo-1618932260643-aa4c91b074a4?w=400&h=500&fit=crop&q=80', icon: '👚', color: '#1A1A1A' },
-    { name: 'Suéter Cashmere Caramelo', image: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&h=500&fit=crop&q=80', icon: '🧶', color: '#B5651D' },
+    { name: 'Regata Seda Off-White', image: 'https://images.unsplash.com/photo-1618515488915-83f021210f1e?w=400&h=500&fit=crop&q=80', icon: '👚', color: '#FAF5EF' },
+    { name: 'Blazer Oversized Bege', image: 'https://images.unsplash.com/photo-1747814896386-fde8c4272238?w=400&h=500&fit=crop&q=80', icon: '🧥', color: '#C8B89A' },
+    { name: 'Blusa Elegante Preta', image: 'https://images.unsplash.com/photo-1573164574144-649081e9421a?w=400&h=500&fit=crop&q=80', icon: '👚', color: '#1A1A1A' },
+    { name: 'Suéter Cashmere Caramelo', image: 'https://images.unsplash.com/photo-1573587302894-7d0475939841?w=400&h=500&fit=crop&q=80', icon: '🧶', color: '#B5651D' },
   ],
   bottoms: [
     { name: 'Calça Alfaiataria Creme', image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=500&fit=crop&q=80', icon: '👖', color: '#F5E6CA' },
@@ -39,12 +39,12 @@ const CAPSULE_ITEMS: Record<string, CapsuleItem[]> = {
     { name: 'Jeans Wide Leg Claro', image: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400&h=500&fit=crop&q=80', icon: '👖', color: '#8FA5C4' },
   ],
   shoes: [
-    { name: 'Scarpin Nude', image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&h=500&fit=crop&q=80', icon: '👠', color: '#D4A574' },
-    { name: 'Loafer Preto', image: 'https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=400&h=500&fit=crop&q=80', icon: '🥿', color: '#1C1C1C' },
-    { name: 'Sandália Tiras Dourada', image: 'https://images.unsplash.com/photo-1603487742131-4160ec999306?w=400&h=500&fit=crop&q=80', icon: '👡', color: '#DAA520' },
+    { name: 'Scarpin Nude', image: 'https://images.unsplash.com/photo-1721176394537-7a80cd0dac62?w=400&h=500&fit=crop&q=80', icon: '👠', color: '#D4A574' },
+    { name: 'Loafer Preto', image: 'https://images.unsplash.com/photo-1760616172899-0681b97a2de3?w=400&h=500&fit=crop&q=80', icon: '🥿', color: '#1C1C1C' },
+    { name: 'Sandália Tiras Dourada', image: 'https://images.unsplash.com/photo-1523742348304-8e67f3cafc08?w=400&h=500&fit=crop&q=80', icon: '👡', color: '#DAA520' },
   ],
   accessories: [
-    { name: 'Bolsa Estruturada Caramelo', image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&h=500&fit=crop&q=80', icon: '👜', color: '#8B5E3C' },
+    { name: 'Bolsa Estruturada Caramelo', image: 'https://images.unsplash.com/photo-1613332098721-054a53462d12?w=400&h=500&fit=crop&q=80', icon: '👜', color: '#8B5E3C' },
     { name: 'Brincos Dourados Delicados', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&h=500&fit=crop&q=80', icon: '✨', color: '#C5A02E' },
   ],
 };
