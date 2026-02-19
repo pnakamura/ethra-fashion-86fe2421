@@ -230,7 +230,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
               </p>
             </div>
 
-            <div className="w-full grid grid-cols-2 gap-4">
+            <div className="w-full grid grid-cols-2 gap-5">
               {Object.entries(CAPSULE_ITEMS).map(([category, items]) => (
                 <div key={category} className="space-y-2">
                   <h4 className="text-sm md:text-base font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
@@ -244,14 +244,14 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
                         <motion.button
                           key={item.name}
                           onClick={() => toggleItem(item.name)}
-                          className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-xl border text-left text-sm transition-all ${
+                          className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl border text-left text-sm transition-all ${
                             isSelected
                               ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
                               : 'border-border bg-card/50 hover:border-primary/30'
                           }`}
                           whileTap={{ scale: 0.97 }}
                         >
-                          <div className="relative w-10 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-border/30">
+                          <div className="relative w-12 h-14 rounded-lg overflow-hidden flex-shrink-0 border border-border/30">
                             <ReliableImage src={item.image} alt={item.name} className="w-full h-full object-cover" />
                             {isSelected && (
                               <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
@@ -352,7 +352,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
                 <h4 className="text-base md:text-lg font-semibold text-foreground">Seu closet organizado</h4>
               </div>
               <div className="rounded-2xl border border-border bg-card/60 backdrop-blur-sm p-4 shadow-soft">
-                <div className="grid grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {Object.entries(CAPSULE_ITEMS).map(([category, items]) => (
                     <div key={category} className="space-y-2">
                       <p className="text-xs md:text-sm font-bold uppercase tracking-wider text-muted-foreground text-center">
@@ -374,7 +374,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
                               </div>
                               <div className="flex items-center gap-1 py-0.5 bg-background/80 px-1">
                                 <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
-                                <p className="text-[10px] md:text-xs text-muted-foreground truncate">{item.name}</p>
+                                <p className="text-xs text-muted-foreground truncate">{item.name}</p>
                               </div>
                             </motion.div>
                           );
@@ -432,7 +432,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
                               <div className="aspect-[3/4]">
                                 <ReliableImage src={item.image} alt={item.name} className="w-full h-full object-cover" />
                               </div>
-                              <p className="text-[10px] md:text-xs text-center py-0.5 bg-background/60 text-muted-foreground truncate px-0.5">
+                              <p className="text-xs text-center py-0.5 bg-background/60 text-muted-foreground truncate px-0.5">
                                 {itemName}
                               </p>
                             </div>

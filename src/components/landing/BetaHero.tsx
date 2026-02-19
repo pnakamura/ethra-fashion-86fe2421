@@ -60,7 +60,7 @@ export function BetaHero() {
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-primary/10 blur-[120px]" />
       </div>
 
-      <div className="relative z-10 max-w-3xl w-full text-center space-y-8">
+      <div className="relative z-10 max-w-3xl w-full text-center space-y-6 md:space-y-8">
         {/* BETA Badge */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -122,7 +122,7 @@ export function BetaHero() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 + i * 0.1, duration: 0.4 }}
-              className="rounded-xl border border-border bg-card/60 backdrop-blur-sm p-5 text-center space-y-2 hover:border-primary/30 transition-colors"
+              className="rounded-xl border border-border bg-card/60 backdrop-blur-sm p-4 md:p-5 text-center space-y-2 hover:border-primary/30 transition-colors"
             >
               <f.icon className="w-7 h-7 md:w-8 md:h-8 mx-auto text-primary" />
               <p className="font-medium text-base text-foreground">{f.title}</p>
@@ -163,7 +163,7 @@ export function BetaHero() {
           <Button
             size="lg"
             onClick={scrollToSignup}
-            className="w-full sm:w-auto gradient-primary text-primary-foreground shadow-glow hover:opacity-90 transition-opacity text-base md:text-lg px-8"
+            className="w-full sm:w-auto gradient-primary text-primary-foreground shadow-glow hover:opacity-90 transition-opacity text-base md:text-lg px-8 py-3"
           >
             <FlaskConical className="w-4 h-4 mr-2" />
             Quero ser BETA tester

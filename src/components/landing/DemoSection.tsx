@@ -68,7 +68,7 @@ export function DemoSection() {
             <br />
             <span className="text-gradient">agora</span>
           </h2>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base md:text-xl text-muted-foreground max-w-2xl mx-auto">
             Veja como a IA do Ethra analisa suas cores, experimenta roupas e monta looks para você
           </p>
         </motion.div>
@@ -104,12 +104,12 @@ export function DemoSection() {
 
             {TABS.map((tab) => (
               <TabsContent key={tab.value} value={tab.value}>
-                <div className="bg-card/50 backdrop-blur-sm rounded-3xl border border-border p-6 md:p-10 lg:p-12 shadow-soft">
+                <div className="bg-card/50 backdrop-blur-sm rounded-3xl border border-border p-5 md:p-10 lg:p-12 shadow-soft">
                   <div className="text-center mb-8">
                     <h3 className="font-display text-2xl md:text-3xl font-semibold mb-2">
                       {tab.title}
                     </h3>
-                    <p className="text-base text-muted-foreground">{tab.description}</p>
+                    <p className="text-sm md:text-base text-muted-foreground">{tab.description}</p>
                   </div>
 
                   {tab.value === 'colorimetria' && (
