@@ -44,3 +44,15 @@ verify_jwt = false
 
 [functions.notify-tester-signup]
 verify_jwt = false
+
+[functions.admin-get-user-emails]
+verify_jwt = false
+
+[functions.admin-analytics]
+verify_jwt = false
+
+[functions.admin-export-users]
+verify_jwt = false
+
+[functions.admin-health-check]
+verify_jwt = false
