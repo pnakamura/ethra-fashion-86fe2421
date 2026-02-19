@@ -45,7 +45,7 @@ export function DemoSection() {
 
   return (
     <section className="py-24 px-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         {/* Header */}
         <motion.div
           className="text-center mb-12"
@@ -54,7 +54,7 @@ export function DemoSection() {
           viewport={{ once: true }}
         >
           <motion.div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-base font-medium mb-4"
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
@@ -63,12 +63,12 @@ export function DemoSection() {
             Simulação interativa
           </motion.div>
 
-          <h2 className="font-display text-4xl md:text-5xl font-semibold mb-4">
+          <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-semibold mb-4">
             Experimente
             <br />
             <span className="text-gradient">agora</span>
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
             Veja como a IA do Ethra analisa suas cores, experimenta roupas e monta looks para você
           </p>
         </motion.div>
@@ -89,7 +89,7 @@ export function DemoSection() {
                   <TabsTrigger
                     key={tab.value}
                     value={tab.value}
-                    className="relative flex items-center gap-1.5 py-3 px-2 text-xs md:text-sm"
+                    className="relative flex items-center gap-1.5 py-3 px-2 text-sm md:text-base"
                   >
                     <Icon className="w-4 h-4 flex-shrink-0" />
                     <span className="hidden sm:inline">{tab.label}</span>
@@ -104,12 +104,12 @@ export function DemoSection() {
 
             {TABS.map((tab) => (
               <TabsContent key={tab.value} value={tab.value}>
-                <div className="bg-card/50 backdrop-blur-sm rounded-3xl border border-border p-6 md:p-10 shadow-soft">
+                <div className="bg-card/50 backdrop-blur-sm rounded-3xl border border-border p-6 md:p-10 lg:p-12 shadow-soft">
                   <div className="text-center mb-8">
-                    <h3 className="font-display text-xl md:text-2xl font-semibold mb-2">
+                    <h3 className="font-display text-2xl md:text-3xl font-semibold mb-2">
                       {tab.title}
                     </h3>
-                    <p className="text-sm text-muted-foreground">{tab.description}</p>
+                    <p className="text-base text-muted-foreground">{tab.description}</p>
                   </div>
 
                   {tab.value === 'colorimetria' && (

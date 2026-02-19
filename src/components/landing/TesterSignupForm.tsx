@@ -93,7 +93,7 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
 
   return (
     <section ref={ref} id="tester-signup" className="py-24 px-6">
-      <div className="max-w-md mx-auto">
+      <div className="max-w-lg mx-auto">
         <AnimatePresence mode="wait">
           {success ? (
             <motion.div
@@ -113,10 +113,10 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
               </motion.div>
 
               <div>
-                <h3 className="font-display text-2xl font-semibold text-foreground mb-2">
+                <h3 className="font-display text-2xl md:text-3xl font-semibold text-foreground mb-2">
                   Você está dentro! 🎉
                 </h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
+                <p className="text-muted-foreground text-base leading-relaxed">
                   Seu acesso de beta tester foi confirmado. Confira seu email para ativar a conta e comece a explorar o Ethra.
                 </p>
               </div>
@@ -150,7 +150,7 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
                 Explorar o Ethra
               </Button>
 
-              <p className="text-xs text-muted-foreground/70">
+              <p className="text-sm text-muted-foreground/70">
                 Testers terão acesso vitalício às funcionalidades premium.
               </p>
             </motion.div>
@@ -164,7 +164,7 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
               {/* Header */}
               <div className="text-center space-y-3">
                 <motion.div
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-base font-medium"
                   initial={{ opacity: 0, scale: 0.9 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
@@ -173,12 +173,12 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
                   Programa BETA — Testadores Exclusivos
                 </motion.div>
 
-                <h2 className="font-display text-3xl md:text-4xl font-semibold">
+                <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-semibold">
                   Garanta sua
                   <br />
                   <span className="text-gradient">vaga agora</span>
                 </h2>
-                <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                <p className="text-base text-muted-foreground max-w-sm mx-auto">
                   Preencha seus dados e seja uma das primeiras a experimentar o Ethra
                 </p>
               </div>
@@ -192,7 +192,7 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
                     placeholder="Seu nome"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="pl-11 h-12"
+                    className="pl-11 h-12 md:h-14"
                     maxLength={100}
                   />
                 </div>
@@ -204,7 +204,7 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
                     placeholder="Seu melhor email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-11 h-12"
+                    className="pl-11 h-12 md:h-14"
                   />
                 </div>
 
@@ -215,7 +215,7 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
                     placeholder="Crie uma senha"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-11 pr-11 h-12"
+                    className="pl-11 pr-11 h-12 md:h-14"
                   />
                   <button
                     type="button"
@@ -228,7 +228,7 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
                       <Eye className="w-5 h-5 text-muted-foreground" />
                     )}
                   </button>
-                  <p className="text-xs text-muted-foreground mt-1.5">Mínimo de 6 caracteres</p>
+                  <p className="text-sm text-muted-foreground mt-1.5">Mínimo de 6 caracteres</p>
                 </div>
 
                 <div className="space-y-3 pt-2">
@@ -255,12 +255,12 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-12 gradient-primary text-primary-foreground font-medium shadow-glow hover:opacity-90 transition-opacity text-base"
+                  className="w-full h-12 md:h-14 gradient-primary text-primary-foreground font-medium shadow-glow hover:opacity-90 transition-opacity text-base md:text-lg"
                 >
                   {loading ? 'Criando sua conta...' : 'Quero ser BETA tester'}
                 </Button>
 
-                <p className="text-xs text-center text-muted-foreground/70">
+                <p className="text-sm text-center text-muted-foreground/70">
                   Vagas limitadas • Acesso vitalício ao premium para testers
                 </p>
               </form>
