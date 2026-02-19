@@ -41,7 +41,7 @@ const CAPSULE_ITEMS: Record<string, CapsuleItem[]> = {
   shoes: [
     { name: 'Scarpin Nude', image: 'https://images.unsplash.com/photo-1721176394537-7a80cd0dac62?w=400&h=500&fit=crop&q=80', icon: '👠', color: '#D4A574' },
     { name: 'Scarpin Preto', image: 'https://images.unsplash.com/photo-1553145478-5b0fee29e4fc?w=400&h=500&fit=crop&q=80', icon: '🥿', color: '#1C1C1C' },
-    { name: 'Sandália Salto Dourada', image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&h=500&fit=crop&q=80', icon: '👡', color: '#DAA520' },
+    { name: 'Sandália Salto Dourada', image: 'https://images.unsplash.com/photo-1572344857518-c8f0d3d5906a?w=400&h=500&fit=crop&q=80', icon: '👡', color: '#DAA520' },
   ],
   accessories: [
     { name: 'Bolsa Estruturada Caramelo', image: 'https://images.unsplash.com/photo-1622445270936-5dcb604970e7?w=400&h=500&fit=crop&q=80', icon: '👜', color: '#8B5E3C' },
@@ -68,22 +68,22 @@ const AI_LOOKS: AILook[] = [
     name: 'Office Elegante',
     items: ['Blazer Oversized Bege', 'Calça Alfaiataria Creme', 'Scarpin Nude', 'Bolsa Estruturada Caramelo'],
     occasion: 'Trabalho',
-    harmony: 95,
-    breakdown: { colorHarmony: 97, styleCoherence: 96, versatility: 93 },
+    harmony: 87,
+    breakdown: { colorHarmony: 92, styleCoherence: 88, versatility: 78 },
   },
   {
     name: 'Passeio Sofisticado',
     items: ['Blusa Elegante Preta', 'Saia Midi Plissada Preta', 'Sandália Salto Dourada', 'Brincos Dourados Delicados'],
     occasion: 'Passeio',
-    harmony: 92,
-    breakdown: { colorHarmony: 94, styleCoherence: 93, versatility: 88 },
+    harmony: 79,
+    breakdown: { colorHarmony: 85, styleCoherence: 82, versatility: 68 },
   },
   {
     name: 'Casual Refinado',
     items: ['Suéter Cashmere Caramelo', 'Jeans Wide Leg Claro', 'Scarpin Preto', 'Bolsa Estruturada Caramelo'],
     occasion: 'Dia a dia',
-    harmony: 94,
-    breakdown: { colorHarmony: 95, styleCoherence: 91, versatility: 96 },
+    harmony: 83,
+    breakdown: { colorHarmony: 76, styleCoherence: 89, versatility: 84 },
   },
 ];
 
