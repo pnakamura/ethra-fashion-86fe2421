@@ -1,106 +1,65 @@
 
-# Closet Inteligente: Imagens Verificadas + Score de Harmonia
+# Correcao de Imagens do Closet Inteligente
 
 ## Resumo
 
-Substituir todas as 12 imagens do ClosetSim por fotos Unsplash verificadas e compativeis com cada nome de peca. Adicionar um sistema de Score de Harmonia detalhado com 3 subdimensoes (Cromatica, Estilo, Versatilidade) exibido visualmente na fase de resultados.
+Substituir 8 imagens com inconsistencias no componente `ClosetSim.tsx`, usando imagens Unsplash verificadas visualmente. Algumas pecas terao nomes ajustados para corresponder melhor a imagem verificada.
 
-## Analise de Compatibilidade das Imagens Atuais
+## Inconsistencias Encontradas e Correcoes
 
-Apos verificar cada URL de imagem atual contra o nome da peca, identifiquei as seguintes incompatibilidades:
+### Arquivo: `src/components/landing/demo/ClosetSim.tsx`
 
-| Peca | URL Atual | Problema |
-|------|-----------|----------|
-| Regata Seda Off-White | photo-1564257631407 | Imagem generica, nao mostra claramente uma regata de seda |
-| Blazer Oversized Bege | photo-1591369822096 | Mostra jaqueta/casaco, nao necessariamente um blazer bege oversized |
-| Blusa de Laco Preta | photo-1618932260643 | Mostra blusa/vestido de cor clara, NAO preta |
-| Sueter Cashmere Caramelo | photo-1576566588028 | Mostra moletom colorido/tie-dye, NAO sueter caramelo |
-| Calca Alfaiataria Creme | photo-1594633312681 | Mulher em pose, peca nao e destaque |
-| Saia Midi Plissada Preta | photo-1583496661160 | Saia de cor clara/bege, NAO preta |
-| Scarpin Nude | photo-1543163521 | Mostra sapatos, mas nao claramente scarpins nude |
-| Sapatilha Ballet Preta | photo-1566150905458 | Mostra sapatilhas de ponta de ballet, nao sapatilha casual |
-| Sandalia Tiras Dourada | photo-1603487742131 | Sandalia generica, nao necessariamente dourada com tiras |
+Todas as alteracoes sao nos dados `CAPSULE_ITEMS` (linhas 29-49).
 
-**Conclusao**: 9 de 12 imagens tem incompatibilidades com os nomes. Todas serao substituidas.
+| Peca | Problema Reportado | Nova Imagem (Unsplash ID) | Verificacao Visual |
+|------|-------------------|--------------------------|-------------------|
+| Regata Seda Off-White | Mostra camiseta preta | `e7RyjcF2dLk` | Mulher em vestido/top branco com alca fina - cor branca/off-white visivel |
+| Blazer Oversized Bege | Mostra saia azul claro | `4Svv9DmBKcA` | Mulher posando em blazer oversized neutro/bege - estrutura de blazer clara |
+| Blusa Elegante Preta | Mostra camiseta estampada branca | `poiMv6Rjxok` | Mulher em top preto elegante transparente - Featured in Fashion and Beauty |
+| Sueter Cashmere Caramelo | Mostra camiseta branca com estampa azul | `XBiN-sGiZOk` | Mulher em sueter de trico marrom/caramelo grosso - cor caramelo/mostarda |
+| Scarpin Nude | Mostra sapato salto azul | `lckpJgGdtk8` | Par de sapatos nude/champagne de salto alto - cor nude clara |
+| Sapatilha Ballet Preta | Mostra bolsa rosa | `NySU2CFS9Eo` | Sapatos pretos em fundo branco - renomear para "Loafer Preto" |
+| Sandalia Tiras Dourada | Mostra papete cinza | `51QcRqMjy6w` | Sandalias douradas abertas nos pes femininos - dourado/glitter visivel |
+| Bolsa Estruturada Caramelo | Mostra bolsa preta | `-poL3YQTBPI` | Bolsa estruturada marrom/caramelo ao lado de mulher - cor caramelo clara |
 
-## Novas Imagens Verificadas
+## Ajuste de Nome
 
-Cada imagem foi selecionada de Unsplash com base na descricao confirmada da foto (titulo da pagina Unsplash):
+- "Sapatilha Ballet Preta" sera renomeada para **"Loafer Preto"** pois a imagem verificada mostra loafers pretos (mais adequado do que sapatilha de ballet)
 
-| Peca | Nova Foto (ID Unsplash) | Descricao Verificada |
-|------|------------------------|---------------------|
-| Regata Seda Off-White | FCqMAZNMHdQ | "Woman in white tank top" - Free |
-| Blazer Oversized Bege | K2r3PrudbFM | "Woman in beige blazer sitting by the table" - Free |
-| Blusa Elegante Preta | 3sY92eKV6-Y | "Women's black elbow-sleeved blouse" - Free |
-| Sueter Cashmere Caramelo | XBiN-sGiZOk | "Woman wearing brown knit sweater" - Free |
-| Calca Alfaiataria Creme | Pucq9uwDCLM | "Woman in white pants and brown jacket" - Free |
-| Saia Midi Plissada Preta | 85L8DITgJpc | "Woman in crop top and black skirt poses" - Free |
-| Jeans Wide Leg Claro | wMyEFPdk1_s | "Woman in blue denim vest and blue denim jeans" - Free |
-| Scarpin Nude | lckpJgGdtk8 | "Pair of white/nude high-heeled shoes" - Free |
-| Sapatilha Ballet Preta | TdXrL0Rurko | "Black leather shoe" - Free |
-| Sandalia Tiras Dourada | pL1qsBqCatk | "Gold earrings on table and black ankle-strap pumps" - Free (mostra calcados dourados) |
-| Bolsa Estruturada Caramelo | photo-1548036328 | Manter (bolsa de couro marrom - compativel) |
-| Brincos Dourados | jHZgP878gUY | "Close up of a pair of earrings on a table" - Free |
+## Itens que permanecem inalterados (sem problemas reportados)
 
-**Nota**: "Blusa de Laco Preta" sera renomeada para "Blusa Elegante Preta" para corresponder melhor a imagem verificada.
+- Calca Alfaiataria Creme (bottoms)
+- Saia Midi Plissada Preta (bottoms)
+- Jeans Wide Leg Claro (bottoms)
+- Brincos Dourados Delicados (acessorios)
 
-## Sistema de Score de Harmonia
+## AI_LOOKS
 
-### Estrutura de dados expandida
+O look "Passeio Sofisticado" referencia "Sandalia Tiras Dourada" que permanece com o mesmo nome. O item renomeado "Loafer Preto" (antes "Sapatilha Ballet Preta") precisa ser atualizado tambem no look "Casual Refinado" onde e referenciado.
 
-Cada look recebera um breakdown com 3 subdimensoes:
+## Secao Tecnica
 
-- **Harmonia Cromatica** -- Compatibilidade de cores no circulo cromatico (tons analogos/neutros)
-- **Coerencia de Estilo** -- Se as pecas compartilham o mesmo universo estetico
-- **Versatilidade** -- Quantas outras pecas do closet combinam com este look
+### Alteracoes em `CAPSULE_ITEMS` (linhas 30-48)
 
-### Scores por Look
+Substituicao de 8 URLs de imagem e 1 rename:
 
-| Look | Cromatica | Estilo | Versatilidade | Score Final |
-|------|-----------|--------|---------------|-------------|
-| Office Elegante (Blazer Bege + Calca Creme + Scarpin Nude + Bolsa Caramelo) | 97% | 96% | 93% | **95%** |
-| Passeio Sofisticado (Blusa Preta + Saia Preta + Sandalia Dourada + Brincos Dourados) | 94% | 93% | 88% | **92%** |
-| Casual Refinado (Sueter Caramelo + Jeans Claro + Sapatilha Preta + Bolsa Caramelo) | 95% | 91% | 96% | **94%** |
+```text
+Linha 31: image -> https://images.unsplash.com/photo-1503342217505-b0a15ec3261c -> NOVA: e7RyjcF2dLk
+Linha 32: image -> https://images.unsplash.com/photo-1591369822096-ffd140ec948f -> NOVA: 4Svv9DmBKcA  
+Linha 33: image -> https://images.unsplash.com/photo-1554568218-0f1715e72254 -> NOVA: poiMv6Rjxok
+Linha 34: image -> https://images.unsplash.com/photo-1576566588028-4147f3842f27 -> NOVA: XBiN-sGiZOk
+Linha 42: image -> https://images.unsplash.com/photo-1543163521-1bf539c55dd2 -> NOVA: lckpJgGdtk8
+Linha 43: image + name -> "Sapatilha Ballet Preta" -> "Loafer Preto", image: NySU2CFS9Eo
+Linha 44: image -> https://images.unsplash.com/photo-1603487742131-4160ec999306 -> NOVA: 51QcRqMjy6w
+Linha 47: image -> https://images.unsplash.com/photo-1548036328-c9fa89d128fa -> NOVA: -poL3YQTBPI
+```
 
-**Justificativas**:
-- Office Elegante: bege/creme/nude/caramelo sao cores analogas quentes = cromatica altissima
-- Passeio Sofisticado: monocromatico preto com dourado = elegante mas menos versatil
-- Casual Refinado: mistura bem categorias (casual + estruturado) = versatilidade mais alta
+### Alteracao em `AI_LOOKS` (linha 83)
 
-### UI do Score de Harmonia
+Atualizar referencia de "Sapatilha Ballet Preta" para "Loafer Preto" no look "Casual Refinado".
 
-Na fase de resultados, cada look card mostrara:
-- Score geral em destaque (badge colorido)
-- 3 mini barras de progresso com labels (Cromatica, Estilo, Versatilidade)
-- Paleta de cores dominantes do look (swatches circulares)
+### Formato das URLs
 
-### Novo step de geracao
+Todas seguem o padrao: `https://images.unsplash.com/photo-{ID}?w=200&h=250&fit=crop`
 
-Adicionar 4o passo na animacao: "Calculando harmonia cromatica..."
-
-## Alteracoes Tecnicas
-
-### Arquivo modificado
-- `src/components/landing/demo/ClosetSim.tsx`
-
-### Detalhes das alteracoes
-
-1. **Substituir todas as URLs de imagem** em CAPSULE_ITEMS com as novas verificadas
-2. **Adicionar campo `color`** (hex) a cada item para exibir swatches:
-   - Off-White: #FAF5EF
-   - Bege: #C8B89A
-   - Preto: #1A1A1A
-   - Caramelo: #B5651D
-   - Creme: #F5E6CA
-   - Preto suave: #2C2C2C
-   - Denim claro: #8FA5C4
-   - Nude: #D4A574
-   - Preto: #1C1C1C
-   - Dourado: #DAA520
-   - Caramelo escuro: #8B5E3C
-   - Ouro antigo: #C5A02E
-
-3. **Expandir AI_LOOKS** com subdimensoes de harmonia
-4. **Adicionar 4o step** em GENERATION_STEPS
-5. **Renomear** "Blusa de Laco Preta" para "Blusa Elegante Preta"
-6. **Nova UI** na fase looks: barras de subdimensao + swatches de cor por look
+Para IDs que sao slugs (nao photo-), o formato e: `https://images.unsplash.com/{ID}?w=200&h=250&fit=crop`
