@@ -1,65 +1,75 @@
 
-# Correcao de Imagens do Closet Inteligente
+
+# Melhoria da /welcome: Fontes Maiores e Responsividade
 
 ## Resumo
 
-Substituir 8 imagens com inconsistencias no componente `ClosetSim.tsx`, usando imagens Unsplash verificadas visualmente. Algumas pecas terao nomes ajustados para corresponder melhor a imagem verificada.
+Aumentar o tamanho das fontes em todas as secoes da pagina /welcome (BetaHero, DemoSection, TesterSignupForm, Footer) e garantir compatibilidade visual para Mobile (390px), Tablet (768px) e Desktop (1920px). Hoje os textos estao pequenos, especialmente em mobile, e algumas areas nao aproveitam bem telas grandes.
 
-## Inconsistencias Encontradas e Correcoes
+## Problemas Identificados
 
-### Arquivo: `src/components/landing/demo/ClosetSim.tsx`
+1. **BetaHero**: Titulo "Ethra" e subtitulos com fontes adequadas em desktop mas pequenas em mobile. Feature cards com texto `text-xs` e `text-sm` -- muito pequeno.
+2. **DemoSection**: Titulo da secao ok, mas descricao das tabs e conteudo interno usam `text-sm` e `text-xs` -- dificil de ler.
+3. **TesterSignupForm**: Titulo do formulario ok, mas textos auxiliares (`text-sm`, `text-xs`) muito pequenos. Inputs com `h-12` funciona bem.
+4. **Footer**: Links e copyright em `text-sm` -- aceitavel mas pode crescer um pouco.
+5. **Espacamento**: Em desktop a hero ocupa a tela inteira mas o conteudo fica comprimido no centro com `max-w-2xl`.
 
-Todas as alteracoes sao nos dados `CAPSULE_ITEMS` (linhas 29-49).
+## Alteracoes Planejadas
 
-| Peca | Problema Reportado | Nova Imagem (Unsplash ID) | Verificacao Visual |
-|------|-------------------|--------------------------|-------------------|
-| Regata Seda Off-White | Mostra camiseta preta | `e7RyjcF2dLk` | Mulher em vestido/top branco com alca fina - cor branca/off-white visivel |
-| Blazer Oversized Bege | Mostra saia azul claro | `4Svv9DmBKcA` | Mulher posando em blazer oversized neutro/bege - estrutura de blazer clara |
-| Blusa Elegante Preta | Mostra camiseta estampada branca | `poiMv6Rjxok` | Mulher em top preto elegante transparente - Featured in Fashion and Beauty |
-| Sueter Cashmere Caramelo | Mostra camiseta branca com estampa azul | `XBiN-sGiZOk` | Mulher em sueter de trico marrom/caramelo grosso - cor caramelo/mostarda |
-| Scarpin Nude | Mostra sapato salto azul | `lckpJgGdtk8` | Par de sapatos nude/champagne de salto alto - cor nude clara |
-| Sapatilha Ballet Preta | Mostra bolsa rosa | `NySU2CFS9Eo` | Sapatos pretos em fundo branco - renomear para "Loafer Preto" |
-| Sandalia Tiras Dourada | Mostra papete cinza | `51QcRqMjy6w` | Sandalias douradas abertas nos pes femininos - dourado/glitter visivel |
-| Bolsa Estruturada Caramelo | Mostra bolsa preta | `-poL3YQTBPI` | Bolsa estruturada marrom/caramelo ao lado de mulher - cor caramelo clara |
+### 1. BetaHero.tsx
 
-## Ajuste de Nome
+- Badge "Programa Beta": `text-xs` para `text-sm`
+- Badge "Vagas Limitadas": `text-sm` para `text-base`
+- Titulo "Ethra": `text-5xl md:text-6xl` para `text-5xl md:text-7xl lg:text-8xl`
+- Subtitulo "Seu GPS": `text-lg` para `text-xl md:text-2xl`
+- Headline "Seja uma das primeiras": `text-2xl md:text-3xl` para `text-3xl md:text-4xl lg:text-5xl`
+- Paragrafo descritivo: sem classe de tamanho (default 1rem) para `text-base md:text-lg`
+- Feature cards: titulo `text-sm` para `text-base`, descricao `text-xs` para `text-sm`
+- Icones dos cards: `w-6 h-6` para `w-7 h-7 md:w-8 md:h-8`
+- Social proof: `text-sm` para `text-base`
+- Botao CTA: `text-base` para `text-base md:text-lg`
+- Container: `max-w-2xl` para `max-w-3xl`
+- Nota rodape: `text-xs` para `text-sm`
 
-- "Sapatilha Ballet Preta" sera renomeada para **"Loafer Preto"** pois a imagem verificada mostra loafers pretos (mais adequado do que sapatilha de ballet)
+### 2. DemoSection.tsx
 
-## Itens que permanecem inalterados (sem problemas reportados)
+- Badge "Simulacao interativa": `text-sm` para `text-base`
+- Titulo "Experimente agora": `text-4xl md:text-5xl` para `text-4xl md:text-5xl lg:text-6xl`
+- Descricao: `text-lg` para `text-lg md:text-xl`
+- Tab labels: `text-xs md:text-sm` para `text-sm md:text-base`
+- Titulo interno da tab: `text-xl md:text-2xl` para `text-2xl md:text-3xl`
+- Descricao interna da tab: `text-sm` para `text-base`
+- Container: `max-w-4xl` para `max-w-5xl`
+- Padding: `p-6 md:p-10` para `p-6 md:p-10 lg:p-12`
 
-- Calca Alfaiataria Creme (bottoms)
-- Saia Midi Plissada Preta (bottoms)
-- Jeans Wide Leg Claro (bottoms)
-- Brincos Dourados Delicados (acessorios)
+### 3. TesterSignupForm.tsx
 
-## AI_LOOKS
+- Badge "Programa BETA": `text-sm` para `text-base`
+- Titulo "Garanta sua vaga": `text-3xl md:text-4xl` para `text-3xl md:text-4xl lg:text-5xl`
+- Descricao: `text-sm` para `text-base`
+- Container: `max-w-md` para `max-w-lg`
+- Inputs: `h-12` para `h-13 md:h-14`
+- Botao submit: `text-base` para `text-base md:text-lg`, `h-12` para `h-13 md:h-14`
+- Texto auxiliar senha: `text-xs` para `text-sm`
+- Nota rodape: `text-xs` para `text-sm`
+- Tela de sucesso: titulo `text-2xl` para `text-2xl md:text-3xl`, descricao `text-sm` para `text-base`
 
-O look "Passeio Sofisticado" referencia "Sandalia Tiras Dourada" que permanece com o mesmo nome. O item renomeado "Loafer Preto" (antes "Sapatilha Ballet Preta") precisa ser atualizado tambem no look "Casual Refinado" onde e referenciado.
+### 4. Footer.tsx
+
+- Logo "Ethra": `text-xl` para `text-2xl`
+- Links: `text-sm` para `text-base`
+- Copyright: `text-sm` para `text-base`
+- "Powered by": `text-sm` para `text-base`
 
 ## Secao Tecnica
 
-### Alteracoes em `CAPSULE_ITEMS` (linhas 30-48)
+### Arquivos modificados
+- `src/components/landing/BetaHero.tsx` -- Fontes e espacamento do hero
+- `src/components/landing/DemoSection.tsx` -- Fontes das tabs e conteudo demo
+- `src/components/landing/TesterSignupForm.tsx` -- Fontes do formulario e tela de sucesso
+- `src/components/landing/Footer.tsx` -- Fontes do rodape
 
-Substituicao de 8 URLs de imagem e 1 rename:
+### Abordagem
 
-```text
-Linha 31: image -> https://images.unsplash.com/photo-1503342217505-b0a15ec3261c -> NOVA: e7RyjcF2dLk
-Linha 32: image -> https://images.unsplash.com/photo-1591369822096-ffd140ec948f -> NOVA: 4Svv9DmBKcA  
-Linha 33: image -> https://images.unsplash.com/photo-1554568218-0f1715e72254 -> NOVA: poiMv6Rjxok
-Linha 34: image -> https://images.unsplash.com/photo-1576566588028-4147f3842f27 -> NOVA: XBiN-sGiZOk
-Linha 42: image -> https://images.unsplash.com/photo-1543163521-1bf539c55dd2 -> NOVA: lckpJgGdtk8
-Linha 43: image + name -> "Sapatilha Ballet Preta" -> "Loafer Preto", image: NySU2CFS9Eo
-Linha 44: image -> https://images.unsplash.com/photo-1603487742131-4160ec999306 -> NOVA: 51QcRqMjy6w
-Linha 47: image -> https://images.unsplash.com/photo-1548036328-c9fa89d128fa -> NOVA: -poL3YQTBPI
-```
+Uso exclusivo de classes responsivas do Tailwind (`md:`, `lg:`) para escalar fontes progressivamente. Nenhuma alteracao de layout estrutural, apenas aumento de `font-size` e ajustes de `max-width` dos containers para melhor aproveitamento em telas grandes.
 
-### Alteracao em `AI_LOOKS` (linha 83)
-
-Atualizar referencia de "Sapatilha Ballet Preta" para "Loafer Preto" no look "Casual Refinado".
-
-### Formato das URLs
-
-Todas seguem o padrao: `https://images.unsplash.com/photo-{ID}?w=200&h=250&fit=crop`
-
-Para IDs que sao slugs (nao photo-), o formato e: `https://images.unsplash.com/{ID}?w=200&h=250&fit=crop`
