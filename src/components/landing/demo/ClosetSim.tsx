@@ -29,8 +29,8 @@ interface AILook {
 const CAPSULE_ITEMS: Record<string, CapsuleItem[]> = {
   tops: [
     { name: 'Regata Seda Off-White', image: 'https://images.unsplash.com/photo-1618515488915-83f021210f1e?w=400&h=500&fit=crop&q=80', icon: '👚', color: '#FAF5EF' },
-    { name: 'Blazer Oversized Bege', image: 'https://images.unsplash.com/photo-1747814896386-fde8c4272238?w=400&h=500&fit=crop&q=80', icon: '🧥', color: '#C8B89A' },
-    { name: 'Blusa Elegante Preta', image: 'https://images.unsplash.com/photo-1573164574144-649081e9421a?w=400&h=500&fit=crop&q=80', icon: '👚', color: '#1A1A1A' },
+    { name: 'Blazer Oversized Bege', image: 'https://images.unsplash.com/photo-1747815065172-a3234582223e?w=400&h=500&fit=crop&q=80', icon: '🧥', color: '#C8B89A' },
+    { name: 'Blusa Elegante Preta', image: 'https://images.unsplash.com/photo-1585487000261-3fc48269c3f1?w=400&h=500&fit=crop&q=80', icon: '👚', color: '#1A1A1A' },
     { name: 'Suéter Cashmere Caramelo', image: 'https://images.unsplash.com/photo-1573587302894-7d0475939841?w=400&h=500&fit=crop&q=80', icon: '🧶', color: '#B5651D' },
   ],
   bottoms: [
@@ -40,12 +40,12 @@ const CAPSULE_ITEMS: Record<string, CapsuleItem[]> = {
   ],
   shoes: [
     { name: 'Scarpin Nude', image: 'https://images.unsplash.com/photo-1721176394537-7a80cd0dac62?w=400&h=500&fit=crop&q=80', icon: '👠', color: '#D4A574' },
-    { name: 'Loafer Preto', image: 'https://images.unsplash.com/photo-1760616172899-0681b97a2de3?w=400&h=500&fit=crop&q=80', icon: '🥿', color: '#1C1C1C' },
-    { name: 'Sandália Tiras Dourada', image: 'https://images.unsplash.com/photo-1523742348304-8e67f3cafc08?w=400&h=500&fit=crop&q=80', icon: '👡', color: '#DAA520' },
+    { name: 'Scarpin Preto', image: 'https://images.unsplash.com/photo-1553145478-5b0fee29e4fc?w=400&h=500&fit=crop&q=80', icon: '🥿', color: '#1C1C1C' },
+    { name: 'Sandália Salto Dourada', image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&h=500&fit=crop&q=80', icon: '👡', color: '#DAA520' },
   ],
   accessories: [
-    { name: 'Bolsa Estruturada Caramelo', image: 'https://images.unsplash.com/photo-1613332098721-054a53462d12?w=400&h=500&fit=crop&q=80', icon: '👜', color: '#8B5E3C' },
-    { name: 'Brincos Dourados Delicados', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&h=500&fit=crop&q=80', icon: '✨', color: '#C5A02E' },
+    { name: 'Bolsa Estruturada Caramelo', image: 'https://images.unsplash.com/photo-1622445270936-5dcb604970e7?w=400&h=500&fit=crop&q=80', icon: '👜', color: '#8B5E3C' },
+    { name: 'Brincos Dourados Delicados', image: 'https://images.unsplash.com/photo-1632525230528-ec17c49bc168?w=400&h=500&fit=crop&q=80', icon: '✨', color: '#C5A02E' },
   ],
 };
 
@@ -73,14 +73,14 @@ const AI_LOOKS: AILook[] = [
   },
   {
     name: 'Passeio Sofisticado',
-    items: ['Blusa Elegante Preta', 'Saia Midi Plissada Preta', 'Sandália Tiras Dourada', 'Brincos Dourados Delicados'],
+    items: ['Blusa Elegante Preta', 'Saia Midi Plissada Preta', 'Sandália Salto Dourada', 'Brincos Dourados Delicados'],
     occasion: 'Passeio',
     harmony: 92,
     breakdown: { colorHarmony: 94, styleCoherence: 93, versatility: 88 },
   },
   {
     name: 'Casual Refinado',
-    items: ['Suéter Cashmere Caramelo', 'Jeans Wide Leg Claro', 'Loafer Preto', 'Bolsa Estruturada Caramelo'],
+    items: ['Suéter Cashmere Caramelo', 'Jeans Wide Leg Claro', 'Scarpin Preto', 'Bolsa Estruturada Caramelo'],
     occasion: 'Dia a dia',
     harmony: 94,
     breakdown: { colorHarmony: 95, styleCoherence: 91, versatility: 96 },
@@ -121,7 +121,7 @@ function ReliableImage({ src, alt, className }: { src: string; alt: string; clas
 function HarmonyBar({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-[10px] text-muted-foreground w-20 text-right">{label}</span>
+      <span className="text-xs text-muted-foreground w-20 text-right">{label}</span>
       <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
         <motion.div
           className="h-full rounded-full bg-primary"
@@ -130,7 +130,7 @@ function HarmonyBar({ label, value }: { label: string; value: number }) {
           transition={{ duration: 0.8, ease: 'easeOut' }}
         />
       </div>
-      <span className="text-[10px] font-medium text-foreground w-8">{value}%</span>
+      <span className="text-xs font-medium text-foreground w-8">{value}%</span>
     </div>
   );
 }
@@ -222,10 +222,10 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
             exit={{ opacity: 0, y: -10 }}
           >
             <div className="text-center space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">
+              <p className="text-base md:text-lg font-medium text-muted-foreground">
                 Selecione peças para criar seu armário cápsula
               </p>
-              <p className="text-xs text-muted-foreground/60">
+              <p className="text-sm md:text-base text-muted-foreground/60">
                 Um armário cápsula reúne peças versáteis que combinam entre si — menos roupa, mais looks.
               </p>
             </div>
@@ -233,7 +233,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
             <div className="w-full grid grid-cols-2 gap-4">
               {Object.entries(CAPSULE_ITEMS).map(([category, items]) => (
                 <div key={category} className="space-y-2">
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                  <h4 className="text-sm md:text-base font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                     <span>{CATEGORY_ICONS[category]}</span>
                     {CATEGORY_LABELS[category]}
                   </h4>
@@ -261,7 +261,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
                           </div>
                           <div className="flex items-center gap-1.5 flex-1 min-w-0">
                             <div className="w-3 h-3 rounded-full border border-border/50 flex-shrink-0" style={{ backgroundColor: item.color }} />
-                            <span className={`truncate text-xs ${isSelected ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                            <span className={`truncate text-sm ${isSelected ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
                               {item.name}
                             </span>
                           </div>
@@ -274,10 +274,10 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
             </div>
 
             <div className="w-full flex items-center justify-between">
-              <button onClick={selectAll} className="text-xs text-primary font-medium hover:underline">
+              <button onClick={selectAll} className="text-sm text-primary font-medium hover:underline">
                 Selecionar todas ({allItems.length} peças)
               </button>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-sm text-muted-foreground">
                 {capsuleCount} peça{capsuleCount !== 1 ? 's' : ''} selecionada{capsuleCount !== 1 ? 's' : ''}
               </span>
             </div>
@@ -285,7 +285,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
             <motion.button
               onClick={generateLooks}
               disabled={capsuleCount < 3}
-              className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium text-sm transition-all ${
+              className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium text-base transition-all ${
                 capsuleCount >= 3
                   ? 'gradient-primary text-primary-foreground shadow-glow hover:opacity-90'
                   : 'bg-muted text-muted-foreground cursor-not-allowed'
@@ -310,7 +310,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
           >
             <div className="flex items-center gap-2">
               <Loader2 className="w-5 h-5 text-primary animate-spin" />
-              <span className="text-sm font-semibold text-foreground">Criando looks com IA...</span>
+              <span className="text-base md:text-lg font-semibold text-foreground">Criando looks com IA...</span>
             </div>
             <Progress value={progressValue} className="h-2 w-full" />
             <div className="w-full space-y-2">
@@ -320,7 +320,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
                 return (
                   <motion.div
                     key={step.label}
-                    className={`flex items-center gap-3 text-sm px-3 py-1.5 rounded-lg transition-colors ${
+                    className={`flex items-center gap-3 text-base px-3 py-1.5 rounded-lg transition-colors ${
                       active ? 'bg-primary/10 text-primary font-medium' : done ? 'text-muted-foreground' : 'text-muted-foreground/40'
                     }`}
                     initial={{ opacity: 0, x: -10 }}
@@ -349,13 +349,13 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
             <div className="w-full">
               <div className="flex items-center gap-2 mb-3 justify-center">
                 <LayoutGrid className="w-4 h-4 text-primary" />
-                <h4 className="text-sm font-semibold text-foreground">Seu closet organizado</h4>
+                <h4 className="text-base md:text-lg font-semibold text-foreground">Seu closet organizado</h4>
               </div>
               <div className="rounded-2xl border border-border bg-card/60 backdrop-blur-sm p-4 shadow-soft">
                 <div className="grid grid-cols-4 gap-3">
                   {Object.entries(CAPSULE_ITEMS).map(([category, items]) => (
                     <div key={category} className="space-y-2">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground text-center">
+                      <p className="text-xs md:text-sm font-bold uppercase tracking-wider text-muted-foreground text-center">
                         {CATEGORY_LABELS[category]}
                       </p>
                       <div className="space-y-1.5">
@@ -374,7 +374,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
                               </div>
                               <div className="flex items-center gap-1 py-0.5 bg-background/80 px-1">
                                 <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
-                                <p className="text-[8px] text-muted-foreground truncate">{item.name}</p>
+                                <p className="text-[10px] md:text-xs text-muted-foreground truncate">{item.name}</p>
                               </div>
                             </motion.div>
                           );
@@ -390,7 +390,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
             <div className="w-full">
               <div className="flex items-center gap-2 mb-3 justify-center">
                 <Sparkles className="w-4 h-4 text-primary" />
-                <h4 className="text-sm font-semibold text-foreground">{AI_LOOKS.length} looks criados pela IA</h4>
+                <h4 className="text-base md:text-lg font-semibold text-foreground">{AI_LOOKS.length} looks criados pela IA</h4>
               </div>
               <div className="space-y-3">
                 {AI_LOOKS.map((look, idx) => {
@@ -410,13 +410,13 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <Shirt className="w-3.5 h-3.5 text-primary" />
-                          <span className="text-xs font-semibold text-foreground">{look.name}</span>
+                          <span className="text-sm md:text-base font-semibold text-foreground">{look.name}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] text-muted-foreground px-2 py-0.5 rounded-full bg-muted">
+                          <span className="text-xs text-muted-foreground px-2 py-0.5 rounded-full bg-muted">
                             {look.occasion}
                           </span>
-                          <span className="text-[10px] font-bold text-primary px-2 py-0.5 rounded-full bg-primary/10">
+                          <span className="text-xs font-bold text-primary px-2 py-0.5 rounded-full bg-primary/10">
                             {look.harmony}%
                           </span>
                         </div>
@@ -432,7 +432,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
                               <div className="aspect-[3/4]">
                                 <ReliableImage src={item.image} alt={item.name} className="w-full h-full object-cover" />
                               </div>
-                              <p className="text-[8px] text-center py-0.5 bg-background/60 text-muted-foreground truncate px-0.5">
+                              <p className="text-[10px] md:text-xs text-center py-0.5 bg-background/60 text-muted-foreground truncate px-0.5">
                                 {itemName}
                               </p>
                             </div>
@@ -454,7 +454,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-1.5">
                                   <Palette className="w-3 h-3 text-primary" />
-                                  <span className="text-[10px] font-semibold text-foreground">Score de Harmonia</span>
+                                  <span className="text-xs font-semibold text-foreground">Score de Harmonia</span>
                                 </div>
                                 <ColorSwatches items={look.items} allItems={allItems} />
                               </div>
@@ -473,7 +473,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
 
             {/* Actions */}
             <motion.button
-              className="inline-flex items-center gap-2 text-xs text-primary font-medium hover:underline"
+              className="inline-flex items-center gap-2 text-sm text-primary font-medium hover:underline"
               onClick={() => {
                 setPhase('closet');
                 setCurrentStep(-1);
@@ -487,7 +487,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
             </motion.button>
 
             <motion.button
-              className="inline-flex items-center justify-center gap-2 text-sm font-semibold text-primary hover:underline mt-1"
+              className="inline-flex items-center justify-center gap-2 text-base md:text-lg font-semibold text-primary hover:underline mt-1"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.8 }}
