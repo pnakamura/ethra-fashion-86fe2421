@@ -60,7 +60,7 @@ export function BetaHero() {
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-primary/10 blur-[120px]" />
       </div>
 
-      <div className="relative z-10 max-w-2xl w-full text-center space-y-8">
+      <div className="relative z-10 max-w-3xl w-full text-center space-y-8">
         {/* BETA Badge */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -68,11 +68,11 @@ export function BetaHero() {
           transition={{ duration: 0.5 }}
           className="flex flex-col items-center gap-3"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/40 bg-primary/10 text-xs font-bold uppercase tracking-widest text-primary">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/40 bg-primary/10 text-sm font-bold uppercase tracking-widest text-primary">
             <FlaskConical className="w-3.5 h-3.5" />
             Programa Beta
           </div>
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 text-sm font-medium text-primary">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 text-base font-medium text-primary">
             <Sparkles className="w-4 h-4" />
             Vagas Limitadas para Testadores
           </div>
@@ -84,10 +84,10 @@ export function BetaHero() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1, duration: 0.5 }}
         >
-          <h1 className="text-5xl md:text-6xl font-display font-semibold text-foreground tracking-tight">
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-semibold text-foreground tracking-tight">
             Ethra
           </h1>
-          <p className="text-lg text-muted-foreground mt-1 font-light">
+          <p className="text-xl md:text-2xl text-muted-foreground mt-1 font-light">
             Seu GPS de Estilo Pessoal
           </p>
         </motion.div>
@@ -99,10 +99,10 @@ export function BetaHero() {
           transition={{ delay: 0.25, duration: 0.6 }}
           className="space-y-3"
         >
-          <h2 className="text-2xl md:text-3xl font-display font-medium text-foreground leading-tight">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-display font-medium text-foreground leading-tight">
             Seja uma das primeiras a testar
           </h2>
-          <p className="text-muted-foreground max-w-lg mx-auto leading-relaxed">
+          <p className="text-base md:text-lg text-muted-foreground max-w-lg mx-auto leading-relaxed">
             O Ethra está em <strong className="text-foreground">fase BETA fechada</strong>.
             Buscamos testadoras que queiram moldar o futuro da moda com inteligência
             artificial — e ganhar acesso vitalício ao premium como recompensa.
@@ -124,9 +124,9 @@ export function BetaHero() {
               transition={{ delay: 0.5 + i * 0.1, duration: 0.4 }}
               className="rounded-xl border border-border bg-card/60 backdrop-blur-sm p-5 text-center space-y-2 hover:border-primary/30 transition-colors"
             >
-              <f.icon className="w-6 h-6 mx-auto text-primary" />
-              <p className="font-medium text-sm text-foreground">{f.title}</p>
-              <p className="text-xs text-muted-foreground">{f.hint}</p>
+              <f.icon className="w-7 h-7 md:w-8 md:h-8 mx-auto text-primary" />
+              <p className="font-medium text-base text-foreground">{f.title}</p>
+              <p className="text-sm text-muted-foreground">{f.hint}</p>
             </motion.div>
           ))}
         </motion.div>
@@ -136,7 +136,7 @@ export function BetaHero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.7, duration: 0.5 }}
-          className="flex items-center justify-center gap-4 text-sm text-muted-foreground flex-wrap"
+          className="flex items-center justify-center gap-4 text-base text-muted-foreground flex-wrap"
         >
           {testerCount != null && testerCount > 0 && (
             <>
@@ -163,7 +163,7 @@ export function BetaHero() {
           <Button
             size="lg"
             onClick={scrollToSignup}
-            className="w-full sm:w-auto gradient-primary text-primary-foreground shadow-glow hover:opacity-90 transition-opacity text-base px-8"
+            className="w-full sm:w-auto gradient-primary text-primary-foreground shadow-glow hover:opacity-90 transition-opacity text-base md:text-lg px-8"
           >
             <FlaskConical className="w-4 h-4 mr-2" />
             Quero ser BETA tester
@@ -175,7 +175,7 @@ export function BetaHero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1, duration: 0.5 }}
-          className="text-xs text-muted-foreground/70 max-w-sm mx-auto"
+          className="text-sm text-muted-foreground/70 max-w-sm mx-auto"
         >
           Sua opinião vai moldar o produto. Beta testers terão acesso vitalício às
           funcionalidades premium.

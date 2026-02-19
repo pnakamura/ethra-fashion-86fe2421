@@ -16,11 +16,11 @@ export function Footer() {
             <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="font-display text-xl font-semibold">Ethra</span>
+            <span className="font-display text-2xl font-semibold">Ethra</span>
           </motion.div>
 
           {/* Links */}
-          <div className="flex items-center gap-8 text-sm text-muted-foreground">
+          <div className="flex items-center gap-8 text-base text-muted-foreground">
             <a href="/terms" className="hover:text-foreground transition-colors">
               Termos de Uso
             </a>
@@ -33,13 +33,13 @@ export function Footer() {
           </div>
 
           {/* Badge */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 text-base text-muted-foreground">
             <span>Powered by</span>
             <span className="text-primary font-medium">AI</span>
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-border/30 text-center text-sm text-muted-foreground">
+        <div className="mt-8 pt-8 border-t border-border/30 text-center text-base text-muted-foreground">
           © {new Date().getFullYear()} Ethra. Todos os direitos reservados.
         </div>
       </div>
