@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ChevronRight, Check, Loader2, Shuffle, Shirt, LayoutGrid, Palette } from 'lucide-react';
+import { Sparkles, ChevronRight, Check, Loader2, Shuffle, Shirt, LayoutGrid, Palette, ImageOff } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 /* ── Types ── */
@@ -28,24 +28,24 @@ interface AILook {
 /* ── Capsule items with verified Unsplash images + color hex ── */
 const CAPSULE_ITEMS: Record<string, CapsuleItem[]> = {
   tops: [
-    { name: 'Regata Seda Off-White', image: 'https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=200&h=250&fit=crop', icon: '👚', color: '#FAF5EF' },
-    { name: 'Blazer Oversized Bege', image: 'https://images.unsplash.com/photo-1591369822096-ffd140ec948f?w=200&h=250&fit=crop', icon: '🧥', color: '#C8B89A' },
-    { name: 'Blusa Elegante Preta', image: 'https://images.unsplash.com/photo-1618932260643-aa4c91b0-fb5?w=200&h=250&fit=crop', icon: '👚', color: '#1A1A1A' },
-    { name: 'Suéter Cashmere Caramelo', image: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=200&h=250&fit=crop', icon: '🧶', color: '#B5651D' },
+    { name: 'Regata Seda Off-White', image: 'https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=400&h=500&fit=crop&q=80', icon: '👚', color: '#FAF5EF' },
+    { name: 'Blazer Oversized Bege', image: 'https://images.unsplash.com/photo-1591369822096-ffd140ec948f?w=400&h=500&fit=crop&q=80', icon: '🧥', color: '#C8B89A' },
+    { name: 'Blusa Elegante Preta', image: 'https://images.unsplash.com/photo-1618932260643-aa4c91b074a4?w=400&h=500&fit=crop&q=80', icon: '👚', color: '#1A1A1A' },
+    { name: 'Suéter Cashmere Caramelo', image: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&h=500&fit=crop&q=80', icon: '🧶', color: '#B5651D' },
   ],
   bottoms: [
-    { name: 'Calça Alfaiataria Creme', image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=200&h=250&fit=crop', icon: '👖', color: '#F5E6CA' },
-    { name: 'Saia Midi Plissada Preta', image: 'https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=200&h=250&fit=crop', icon: '👗', color: '#2C2C2C' },
-    { name: 'Jeans Wide Leg Claro', image: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=200&h=250&fit=crop', icon: '👖', color: '#8FA5C4' },
+    { name: 'Calça Alfaiataria Creme', image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=500&fit=crop&q=80', icon: '👖', color: '#F5E6CA' },
+    { name: 'Saia Midi Plissada Preta', image: 'https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=400&h=500&fit=crop&q=80', icon: '👗', color: '#2C2C2C' },
+    { name: 'Jeans Wide Leg Claro', image: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400&h=500&fit=crop&q=80', icon: '👖', color: '#8FA5C4' },
   ],
   shoes: [
-    { name: 'Scarpin Nude', image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=200&h=250&fit=crop', icon: '👠', color: '#D4A574' },
-    { name: 'Loafer Preto', image: 'https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=200&h=250&fit=crop', icon: '🥿', color: '#1C1C1C' },
-    { name: 'Sandália Tiras Dourada', image: 'https://images.unsplash.com/photo-1603487742131-4160ec999306?w=200&h=250&fit=crop', icon: '👡', color: '#DAA520' },
+    { name: 'Scarpin Nude', image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&h=500&fit=crop&q=80', icon: '👠', color: '#D4A574' },
+    { name: 'Loafer Preto', image: 'https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=400&h=500&fit=crop&q=80', icon: '🥿', color: '#1C1C1C' },
+    { name: 'Sandália Tiras Dourada', image: 'https://images.unsplash.com/photo-1603487742131-4160ec999306?w=400&h=500&fit=crop&q=80', icon: '👡', color: '#DAA520' },
   ],
   accessories: [
-    { name: 'Bolsa Estruturada Caramelo', image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=200&h=250&fit=crop', icon: '👜', color: '#8B5E3C' },
-    { name: 'Brincos Dourados Delicados', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=200&h=250&fit=crop', icon: '✨', color: '#C5A02E' },
+    { name: 'Bolsa Estruturada Caramelo', image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400&h=500&fit=crop&q=80', icon: '👜', color: '#8B5E3C' },
+    { name: 'Brincos Dourados Delicados', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&h=500&fit=crop&q=80', icon: '✨', color: '#C5A02E' },
   ],
 };
 
@@ -105,6 +105,18 @@ interface ClosetSimProps {
 }
 
 /* ── Sub-components ── */
+
+function ReliableImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
+  const [error, setError] = useState(false);
+  if (error) {
+    return (
+      <div className={`flex items-center justify-center bg-muted ${className ?? ''}`}>
+        <ImageOff className="w-4 h-4 text-muted-foreground/40" />
+      </div>
+    );
+  }
+  return <img src={src} alt={alt} className={className} loading="lazy" onError={() => setError(true)} />;
+}
 
 function HarmonyBar({ label, value }: { label: string; value: number }) {
   return (
@@ -240,7 +252,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
                           whileTap={{ scale: 0.97 }}
                         >
                           <div className="relative w-10 h-12 rounded-lg overflow-hidden flex-shrink-0 border border-border/30">
-                            <img src={item.image} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+                            <ReliableImage src={item.image} alt={item.name} className="w-full h-full object-cover" />
                             {isSelected && (
                               <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
                                 <Check className="w-4 h-4 text-primary" />
@@ -358,7 +370,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
                               transition={{ delay: idx * 0.08 }}
                             >
                               <div className="aspect-[3/4]">
-                                <img src={item.image} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+                                <ReliableImage src={item.image} alt={item.name} className="w-full h-full object-cover" />
                               </div>
                               <div className="flex items-center gap-1 py-0.5 bg-background/80 px-1">
                                 <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
@@ -418,7 +430,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
                           return (
                             <div key={itemName} className="flex-1 rounded-lg overflow-hidden border border-border/30">
                               <div className="aspect-[3/4]">
-                                <img src={item.image} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+                                <ReliableImage src={item.image} alt={item.name} className="w-full h-full object-cover" />
                               </div>
                               <p className="text-[8px] text-center py-0.5 bg-background/60 text-muted-foreground truncate px-0.5">
                                 {itemName}
