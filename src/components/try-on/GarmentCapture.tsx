@@ -12,6 +12,8 @@ import { useSmartCamera } from '@/hooks/useSmartCamera';
 import { toast } from 'sonner';
 import { openCaptureInputWithFallback } from '@/lib/camera-fallback';
 import { CameraFallbackModal } from '@/components/camera/CameraFallbackModal';
+import { useTranslation } from 'react-i18next';
+
 interface GarmentCaptureProps {
   onGarmentSelected: (garment: {
     imageUrl: string;
@@ -22,6 +24,7 @@ interface GarmentCaptureProps {
 }
 
 export function GarmentCapture({ onGarmentSelected }: GarmentCaptureProps) {
+  const { t } = useTranslation('tryOn');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -33,7 +36,6 @@ export function GarmentCapture({ onGarmentSelected }: GarmentCaptureProps) {
   const { extractGarmentAsync, extractFromUrlAsync, isExtracting, externalGarments } = useGarmentExtraction();
   const { analyzeImage } = useSmartCamera();
 
-  // Validate URL format
   const isValidUrl = (url: string): boolean => {
     try {
       const parsed = new URL(url);
@@ -53,18 +55,16 @@ export function GarmentCapture({ onGarmentSelected }: GarmentCaptureProps) {
   };
 
   const processFile = async (file: File, sourceType: 'camera_scan' | 'screenshot') => {
-    // Show preview
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
 
-    // Analyze image quality
     try {
       const analysis = await analyzeImage(url);
       if (analysis) {
         setImageQuality(analysis.overallScore);
         if (analysis.overallScore < 50) {
-          toast.warning('Qualidade da imagem baixa', {
-            description: analysis.tips[0] || 'Tente capturar novamente com melhor iluminação'
+          toast.warning(t('garmentCapture.lowQualityWarning'), {
+            description: analysis.tips[0] || ''
           });
         }
       }
@@ -110,17 +110,14 @@ export function GarmentCapture({ onGarmentSelected }: GarmentCaptureProps) {
   const handleUrlSubmit = async () => {
     if (!sourceUrl) return;
 
-    // Validate URL format
     if (!isValidUrl(sourceUrl)) {
-      toast.error('Por favor, insira uma URL válida (começando com http:// ou https://)');
+      toast.error(t('garmentCapture.invalidUrl'));
       return;
     }
 
-    // Show loading state with URL as temporary preview
     setPreviewUrl(sourceUrl);
 
     try {
-      // Use server-side fetch via Edge Function (bypasses CORS)
       const garment = await extractFromUrlAsync({ url: sourceUrl });
 
       onGarmentSelected({
@@ -145,7 +142,7 @@ export function GarmentCapture({ onGarmentSelected }: GarmentCaptureProps) {
     <>
       <Card className="p-4 shadow-soft">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-display text-lg font-medium">Capturar Peça Externa</h3>
+          <h3 className="font-display text-lg font-medium">{t('garmentCapture.title')}</h3>
           {imageQuality !== null && (
             <Badge 
               variant={imageQuality >= 65 ? 'default' : imageQuality >= 50 ? 'secondary' : 'destructive'}
@@ -161,15 +158,15 @@ export function GarmentCapture({ onGarmentSelected }: GarmentCaptureProps) {
           <TabsList className="grid grid-cols-3 mb-4">
             <TabsTrigger value="camera" className="text-xs">
               <Camera className="w-3 h-3 mr-1" />
-              Câmera
+              {t('garmentCapture.camera')}
             </TabsTrigger>
             <TabsTrigger value="gallery" className="text-xs">
               <Image className="w-3 h-3 mr-1" />
-              Galeria
+              {t('garmentCapture.gallery')}
             </TabsTrigger>
             <TabsTrigger value="url" className="text-xs">
               <LinkIcon className="w-3 h-3 mr-1" />
-              URL
+              {t('garmentCapture.url')}
             </TabsTrigger>
           </TabsList>
 
@@ -177,7 +174,7 @@ export function GarmentCapture({ onGarmentSelected }: GarmentCaptureProps) {
             <div className="space-y-3">
               <div className="p-4 bg-secondary/50 rounded-xl text-center">
                 <p className="text-sm text-muted-foreground mb-3">
-                  Aponte para uma roupa no cabide ou manequim
+                  {t('garmentCapture.pointToGarment')}
                 </p>
                 <Button
                   onClick={handleCameraClick}
@@ -189,7 +186,7 @@ export function GarmentCapture({ onGarmentSelected }: GarmentCaptureProps) {
                   ) : (
                     <Camera className="w-4 h-4 mr-2" />
                   )}
-                  Abrir Câmera
+                  {t('garmentCapture.openCamera')}
                 </Button>
               </div>
               <input
@@ -207,7 +204,7 @@ export function GarmentCapture({ onGarmentSelected }: GarmentCaptureProps) {
             <div className="space-y-3">
               <div className="p-4 bg-secondary/50 rounded-xl text-center">
                 <p className="text-sm text-muted-foreground mb-3">
-                  Envie um print ou foto da peça
+                  {t('garmentCapture.sendPrintOrPhoto')}
                 </p>
                 <Button
                   onClick={() => fileInputRef.current?.click()}
@@ -219,7 +216,7 @@ export function GarmentCapture({ onGarmentSelected }: GarmentCaptureProps) {
                   ) : (
                     <Upload className="w-4 h-4 mr-2" />
                   )}
-                  Escolher Imagem
+                  {t('garmentCapture.chooseImage')}
                 </Button>
               </div>
               <input
@@ -235,11 +232,11 @@ export function GarmentCapture({ onGarmentSelected }: GarmentCaptureProps) {
           <TabsContent value="url" className="mt-0">
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Cole a URL do produto ou da imagem direta
+                {t('garmentCapture.pasteUrl')}
               </p>
               <div className="flex gap-2">
                 <Input
-                  placeholder="https://loja.com/produto ou URL da imagem"
+                  placeholder={t('garmentCapture.urlPlaceholder')}
                   value={sourceUrl}
                   onChange={(e) => setSourceUrl(e.target.value)}
                   className="flex-1"
@@ -257,13 +254,12 @@ export function GarmentCapture({ onGarmentSelected }: GarmentCaptureProps) {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground/70">
-                Funciona com páginas de produto (Amazon, Shein, Zara...) ou URLs de imagem
+                {t('garmentCapture.worksWithStores')}
               </p>
             </div>
           </TabsContent>
         </Tabs>
 
-        {/* Preview */}
         <AnimatePresence>
           {previewUrl && (
             <motion.div
@@ -283,7 +279,7 @@ export function GarmentCapture({ onGarmentSelected }: GarmentCaptureProps) {
                     <div className="text-center">
                       <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-primary" />
                       <p className="text-sm text-muted-foreground">
-                        {activeTab === 'url' ? 'Analisando e extraindo peça...' : 'Extraindo peça...'}
+                        {activeTab === 'url' ? t('garmentCapture.analyzingExtracting') : t('garmentCapture.extracting')}
                       </p>
                     </div>
                   </div>
@@ -301,10 +297,9 @@ export function GarmentCapture({ onGarmentSelected }: GarmentCaptureProps) {
           )}
         </AnimatePresence>
 
-        {/* Recent Captures */}
         {externalGarments && externalGarments.length > 0 && !previewUrl && (
           <div className="mt-4 pt-4 border-t border-border">
-            <p className="text-xs text-muted-foreground mb-3">Capturas recentes</p>
+            <p className="text-xs text-muted-foreground mb-3">{t('garmentCapture.recentCaptures')}</p>
             <div className="flex gap-2 overflow-x-auto pb-2">
               {externalGarments.slice(0, 6).map((garment) => (
                 <button
@@ -321,7 +316,7 @@ export function GarmentCapture({ onGarmentSelected }: GarmentCaptureProps) {
                 >
                   <OptimizedImage
                     src={garment.processed_image_url || garment.original_image_url}
-                    alt="Peça capturada"
+                    alt={t('garmentCapture.capturedPiece')}
                     aspectRatio="square"
                     className="w-full h-full object-cover"
                     fallbackIcon={<ImageOff className="w-4 h-4 text-muted-foreground/50" />}
@@ -333,7 +328,6 @@ export function GarmentCapture({ onGarmentSelected }: GarmentCaptureProps) {
         )}
       </Card>
 
-      {/* Camera Fallback Modal */}
       <CameraFallbackModal
         isOpen={showCameraFallback}
         onClose={() => setShowCameraFallback(false)}

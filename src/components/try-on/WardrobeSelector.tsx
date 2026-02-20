@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { useWardrobeItems } from '@/hooks/useWardrobeItems';
+import { useTranslation } from 'react-i18next';
 
 interface WardrobeSelectorProps {
   onSelect: (item: {
@@ -18,10 +19,10 @@ interface WardrobeSelectorProps {
 }
 
 export function WardrobeSelector({ onSelect, selectedId }: WardrobeSelectorProps) {
+  const { t } = useTranslation('tryOn');
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // Use centralized hook for consistent cache
   const { items, isLoading } = useWardrobeItems();
 
   const categories = items
@@ -52,20 +53,18 @@ export function WardrobeSelector({ onSelect, selectedId }: WardrobeSelectorProps
 
   return (
     <Card className="p-4 shadow-soft">
-      <h3 className="font-display text-lg font-medium mb-3">Meu Closet</h3>
+      <h3 className="font-display text-lg font-medium mb-3">{t('wardrobeSelector.title')}</h3>
 
-      {/* Search */}
       <div className="relative mb-3">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
-          placeholder="Buscar peça..."
+          placeholder={t('wardrobeSelector.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-9"
         />
       </div>
 
-      {/* Category Filter */}
       {categories.length > 0 && (
         <div className="flex gap-2 mb-3 overflow-x-auto pb-2">
           <Badge
@@ -73,7 +72,7 @@ export function WardrobeSelector({ onSelect, selectedId }: WardrobeSelectorProps
             className="cursor-pointer flex-shrink-0"
             onClick={() => setSelectedCategory(null)}
           >
-            Todas
+            {t('wardrobeSelector.all')}
           </Badge>
           {categories.map((cat) => (
             <Badge
@@ -88,7 +87,6 @@ export function WardrobeSelector({ onSelect, selectedId }: WardrobeSelectorProps
         </div>
       )}
 
-      {/* Items Grid */}
       {filteredItems && filteredItems.length > 0 ? (
         <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
           {filteredItems.map((item, index) => (
@@ -138,8 +136,8 @@ export function WardrobeSelector({ onSelect, selectedId }: WardrobeSelectorProps
           <Shirt className="w-10 h-10 text-muted-foreground/50 mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">
             {items?.length === 0
-              ? 'Adicione peças ao seu closet'
-              : 'Nenhuma peça encontrada'}
+              ? t('wardrobeSelector.addPieces')
+              : t('wardrobeSelector.noPieceFound')}
           </p>
         </div>
       )}

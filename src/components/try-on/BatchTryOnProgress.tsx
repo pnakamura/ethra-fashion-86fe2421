@@ -3,6 +3,7 @@ import { X, Check, Loader2, Clock, AlertCircle, Layers, Sparkles } from 'lucide-
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import type { BatchTryOnState } from '@/hooks/useBatchTryOn';
+import { useTranslation } from 'react-i18next';
 
 interface BatchTryOnProgressProps {
   state: BatchTryOnState;
@@ -11,6 +12,7 @@ interface BatchTryOnProgressProps {
 }
 
 export function BatchTryOnProgress({ state, onCancel, onClose }: BatchTryOnProgressProps) {
+  const { t } = useTranslation('tryOn');
   const progress = state.totalPieces > 0 
     ? (state.currentIndex / state.totalPieces) * 100 
     : 0;
@@ -34,27 +36,26 @@ export function BatchTryOnProgress({ state, onCancel, onClose }: BatchTryOnProgr
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'Concluído';
+        return t('batchProgress.statusCompleted');
       case 'processing':
-        return 'Processando...';
+        return t('batchProgress.statusProcessing');
       case 'failed':
-        return 'Falhou';
+        return t('batchProgress.statusFailed');
       default:
-        return 'Aguardando';
+        return t('batchProgress.statusWaiting');
     }
   };
 
-  // Title based on mode
   const getTitle = () => {
     if (state.isComposing) {
-      if (state.isRunning) return 'Compondo Look';
-      if (state.isCancelled) return 'Composição Cancelada';
-      if (state.finalResultUrl) return 'Look Composto!';
-      return 'Composição Concluída';
+      if (state.isRunning) return t('batchProgress.composingLook');
+      if (state.isCancelled) return t('batchProgress.compositionCancelled');
+      if (state.finalResultUrl) return t('batchProgress.lookComposed');
+      return t('batchProgress.compositionCompleted');
     }
-    if (state.isRunning) return 'Provando Look';
-    if (state.isCancelled) return 'Cancelado';
-    return 'Concluído';
+    if (state.isRunning) return t('batchProgress.tryingLook');
+    if (state.isCancelled) return t('batchProgress.cancelled');
+    return t('batchProgress.completed');
   };
 
   return (
@@ -70,7 +71,6 @@ export function BatchTryOnProgress({ state, onCancel, onClose }: BatchTryOnProgr
         exit={{ scale: 0.9, opacity: 0 }}
         className="w-full max-w-sm bg-card rounded-2xl shadow-elevated border border-border p-5"
       >
-        {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             {state.isComposing && (
@@ -92,26 +92,24 @@ export function BatchTryOnProgress({ state, onCancel, onClose }: BatchTryOnProgr
           )}
         </div>
 
-        {/* Composition Mode: Show final result preview */}
         {state.isComposing && state.finalResultUrl && !state.isRunning && (
           <div className="mb-4 rounded-xl overflow-hidden bg-secondary aspect-[3/4] max-h-48">
             <img 
               src={state.finalResultUrl} 
-              alt="Look composto"
+              alt={t('batchProgress.composedLook')}
               className="w-full h-full object-contain"
             />
           </div>
         )}
 
-        {/* Progress */}
         <div className="mb-4">
           <div className="flex items-center justify-between text-sm mb-2">
             <span className="text-muted-foreground">
               {state.isRunning
                 ? state.isComposing 
-                  ? `Vestindo: ${state.currentPieceName}`
-                  : `Processando: ${state.currentPieceName}`
-                : `${completedCount} de ${state.totalPieces} concluídas`}
+                  ? t('batchProgress.dressing', { name: state.currentPieceName })
+                  : t('batchProgress.processing', { name: state.currentPieceName })
+                : t('batchProgress.completedOf', { completed: completedCount, total: state.totalPieces })}
             </span>
             <span className="font-medium">
               {state.currentIndex}/{state.totalPieces}
@@ -119,15 +117,13 @@ export function BatchTryOnProgress({ state, onCancel, onClose }: BatchTryOnProgr
           </div>
           <Progress value={progress} className="h-2" />
           
-          {/* Composition mode: show layer info */}
           {state.isComposing && state.isRunning && (
             <p className="text-[10px] text-muted-foreground mt-2 text-center">
-              Aplicando peça {state.currentIndex} de {state.totalPieces} no look...
+              {t('batchProgress.applyingPiece', { current: state.currentIndex, total: state.totalPieces })}
             </p>
           )}
         </div>
 
-        {/* Results List - Show differently for compose mode */}
         {!state.isComposing && (
           <div className="space-y-2 max-h-48 overflow-y-auto mb-4">
             {state.results.map((result, index) => (
@@ -165,7 +161,6 @@ export function BatchTryOnProgress({ state, onCancel, onClose }: BatchTryOnProgr
           </div>
         )}
 
-        {/* Compose mode: simplified step list */}
         {state.isComposing && state.isRunning && (
           <div className="space-y-1 max-h-32 overflow-y-auto mb-4">
             {state.results.map((result, index) => (
@@ -188,25 +183,23 @@ export function BatchTryOnProgress({ state, onCancel, onClose }: BatchTryOnProgr
           </div>
         )}
 
-        {/* Summary */}
         {!state.isRunning && (
           <div className="flex items-center justify-center gap-4 text-sm mb-4">
             {completedCount > 0 && (
               <div className="flex items-center gap-1 text-green-600">
                 <Check className="w-4 h-4" />
-                <span>{completedCount} sucesso</span>
+                <span>{t('batchProgress.success', { count: completedCount })}</span>
               </div>
             )}
             {failedCount > 0 && (
               <div className="flex items-center gap-1 text-destructive">
                 <AlertCircle className="w-4 h-4" />
-                <span>{failedCount} falha{failedCount !== 1 ? 's' : ''}</span>
+                <span>{failedCount} {failedCount !== 1 ? t('batchProgress.failures') : t('batchProgress.failure')}</span>
               </div>
             )}
           </div>
         )}
 
-        {/* Actions */}
         <div className="flex gap-2">
           {state.isRunning ? (
             <Button
@@ -215,17 +208,17 @@ export function BatchTryOnProgress({ state, onCancel, onClose }: BatchTryOnProgr
               className="w-full"
             >
               <X className="w-4 h-4 mr-2" />
-              Cancelar
+              {t('batchProgress.cancel')}
             </Button>
           ) : (
             <Button onClick={onClose} className="w-full gradient-primary text-primary-foreground">
               {state.isComposing && state.finalResultUrl ? (
                 <>
                   <Sparkles className="w-4 h-4 mr-2" />
-                  Ver Resultado
+                  {t('batchProgress.seeResult')}
                 </>
               ) : (
-                'Fechar'
+                t('batchProgress.close')
               )}
             </Button>
           )}
