@@ -1,161 +1,221 @@
 
-# Internacionalização (i18n): PT-BR + EN-US
 
-## Visao Geral
+# Auditoria Completa de Traducao EN-US
 
-Adicionar suporte a dois idiomas (Portugues Brasil e Ingles Americano) utilizando a biblioteca `react-i18next`, com deteccao automatica do idioma do navegador e seletor manual nas configuracoes. O conteudo juridico sera adaptado para cada publico.
+## Situacao Atual
 
----
+A Fase 1 da internacionalizacao criou a infraestrutura (i18n, JSON de traducoes, seletor de idioma), mas apenas **5 componentes** usam `useTranslation()`:
+- `Settings.tsx` (parcialmente -- muitas strings ainda hardcoded)
+- `AIDisclaimer.tsx`
+- `CelebrityDisclaimer.tsx`
+- `BiometricConsentModal.tsx`
+- `ConsentCheckbox.tsx`
 
-## Arquitetura
-
-A abordagem usa **namespaces por dominio** com arquivos JSON de traducao, um contexto React de idioma e lazy-loading dos arquivos de traducao.
-
-```text
-src/
-  i18n/
-    index.ts                  -- Configuracao do i18next
-    locales/
-      pt-BR/
-        common.json           -- Textos gerais (botoes, navegacao, saudacoes)
-        dashboard.json        -- Pagina principal
-        chromatic.json        -- Analise cromatica
-        wardrobe.json         -- Guarda-roupa
-        tryOn.json            -- Provador virtual
-        voyager.json          -- Viagens
-        events.json           -- Eventos
-        quiz.json             -- Quiz de estilo
-        settings.json         -- Configuracoes
-        subscription.json     -- Assinatura
-        legal.json            -- Termos, Privacidade, disclaimers
-        landing.json          -- Landing page
-        admin.json            -- Painel admin
-      en-US/
-        (mesmos arquivos)
-```
+**Todo o resto do aplicativo permanece 100% em portugues**, mesmo quando o usuario seleciona English (US).
 
 ---
 
-## Etapas de Implementacao
+## Lista Completa de Arquivos que Precisam de Traducao
 
-### Etapa 1 -- Infraestrutura i18n
+### Grupo 1 -- Navegacao e Layout (impacto imediato em todas as paginas)
 
-1. Instalar `react-i18next` e `i18next` e `i18next-browser-languagedetector`
-2. Criar `src/i18n/index.ts` com configuracao:
-   - Idioma padrao: `pt-BR`
-   - Deteccao automatica via navegador
-   - Fallback para `pt-BR`
-3. Importar no `main.tsx` antes do render
+| Arquivo | Strings hardcoded encontradas |
+|---------|-------------------------------|
+| `src/components/layout/Header.tsx` | "Inicio", "Closet", "Looks", "Cores", "Provador", "Agenda", "Ethra" |
+| `src/components/layout/BottomNav.tsx` | "Inicio", "Closet", "Looks", "Provador", "Mais", "Mais Opcoes", "Minha Paleta", "Voyager", "Agenda", "Configuracoes" |
+| `src/components/dashboard/QuickActions.tsx` | "Nova Peca", "Provador", "Minha Paleta", "Planejar", "Agenda" |
 
-### Etapa 2 -- Extrair strings PT-BR para JSON
+### Grupo 2 -- Dashboard / Index
 
-Mover todas as strings hardcoded dos componentes para os arquivos `pt-BR/*.json`. Isso inclui:
-- ~60+ componentes com texto em portugues
-- Saudacoes em `src/lib/greeting.ts`
-- Nomes de cores em `src/lib/normalize-color.ts`
-- Labels de formularios, toasts, placeholders
-- Textos de empty states, badges, tooltips
+| Arquivo | Strings hardcoded |
+|---------|-------------------|
+| `src/pages/Index.tsx` | "Vamos organizar seu closet hoje?", "Que tal um look novo hoje?", "Preparada para arrasar...", "O que vamos vestir hoje?", "Looks Exclusivos", "Combinacoes personalizadas com IA", "Espelho Neural", "Experimente roupas virtualmente", "Closet Virtual", "Organize e descubra combinacoes", "Agenda de Eventos", "Planeje o look perfeito", "Carregando..." |
+| `src/components/dashboard/LookOfTheDay.tsx` | (precisa verificar) |
+| `src/components/dashboard/MissionCard.tsx` | (precisa verificar) |
+| `src/components/dashboard/AchievementsPanel.tsx` | (precisa verificar) |
 
-### Etapa 3 -- Criar traducoes EN-US
+### Grupo 3 -- Autenticacao
 
-Traduzir todos os arquivos JSON para ingles, adaptando:
-- Formatos de data (MM/DD/YYYY vs DD/MM/YYYY)
-- Moeda (USD vs BRL)
-- Saudacoes ("Good morning" vs "Bom dia")
+| Arquivo | Strings hardcoded |
+|---------|-------------------|
+| `src/pages/Auth.tsx` | "Email invalido", "A senha deve ter pelo menos 6 caracteres", "Erro de validacao", "Consentimento necessario", "Este email ja esta cadastrado", "Email ou senha incorretos", "Conta criada!", "Seu GPS de Estilo Pessoal", "Entrar na sua conta", "Criar nova conta", "Seu email", "Sua senha", "Minimo de 6 caracteres", "Carregando...", "Entrar", "Criar Conta", "Nao tem conta?", "Criar agora", "Ja tem conta?", "Fazer login", "Voltar" |
 
-### Etapa 4 -- Adaptar componentes
+### Grupo 4 -- Settings (strings ainda hardcoded)
 
-Substituir strings hardcoded por chamadas `t('chave')`:
+| Secao | Strings PT-BR hardcoded |
+|-------|-------------------------|
+| Header | "Configuracoes" (linha 271) |
+| Aparencia | "Aparencia", "Tema", "Tamanho do Texto", "Fundo Artistico", "Modo Escuro", "Modo Claro" (linhas 283-370) |
+| Background | "Trocar", "Sua imagem personalizada...", "Clique para enviar imagem", "PNG, JPG ate 5MB", "Intensidade", dicas (linhas 438-516) |
+| Notificacoes | "Notificacoes", "Look do Dia", "Sugestao diaria", "Alertas de Clima", "Lembretes de Eventos", "1h antes", "2h antes", "Sua Cidade", "Salvar Preferencias" (linhas 579-688) |
+| Perfil | "Meu Perfil", "Usuario", "Plano Atual" (linhas 700-741) |
+| Privacidade | "Privacidade e Dados", "Exportar meus dados", "Formulario de Solicitacao de Direitos", "Exerca seus direitos previstos na LGPD...", todos os tipos de solicitacao, "Cancelar", "Confirmar solicitacao" (linhas 752-924) |
+| Conta | "Conta", "Assinatura", "Gerenciar seu plano", "Privacidade e Permissoes", "Exportar meus dados", "Baixar em formato JSON (LGPD)", "Sair da Conta", "Excluir minha conta", "Remover todos os dados (LGPD)", dialogo de exclusao completo (linhas 928-1107) |
+| Toasts | "Sessao expirada", "Dados exportados com sucesso!", "Erro ao exportar", "Preferencias salvas!", "Imagem muito grande", etc. |
 
-```text
-// Antes
-<h2>Closet Virtual</h2>
+### Grupo 5 -- Guarda-roupa (Wardrobe)
 
-// Depois  
-<h2>{t('dashboard.closet.title')}</h2>
-```
+| Arquivo | Strings hardcoded |
+|---------|-------------------|
+| `src/pages/Wardrobe.tsx` | "Meu Closet", "Closet de X", "Seu Closet", "itens", "Todas", "Roupas", "Calcados", "Acessorios", "Joias", "Ideais", "Neutras", "Evitar", "Nova", "Upgrade", "Buscar pecas...", "Capsula", toasts de CRUD |
+| `src/components/wardrobe/AddItemSheet.tsx` | (precisa verificar) |
+| `src/components/wardrobe/EditItemSheet.tsx` | (precisa verificar) |
+| `src/components/wardrobe/WardrobeEmptyState.tsx` | (precisa verificar) |
+| `src/components/wardrobe/WardrobeItemCard.tsx` | (precisa verificar) |
+| `src/components/wardrobe/CapsuleGuide.tsx` | (precisa verificar) |
+| `src/components/wardrobe/CapsuleHealthCard.tsx` | (precisa verificar) |
 
-Para `date-fns`, usar locale dinamico:
+### Grupo 6 -- Analise Cromatica
 
-```text
-// Antes
-import { ptBR } from 'date-fns/locale';
-format(date, 'dd/MM/yyyy', { locale: ptBR })
+| Arquivo | Strings hardcoded |
+|---------|-------------------|
+| `src/pages/Chromatic.tsx` | "Cores", "Descobrir", "Paleta", "Beauty", "Explorar", "Faca login para salvar sua paleta" |
+| `src/components/chromatic/*.tsx` | ~15 componentes com texto PT-BR |
 
-// Depois
-import { useLocale } from '@/i18n/useLocale';
-const { dateFnsLocale, dateFormat } = useLocale();
-format(date, dateFormat.short, { locale: dateFnsLocale })
-```
+### Grupo 7 -- Provador Virtual (Try-On)
 
-### Etapa 5 -- Seletor de Idioma
+| Arquivo | Strings hardcoded |
+|---------|-------------------|
+| `src/pages/VirtualTryOn.tsx` | "Flash (Rapido)", "Pro (Balanceado)", "Premium (Qualidade)" + muitas outras |
+| `src/components/try-on/*.tsx` | ~15 componentes |
 
-Adicionar na pagina de Configuracoes um seletor de idioma com bandeiras:
-- Portugues (Brasil)
-- English (US)
+### Grupo 8 -- Recomendacoes
 
-Persistir a escolha no `localStorage` e no perfil do usuario (coluna `locale` na tabela `profiles`).
+| Arquivo | Strings hardcoded |
+|---------|-------------------|
+| `src/pages/Recommendations.tsx` | "Todos", "Casual", "Trabalho", "Festa", "Formal" + muitas outras |
+| `src/components/recommendations/*.tsx` | ~6 componentes |
 
-### Etapa 6 -- Conteudo Juridico Diferenciado
+### Grupo 9 -- Eventos
 
-Este e o ponto mais critico. O conteudo juridico brasileiro (LGPD, CDC, Art. 49) nao se aplica ao publico internacional.
+| Arquivo | Strings hardcoded |
+|---------|-------------------|
+| `src/pages/Events.tsx` | "Reuniao", "Festa", "Encontro", "Entrevista", "Casamento", "Viagem", "Trabalho", "Especial" + uso de `ptBR` hardcoded no date-fns |
+| `src/components/events/*.tsx` | ~5 componentes |
 
-**Paginas juridicas separadas por locale:**
+### Grupo 10 -- Voyager
 
-| Aspecto | PT-BR | EN-US |
-|---------|-------|-------|
-| Lei de privacidade | LGPD (Lei 13.709/2018) | General privacy best practices (CCPA-friendly) |
-| Direito de arrependimento | Art. 49 CDC - 7 dias | Subscription cancellation policy (sem obrigacao legal de reembolso) |
-| Consentimento biometrico | Modal obrigatorio com registro | Opt-in consent dialog |
-| Foro | Sao Paulo/SP | Arbitration clause |
-| Idade minima | 18 anos (CDC) | 13+ (COPPA) ou 16+ (depende da jurisdicao) |
-| Email de contato | contato@ethra.com.br | contact@ethra.app (ou .com) |
-| Moeda | BRL (R$) | USD ($) |
+| Arquivo | Strings hardcoded |
+|---------|-------------------|
+| `src/pages/Voyager.tsx` | Categorias de packing list ("roupas", "calcados", "acessorios", "chapeus") |
+| `src/components/voyager/*.tsx` | ~10 componentes |
 
-As paginas de Termos e Politica de Privacidade terao versoes completas separadas nos JSONs de traducao, nao apenas traducao literal -- o conteudo juridico sera reescrito para o contexto internacional.
+### Grupo 11 -- Quiz de Estilo
 
-### Etapa 7 -- Componentes legais
+| Arquivo | Strings hardcoded |
+|---------|-------------------|
+| `src/pages/Quiz.tsx` / `src/pages/StyleQuiz.tsx` | (precisa verificar) |
+| `src/components/quiz/*.tsx` | ~10 componentes |
 
-- `AIDisclaimer`: traduzir texto, manter mesma estrutura
-- `CelebrityDisclaimer`: traduzir texto
-- `BiometricConsentModal`: adaptar texto do consentimento para ingles
-- Termos de Uso: versao EN-US com leis internacionais
-- Politica de Privacidade: versao EN-US sem LGPD especifica
+### Grupo 12 -- Onboarding
 
-### Etapa 8 -- Detalhes adicionais
+| Arquivo | Strings hardcoded |
+|---------|-------------------|
+| `src/pages/Onboarding.tsx` | "Carregando..." |
+| `src/components/onboarding/WelcomeScreen.tsx` | "Bem-vindo(a) ao" + descricoes |
+| `src/components/onboarding/*.tsx` | ~6 componentes |
 
-- **Hook `useLocale`**: retorna o locale atual, o locale do date-fns, formatos de data e moeda
-- **Nomes de cores**: manter dicionario PT-BR existente e adicionar dicionario EN-US em `normalize-color.ts`
-- **Landing page**: detectar idioma do navegador para exibir a versao correta automaticamente
-- **Rota /provador**: manter como alias mas adicionar `/try-on` como rota equivalente em EN
+### Grupo 13 -- Landing Page
+
+| Arquivo | Strings hardcoded |
+|---------|-------------------|
+| `src/pages/Landing.tsx` | "Carregando..." |
+| `src/components/landing/BetaHero.tsx` | "Colorimetria por IA", "Provador Virtual", "Closet Inteligente" + descricoes |
+| `src/components/landing/*.tsx` | ~10 componentes |
+
+### Grupo 14 -- Assinatura (Subscription)
+
+| Arquivo | Strings hardcoded |
+|---------|-------------------|
+| `src/pages/Subscription.tsx` | Nomes de planos, descricoes, FAQs inteiras em PT-BR, nomes de features |
+| `src/components/subscription/*.tsx` | ~4 componentes |
+
+### Grupo 15 -- Paginas Juridicas (conteudo completo)
+
+| Arquivo | Status |
+|---------|--------|
+| `src/pages/Terms.tsx` | Termos inteiros hardcoded em PT-BR (212 linhas) |
+| `src/pages/PrivacyPolicy.tsx` | Politica inteira hardcoded em PT-BR (324 linhas) |
+| `src/pages/Privacy.tsx` | (precisa verificar) |
+
+### Grupo 16 -- Admin
+
+| Arquivo | Strings hardcoded |
+|---------|-------------------|
+| `src/pages/Admin.tsx` | (precisa verificar) |
+| `src/components/admin/*.tsx` | ~4 componentes |
+
+### Grupo 17 -- Utilitarios e Dados
+
+| Arquivo | Problema |
+|---------|----------|
+| `src/lib/normalize-color.ts` | Dicionario de cores apenas em PT-BR |
+| `src/lib/greeting.ts` | Ja traduzido na Fase 1 |
+| `src/data/missions.ts` | (precisa verificar) |
+| `src/data/chromatic-seasons.ts` | (precisa verificar) |
+| `src/data/quiz-aesthetics.ts` | (precisa verificar) |
+| `src/components/ui/PageLoader.tsx` | "Carregando..." |
+| `src/components/ui/EmptyState.tsx` | (precisa verificar) |
 
 ---
 
-## Migracao de Banco de Dados
+## Plano de Implementacao por Fases
 
-Adicionar coluna `locale` a tabela `profiles`:
+### Fase 2A -- Navegacao Global (prioridade maxima)
+Refatorar Header, BottomNav e QuickActions para usar `t()`. Estes afetam TODAS as paginas.
+- Criar namespace `dashboard.json` para PT-BR e EN-US
+- Atualizar `common.json` com labels de navegacao faltantes
 
-```text
-ALTER TABLE profiles ADD COLUMN locale TEXT DEFAULT 'pt-BR';
-```
+### Fase 2B -- Dashboard e Auth
+Refatorar Index.tsx, Auth.tsx, PageLoader, e cards promocionais.
+- Criar namespace `auth.json` para PT-BR e EN-US
+
+### Fase 2C -- Settings (completar traducao)
+A pagina de Settings ja importa `useTranslation` mas ainda usa ~80% de strings hardcoded. Refatorar todas as secoes restantes para usar as chaves ja existentes em `settings.json`.
+
+### Fase 3A -- Wardrobe
+Refatorar pagina + 6 componentes. Criar namespace `wardrobe.json`.
+
+### Fase 3B -- Chromatic
+Refatorar pagina + ~15 componentes. Criar namespace `chromatic.json`.
+
+### Fase 3C -- Try-On / Provador
+Refatorar pagina + ~15 componentes. Criar namespace `tryOn.json`.
+
+### Fase 3D -- Recommendations
+Refatorar pagina + ~6 componentes. Criar namespace `recommendations.json`.
+
+### Fase 3E -- Events + Voyager
+Refatorar 2 paginas + ~15 componentes. Criar namespaces `events.json` e `voyager.json`.
+Remover import hardcoded de `ptBR` do date-fns e usar `useLocale()`.
+
+### Fase 3F -- Quiz + Onboarding
+Refatorar ~16 componentes. Criar namespaces `quiz.json` e `onboarding.json`.
+
+### Fase 3G -- Landing Page
+Refatorar ~10 componentes. Criar namespace `landing.json`.
+
+### Fase 3H -- Subscription + Admin
+Refatorar ~8 componentes. Criar namespaces `subscription.json` e `admin.json`.
+
+### Fase 4A -- Paginas Juridicas
+Reescrever Terms.tsx e PrivacyPolicy.tsx para carregar conteudo dos JSONs de traducao. A versao EN-US tera conteudo juridico adaptado (sem LGPD, com CCPA).
+
+### Fase 4B -- Dados e Utilitarios
+- Adicionar dicionario EN-US em `normalize-color.ts`
+- Traduzir dados em `missions.ts`, `chromatic-seasons.ts`, `quiz-aesthetics.ts`
+- Corrigir `PageLoader.tsx` e `EmptyState.tsx`
 
 ---
 
-## Resumo de Arquivos Afetados
+## Estimativa de Escopo
 
-- **Novos**: ~30 arquivos JSON de traducao, `src/i18n/index.ts`, `src/i18n/useLocale.ts`
-- **Modificados**: ~60+ componentes para usar `t()`, `src/lib/greeting.ts`, `src/lib/normalize-color.ts`, pagina de Settings, `main.tsx`
-- **Banco de dados**: 1 migracao (coluna `locale`)
+- **~60+ componentes** precisam de refatoracao
+- **~15 novos arquivos JSON** de traducao (por idioma)
+- **~5 arquivos de dados** com conteudo em PT-BR
+- **2 paginas juridicas** com conteudo completo a reescrever
 
----
+## Recomendacao
 
-## Recomendacao de Abordagem
+Devido ao volume, sugiro implementar em blocos de 2-3 fases por prompt, comecando pela **Fase 2A (navegacao)** que tem impacto visual imediato em todas as telas quando o usuario troca o idioma.
 
-Devido ao volume (~60+ arquivos), recomendo implementar em fases:
-
-1. **Fase 1**: Infraestrutura + seletor de idioma + paginas juridicas (maior impacto legal)
-2. **Fase 2**: Dashboard, navegacao, componentes principais
-3. **Fase 3**: Modulos secundarios (Voyager, Events, Quiz, Admin)
-4. **Fase 4**: Polimento (formatos de data, moeda, nomes de cores)
-
-Cada fase pode ser solicitada como um prompt separado para manter as alteracoes gerenciaveis.
