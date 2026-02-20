@@ -1,11 +1,12 @@
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useEffect } from 'react';
 import { Users, Star, Shirt } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 function AnimatedCounter({ target, duration = 2 }: { target: number; duration?: number }) {
   const count = useMotionValue(0);
   const rounded = useTransform(count, (latest) =>
-    latest >= 1000 ? `${(latest / 1000).toFixed(1)}k` : Math.round(latest).toLocaleString('pt-BR')
+    latest >= 1000 ? `${(latest / 1000).toFixed(1)}k` : Math.round(latest).toLocaleString()
   );
 
   useEffect(() => {
@@ -16,13 +17,15 @@ function AnimatedCounter({ target, duration = 2 }: { target: number; duration?: 
   return <motion.span>{rounded}</motion.span>;
 }
 
-const stats = [
-  { icon: Users, value: 12400, label: 'usuárias ativas', suffix: '+' },
-  { icon: Star, value: 4.9, label: 'avaliação média', suffix: '' },
-  { icon: Shirt, value: 87000, label: 'looks criados', suffix: '+' },
-];
-
 export function SocialProofBar() {
+  const { t } = useTranslation('landing');
+
+  const stats = [
+    { icon: Users, value: 12400, label: t('socialProof.activeUsers'), suffix: '+' },
+    { icon: Star, value: 4.9, label: t('socialProof.avgRating'), suffix: '' },
+    { icon: Shirt, value: 87000, label: t('socialProof.looksCreated'), suffix: '+' },
+  ];
+
   return (
     <motion.section
       className="py-6 px-6 border-b border-border/30 bg-secondary/20"

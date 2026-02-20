@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ChevronRight, Check, Loader2, Shuffle, Shirt, LayoutGrid, Palette, ImageOff } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { useTranslation } from 'react-i18next';
 
 /* ── Types ── */
 interface CapsuleItem {
@@ -23,85 +24,6 @@ interface AILook {
   occasion: string;
   harmony: number;
   breakdown: HarmonyBreakdown;
-}
-
-/* ── Capsule items with verified Unsplash images + color hex ── */
-const CAPSULE_ITEMS: Record<string, CapsuleItem[]> = {
-  tops: [
-    { name: 'Regata Seda Off-White', image: 'https://images.unsplash.com/photo-1618515488915-83f021210f1e?w=400&h=500&fit=crop&q=80', icon: '👚', color: '#FAF5EF' },
-    { name: 'Blazer Oversized Bege', image: 'https://images.unsplash.com/photo-1747815065172-a3234582223e?w=400&h=500&fit=crop&q=80', icon: '🧥', color: '#C8B89A' },
-    { name: 'Blusa Elegante Preta', image: 'https://images.unsplash.com/photo-1585487000261-3fc48269c3f1?w=400&h=500&fit=crop&q=80', icon: '👚', color: '#1A1A1A' },
-    { name: 'Suéter Cashmere Caramelo', image: 'https://images.unsplash.com/photo-1573587302894-7d0475939841?w=400&h=500&fit=crop&q=80', icon: '🧶', color: '#B5651D' },
-  ],
-  bottoms: [
-    { name: 'Calça Alfaiataria Creme', image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=500&fit=crop&q=80', icon: '👖', color: '#F5E6CA' },
-    { name: 'Saia Midi Plissada Preta', image: 'https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=400&h=500&fit=crop&q=80', icon: '👗', color: '#2C2C2C' },
-    { name: 'Jeans Wide Leg Claro', image: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400&h=500&fit=crop&q=80', icon: '👖', color: '#8FA5C4' },
-  ],
-  shoes: [
-    { name: 'Scarpin Nude', image: 'https://images.unsplash.com/photo-1721176394537-7a80cd0dac62?w=400&h=500&fit=crop&q=80', icon: '👠', color: '#D4A574' },
-    { name: 'Scarpin Preto', image: 'https://images.unsplash.com/photo-1553145478-5b0fee29e4fc?w=400&h=500&fit=crop&q=80', icon: '🥿', color: '#1C1C1C' },
-    { name: 'Sandália Salto Dourada', image: 'https://images.unsplash.com/photo-1572344857518-c8f0d3d5906a?w=400&h=500&fit=crop&q=80', icon: '👡', color: '#DAA520' },
-  ],
-  accessories: [
-    { name: 'Bolsa Estruturada Caramelo', image: 'https://images.unsplash.com/photo-1622445270936-5dcb604970e7?w=400&h=500&fit=crop&q=80', icon: '👜', color: '#8B5E3C' },
-    { name: 'Brincos Dourados Delicados', image: 'https://images.unsplash.com/photo-1632525230528-ec17c49bc168?w=400&h=500&fit=crop&q=80', icon: '✨', color: '#C5A02E' },
-  ],
-};
-
-const CATEGORY_LABELS: Record<string, string> = {
-  tops: 'Tops',
-  bottoms: 'Bottoms',
-  shoes: 'Calçados',
-  accessories: 'Acessórios',
-};
-
-const CATEGORY_ICONS: Record<string, string> = {
-  tops: '👚',
-  bottoms: '👖',
-  shoes: '👟',
-  accessories: '👜',
-};
-
-const AI_LOOKS: AILook[] = [
-  {
-    name: 'Office Elegante',
-    items: ['Blazer Oversized Bege', 'Calça Alfaiataria Creme', 'Scarpin Nude', 'Bolsa Estruturada Caramelo'],
-    occasion: 'Trabalho',
-    harmony: 87,
-    breakdown: { colorHarmony: 92, styleCoherence: 88, versatility: 78 },
-  },
-  {
-    name: 'Passeio Sofisticado',
-    items: ['Blusa Elegante Preta', 'Saia Midi Plissada Preta', 'Sandália Salto Dourada', 'Brincos Dourados Delicados'],
-    occasion: 'Passeio',
-    harmony: 79,
-    breakdown: { colorHarmony: 85, styleCoherence: 82, versatility: 68 },
-  },
-  {
-    name: 'Casual Refinado',
-    items: ['Suéter Cashmere Caramelo', 'Jeans Wide Leg Claro', 'Scarpin Preto', 'Bolsa Estruturada Caramelo'],
-    occasion: 'Dia a dia',
-    harmony: 83,
-    breakdown: { colorHarmony: 76, styleCoherence: 89, versatility: 84 },
-  },
-];
-
-const GENERATION_STEPS = [
-  { label: 'Analisando suas peças...', duration: 1000 },
-  { label: 'Combinando cores e estilos...', duration: 1000 },
-  { label: 'Calculando harmonia cromática...', duration: 1000 },
-  { label: 'Gerando looks por IA...', duration: 1000 },
-];
-
-const HARMONY_LABELS: Record<keyof HarmonyBreakdown, string> = {
-  colorHarmony: 'Cromática',
-  styleCoherence: 'Estilo',
-  versatility: 'Versatilidade',
-};
-
-interface ClosetSimProps {
-  onInteract: () => void;
 }
 
 /* ── Sub-components ── */
@@ -156,11 +78,91 @@ function ColorSwatches({ items, allItems }: { items: string[]; allItems: Capsule
 
 /* ── Main Component ── */
 
+interface ClosetSimProps {
+  onInteract: () => void;
+}
+
 export function ClosetSim({ onInteract }: ClosetSimProps) {
+  const { t } = useTranslation('landing');
   const [phase, setPhase] = useState<'closet' | 'generating' | 'looks'>('closet');
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [currentStep, setCurrentStep] = useState(-1);
   const [activeLook, setActiveLook] = useState(0);
+
+  /* ── Translated data ── */
+  const CAPSULE_ITEMS: Record<string, CapsuleItem[]> = {
+    tops: [
+      { name: t('closet.itemSilkTank'), image: 'https://images.unsplash.com/photo-1618515488915-83f021210f1e?w=400&h=500&fit=crop&q=80', icon: '👚', color: '#FAF5EF' },
+      { name: t('closet.itemOversizedBlazer'), image: 'https://images.unsplash.com/photo-1747815065172-a3234582223e?w=400&h=500&fit=crop&q=80', icon: '🧥', color: '#C8B89A' },
+      { name: t('closet.itemElegantBlouse'), image: 'https://images.unsplash.com/photo-1585487000261-3fc48269c3f1?w=400&h=500&fit=crop&q=80', icon: '👚', color: '#1A1A1A' },
+      { name: t('closet.itemCashmereSweater'), image: 'https://images.unsplash.com/photo-1573587302894-7d0475939841?w=400&h=500&fit=crop&q=80', icon: '🧶', color: '#B5651D' },
+    ],
+    bottoms: [
+      { name: t('closet.itemTailoredPants'), image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=500&fit=crop&q=80', icon: '👖', color: '#F5E6CA' },
+      { name: t('closet.itemPleatedSkirt'), image: 'https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=400&h=500&fit=crop&q=80', icon: '👗', color: '#2C2C2C' },
+      { name: t('closet.itemWideLegJeans'), image: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400&h=500&fit=crop&q=80', icon: '👖', color: '#8FA5C4' },
+    ],
+    shoes: [
+      { name: t('closet.itemNudePumps'), image: 'https://images.unsplash.com/photo-1721176394537-7a80cd0dac62?w=400&h=500&fit=crop&q=80', icon: '👠', color: '#D4A574' },
+      { name: t('closet.itemBlackPumps'), image: 'https://images.unsplash.com/photo-1553145478-5b0fee29e4fc?w=400&h=500&fit=crop&q=80', icon: '🥿', color: '#1C1C1C' },
+      { name: t('closet.itemGoldSandals'), image: 'https://images.unsplash.com/photo-1572344857518-c8f0d3d5906a?w=400&h=500&fit=crop&q=80', icon: '👡', color: '#DAA520' },
+    ],
+    accessories: [
+      { name: t('closet.itemCaramelBag'), image: 'https://images.unsplash.com/photo-1622445270936-5dcb604970e7?w=400&h=500&fit=crop&q=80', icon: '👜', color: '#8B5E3C' },
+      { name: t('closet.itemGoldEarrings'), image: 'https://images.unsplash.com/photo-1632525230528-ec17c49bc168?w=400&h=500&fit=crop&q=80', icon: '✨', color: '#C5A02E' },
+    ],
+  };
+
+  const CATEGORY_LABELS: Record<string, string> = {
+    tops: t('closet.catTops'),
+    bottoms: t('closet.catBottoms'),
+    shoes: t('closet.catShoes'),
+    accessories: t('closet.catAccessories'),
+  };
+
+  const CATEGORY_ICONS: Record<string, string> = {
+    tops: '👚',
+    bottoms: '👖',
+    shoes: '👟',
+    accessories: '👜',
+  };
+
+  const AI_LOOKS: AILook[] = [
+    {
+      name: t('closet.lookOfficeElegant'),
+      items: [t('closet.itemOversizedBlazer'), t('closet.itemTailoredPants'), t('closet.itemNudePumps'), t('closet.itemCaramelBag')],
+      occasion: t('closet.occasionWork'),
+      harmony: 87,
+      breakdown: { colorHarmony: 92, styleCoherence: 88, versatility: 78 },
+    },
+    {
+      name: t('closet.lookSophisticatedOuting'),
+      items: [t('closet.itemElegantBlouse'), t('closet.itemPleatedSkirt'), t('closet.itemGoldSandals'), t('closet.itemGoldEarrings')],
+      occasion: t('closet.occasionOuting'),
+      harmony: 79,
+      breakdown: { colorHarmony: 85, styleCoherence: 82, versatility: 68 },
+    },
+    {
+      name: t('closet.lookCasualRefined'),
+      items: [t('closet.itemCashmereSweater'), t('closet.itemWideLegJeans'), t('closet.itemBlackPumps'), t('closet.itemCaramelBag')],
+      occasion: t('closet.occasionEveryday'),
+      harmony: 83,
+      breakdown: { colorHarmony: 76, styleCoherence: 89, versatility: 84 },
+    },
+  ];
+
+  const GENERATION_STEPS = [
+    { label: t('closet.stepAnalyzing'), duration: 1000 },
+    { label: t('closet.stepCombining'), duration: 1000 },
+    { label: t('closet.stepHarmony'), duration: 1000 },
+    { label: t('closet.stepGenerating'), duration: 1000 },
+  ];
+
+  const HARMONY_LABELS: Record<keyof HarmonyBreakdown, string> = {
+    colorHarmony: t('closet.harmonyColor'),
+    styleCoherence: t('closet.harmonyStyle'),
+    versatility: t('closet.harmonyVersatility'),
+  };
 
   const allItems = Object.values(CAPSULE_ITEMS).flat();
   const capsuleCount = selectedItems.size;
@@ -223,10 +225,10 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
           >
             <div className="text-center space-y-1">
               <p className="text-base md:text-lg font-medium text-muted-foreground">
-                Selecione peças para criar seu armário cápsula
+                {t('closet.selectPieces')}
               </p>
               <p className="text-sm md:text-base text-muted-foreground/60">
-                Um armário cápsula reúne peças versáteis que combinam entre si — menos roupa, mais looks.
+                {t('closet.capsuleExplainer')}
               </p>
             </div>
 
@@ -275,10 +277,10 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
 
             <div className="w-full flex items-center justify-between">
               <button onClick={selectAll} className="text-sm text-primary font-medium hover:underline">
-                Selecionar todas ({allItems.length} peças)
+                {t('closet.selectAll', { count: allItems.length })}
               </button>
               <span className="text-sm text-muted-foreground">
-                {capsuleCount} peça{capsuleCount !== 1 ? 's' : ''} selecionada{capsuleCount !== 1 ? 's' : ''}
+                {t('closet.selectedCount', { count: capsuleCount })}
               </span>
             </div>
 
@@ -294,7 +296,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
               whileTap={capsuleCount >= 3 ? { scale: 0.98 } : {}}
             >
               <Sparkles className="w-4 h-4" />
-              {capsuleCount < 3 ? 'Selecione ao menos 3 peças' : 'Gerar looks com IA'}
+              {capsuleCount < 3 ? t('closet.selectAtLeast3') : t('closet.generateCta')}
             </motion.button>
           </motion.div>
         )}
@@ -310,7 +312,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
           >
             <div className="flex items-center gap-2">
               <Loader2 className="w-5 h-5 text-primary animate-spin" />
-              <span className="text-base md:text-lg font-semibold text-foreground">Criando looks com IA...</span>
+              <span className="text-base md:text-lg font-semibold text-foreground">{t('closet.generating')}</span>
             </div>
             <Progress value={progressValue} className="h-2 w-full" />
             <div className="w-full space-y-2">
@@ -349,7 +351,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
             <div className="w-full">
               <div className="flex items-center gap-2 mb-3 justify-center">
                 <LayoutGrid className="w-4 h-4 text-primary" />
-                <h4 className="text-base md:text-lg font-semibold text-foreground">Seu closet organizado</h4>
+                <h4 className="text-base md:text-lg font-semibold text-foreground">{t('closet.organizedCloset')}</h4>
               </div>
               <div className="rounded-2xl border border-border bg-card/60 backdrop-blur-sm p-4 shadow-soft">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -390,7 +392,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
             <div className="w-full">
               <div className="flex items-center gap-2 mb-3 justify-center">
                 <Sparkles className="w-4 h-4 text-primary" />
-                <h4 className="text-base md:text-lg font-semibold text-foreground">{AI_LOOKS.length} looks criados pela IA</h4>
+                <h4 className="text-base md:text-lg font-semibold text-foreground">{t('closet.looksCreated', { count: AI_LOOKS.length })}</h4>
               </div>
               <div className="space-y-3">
                 {AI_LOOKS.map((look, idx) => {
@@ -454,7 +456,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-1.5">
                                   <Palette className="w-3 h-3 text-primary" />
-                                  <span className="text-xs font-semibold text-foreground">Score de Harmonia</span>
+                                  <span className="text-xs font-semibold text-foreground">{t('closet.harmonyScore')}</span>
                                 </div>
                                 <ColorSwatches items={look.items} allItems={allItems} />
                               </div>
@@ -483,7 +485,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
               transition={{ delay: 0.6 }}
             >
               <Shuffle className="w-3.5 h-3.5" />
-              Refazer com outras peças
+              {t('closet.redoOtherPieces')}
             </motion.button>
 
             <motion.button
@@ -494,7 +496,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
               onClick={scrollToSignup}
             >
               <Sparkles className="w-4 h-4" />
-              Montar meu closet inteligente
+              {t('closet.ctaBuildCloset')}
               <ChevronRight className="w-4 h-4" />
             </motion.button>
           </motion.div>

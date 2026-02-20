@@ -6,28 +6,30 @@ import { useTheme } from 'next-themes';
 import { Switch } from '@/components/ui/switch';
 import { Moon, Sun } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-
-const features = [
-  {
-    icon: Palette,
-    title: 'Colorimetria por IA',
-    hint: 'Descubra as cores que valorizam você',
-  },
-  {
-    icon: Shirt,
-    title: 'Provador Virtual',
-    hint: 'Experimente roupas sem sair de casa',
-  },
-  {
-    icon: LayoutGrid,
-    title: 'Closet Inteligente',
-    hint: 'Seu guarda-roupa organizado por IA',
-  },
-];
+import { useTranslation } from 'react-i18next';
 
 export function BetaHero() {
+  const { t } = useTranslation('landing');
   const { theme, setTheme } = useTheme();
   const [testerCount, setTesterCount] = useState<number | null>(null);
+
+  const features = [
+    {
+      icon: Palette,
+      title: t('hero.featureColorimetry'),
+      hint: t('hero.featureColorimetryHint'),
+    },
+    {
+      icon: Shirt,
+      title: t('hero.featureTryOn'),
+      hint: t('hero.featureTryOnHint'),
+    },
+    {
+      icon: LayoutGrid,
+      title: t('hero.featureCloset'),
+      hint: t('hero.featureClosetHint'),
+    },
+  ];
 
   useEffect(() => {
     supabase
@@ -70,11 +72,11 @@ export function BetaHero() {
         >
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/40 bg-primary/10 text-sm font-bold uppercase tracking-widest text-primary">
             <FlaskConical className="w-3.5 h-3.5" />
-            Programa Beta
+            {t('hero.badge')}
           </div>
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 text-base font-medium text-primary">
             <Sparkles className="w-4 h-4" />
-            Vagas Limitadas para Testadores
+            {t('hero.limitedSpots')}
           </div>
         </motion.div>
 
@@ -88,7 +90,7 @@ export function BetaHero() {
             Ethra
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground mt-1 font-light">
-            Seu GPS de Estilo Pessoal
+            {t('hero.subtitle')}
           </p>
         </motion.div>
 
@@ -100,13 +102,12 @@ export function BetaHero() {
           className="space-y-3"
         >
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-display font-medium text-foreground leading-tight">
-            Seja uma das primeiras a testar
+            {t('hero.headline')}
           </h2>
-          <p className="text-base md:text-lg text-muted-foreground max-w-lg mx-auto leading-relaxed">
-            O Ethra está em <strong className="text-foreground">fase BETA fechada</strong>.
-            Buscamos testadoras que queiram moldar o futuro da moda com inteligência
-            artificial — e ganhar acesso vitalício ao premium como recompensa.
-          </p>
+          <p
+            className="text-base md:text-lg text-muted-foreground max-w-lg mx-auto leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: t('hero.description') }}
+          />
         </motion.div>
 
         {/* Feature cards */}
@@ -142,14 +143,14 @@ export function BetaHero() {
             <>
               <span className="flex items-center gap-1.5">
                 <Users className="w-4 h-4 text-primary" />
-                Já somos {testerCount} beta testers
+                {t('hero.socialProof', { count: testerCount })}
               </span>
               <span className="w-px h-4 bg-border" />
             </>
           )}
           <span className="flex items-center gap-1.5">
             <Clock className="w-4 h-4 text-primary" />
-            Poucos convites restantes
+            {t('hero.fewInvites')}
           </span>
         </motion.div>
 
@@ -166,7 +167,7 @@ export function BetaHero() {
             className="w-full sm:w-auto gradient-primary text-primary-foreground shadow-glow hover:opacity-90 transition-opacity text-base md:text-lg px-8 py-3"
           >
             <FlaskConical className="w-4 h-4 mr-2" />
-            Quero ser BETA tester
+            {t('hero.cta')}
           </Button>
         </motion.div>
 
@@ -177,8 +178,7 @@ export function BetaHero() {
           transition={{ delay: 1, duration: 0.5 }}
           className="text-sm text-muted-foreground/70 max-w-sm mx-auto"
         >
-          Sua opinião vai moldar o produto. Beta testers terão acesso vitalício às
-          funcionalidades premium.
+          {t('hero.reciprocity')}
         </motion.p>
       </div>
     </section>

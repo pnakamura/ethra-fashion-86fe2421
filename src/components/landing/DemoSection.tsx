@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Palette, Shirt, Sparkles, ArrowRight, LayoutGrid } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -6,24 +6,26 @@ import { Button } from '@/components/ui/button';
 import { ChromaticSim } from './demo/ChromaticSim';
 import { TryOnSim } from './demo/TryOnSim';
 import { ClosetSim } from './demo/ClosetSim';
-
-const TABS = [
-  { value: 'colorimetria', label: 'Colorimetria', icon: Palette, title: 'Descubra sua paleta pessoal', description: 'Veja como a IA analisa tom de pele, olhos e cabelo para revelar suas cores ideais' },
-  { value: 'provador', label: 'Provador Virtual', icon: Shirt, title: 'Experimente antes de comprar', description: 'Selecione uma peça e veja como ela fica em você com IA generativa' },
-  { value: 'closet', label: 'Closet Inteligente', icon: LayoutGrid, title: 'Monte seu armário cápsula', description: 'Selecione peças reais, organize seu closet e veja a IA criar looks combinando suas peças' },
-];
-
-const CTA_TEXTS = [
-  'Começar grátis',
-  'Quero isso no meu perfil',
-  'Estou impressionada!',
-  'Já estou convencida! Quero testar',
-];
+import { useTranslation } from 'react-i18next';
 
 export function DemoSection() {
+  const { t } = useTranslation('landing');
   const [activeTab, setActiveTab] = useState('colorimetria');
   const [interactedTabs, setInteractedTabs] = useState<Set<string>>(new Set());
   const [skinTone, setSkinTone] = useState<string | null>(null);
+
+  const TABS = [
+    { value: 'colorimetria', label: t('demo.tabColorimetry'), icon: Palette, title: t('demo.tabColorimetryTitle'), description: t('demo.tabColorimetryDesc') },
+    { value: 'provador', label: t('demo.tabTryOn'), icon: Shirt, title: t('demo.tabTryOnTitle'), description: t('demo.tabTryOnDesc') },
+    { value: 'closet', label: t('demo.tabCloset'), icon: LayoutGrid, title: t('demo.tabClosetTitle'), description: t('demo.tabClosetDesc') },
+  ];
+
+  const CTA_TEXTS = [
+    t('demo.cta0'),
+    t('demo.cta1'),
+    t('demo.cta2'),
+    t('demo.cta3'),
+  ];
 
   const markInteracted = useCallback(
     (tab: string) => {
@@ -60,16 +62,16 @@ export function DemoSection() {
             viewport={{ once: true }}
           >
             <Sparkles className="w-4 h-4" />
-            Simulação interativa
+            {t('demo.badge')}
           </motion.div>
 
           <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-semibold mb-4">
-            Experimente
+            {t('demo.headlineLine1')}
             <br />
-            <span className="text-gradient">agora</span>
+            <span className="text-gradient">{t('demo.headlineLine2')}</span>
           </h2>
           <p className="text-base md:text-xl text-muted-foreground max-w-2xl mx-auto">
-            Veja como a IA do Ethra analisa suas cores, experimenta roupas e monta looks para você
+            {t('demo.description')}
           </p>
         </motion.div>
 
@@ -149,7 +151,7 @@ export function DemoSection() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
-              Você explorou {interactedTabs.size} de 3 recursos
+              {t('demo.explored', { count: interactedTabs.size })}
             </motion.p>
           )}
           <Button

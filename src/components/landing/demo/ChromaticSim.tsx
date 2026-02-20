@@ -2,115 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ChevronRight, Check, X, Eye, Droplets, Scissors, Loader2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { useTranslation } from 'react-i18next';
 import faceLight from '@/assets/demo/face-light.jpg';
 import faceMedium from '@/assets/demo/face-medium.jpg';
 import faceDark from '@/assets/demo/face-dark.jpg';
-
-const ANALYSIS_STEPS = [
-  { label: 'Detectando tom de pele...', icon: Droplets, duration: 1000 },
-  { label: 'Analisando cor dos olhos...', icon: Eye, duration: 1000 },
-  { label: 'Identificando subtom do cabelo...', icon: Scissors, duration: 1000 },
-  { label: 'Gerando paleta personalizada...', icon: Sparkles, duration: 1000 },
-];
-
-const PROFILES = [
-  {
-    id: 'light',
-    photo: faceLight,
-    label: 'Clara',
-    season: 'Primavera Clara',
-    seasonColor: '#F4A6C0',
-    confidence: 94,
-    skin: 'Porcelana rosada',
-    eyes: 'Azul-esverdeados',
-    hair: 'Loiro claro',
-    explanation: 'Seu subtom quente com nuances rosadas harmoniza perfeitamente com tons suaves e luminosos. Cores vivas mas delicadas realçam sua pele naturalmente radiante.',
-    colors: [
-      { hex: '#E8A0BF', name: 'Rosa Pétala' },
-      { hex: '#F4C2A1', name: 'Pêssego' },
-      { hex: '#E8735A', name: 'Coral Vivo' },
-      { hex: '#82C4A0', name: 'Verde Menta' },
-      { hex: '#87CEEB', name: 'Azul Celeste' },
-      { hex: '#B19CD9', name: 'Lavanda' },
-      { hex: '#FFD700', name: 'Dourado' },
-      { hex: '#FFDAB9', name: 'Salmão' },
-      { hex: '#98D8C8', name: 'Turquesa' },
-      { hex: '#DDA0DD', name: 'Ameixa' },
-      { hex: '#F0E68C', name: 'Camomila' },
-      { hex: '#FFB6C1', name: 'Rosa Claro' },
-    ],
-    avoid: [
-      { hex: '#000000', name: 'Preto Puro' },
-      { hex: '#808080', name: 'Cinza Frio' },
-      { hex: '#800020', name: 'Bordô Escuro' },
-      { hex: '#191970', name: 'Azul Marinho' },
-    ],
-  },
-  {
-    id: 'medium',
-    photo: faceMedium,
-    label: 'Média',
-    season: 'Outono Quente',
-    seasonColor: '#C0502D',
-    confidence: 91,
-    skin: 'Oliva dourada',
-    eyes: 'Castanho-mel',
-    hair: 'Castanho médio',
-    explanation: 'Seu subtom dourado profundo é valorizado por tons terrosos e quentes. Cores ricas da natureza criam uma harmonia sofisticada com sua pele luminosa.',
-    colors: [
-      { hex: '#C0502D', name: 'Terracota' },
-      { hex: '#D4A017', name: 'Mostarda' },
-      { hex: '#6B8E23', name: 'Oliva' },
-      { hex: '#722F37', name: 'Vinho' },
-      { hex: '#B87333', name: 'Cobre' },
-      { hex: '#C68E17', name: 'Caramelo' },
-      { hex: '#8B4513', name: 'Chocolate' },
-      { hex: '#BDB76B', name: 'Cáqui' },
-      { hex: '#556B2F', name: 'Verde Musgo' },
-      { hex: '#CD853F', name: 'Peru' },
-      { hex: '#DAA520', name: 'Ouro Velho' },
-      { hex: '#A0522D', name: 'Canela' },
-    ],
-    avoid: [
-      { hex: '#FF69B4', name: 'Rosa Choque' },
-      { hex: '#00FFFF', name: 'Ciano' },
-      { hex: '#C0C0C0', name: 'Prata' },
-      { hex: '#E6E6FA', name: 'Lilás Frio' },
-    ],
-  },
-  {
-    id: 'dark',
-    photo: faceDark,
-    label: 'Escura',
-    season: 'Inverno Profundo',
-    seasonColor: '#9B111E',
-    confidence: 96,
-    skin: 'Ébano quente',
-    eyes: 'Castanho escuro',
-    hair: 'Preto',
-    explanation: 'Sua pele profunda e radiante cria contraste deslumbrante com cores intensas e saturadas. Tons vibrantes e jóias são seus maiores aliados.',
-    colors: [
-      { hex: '#9B111E', name: 'Vermelho Rubi' },
-      { hex: '#046307', name: 'Esmeralda' },
-      { hex: '#1E3A8A', name: 'Azul Royal' },
-      { hex: '#C71585', name: 'Magenta' },
-      { hex: '#C0C0C0', name: 'Prata' },
-      { hex: '#FFFAFA', name: 'Branco Puro' },
-      { hex: '#4B0082', name: 'Índigo' },
-      { hex: '#FF4500', name: 'Laranja Vivo' },
-      { hex: '#00CED1', name: 'Turquesa' },
-      { hex: '#FFD700', name: 'Ouro' },
-      { hex: '#8B008B', name: 'Roxo' },
-      { hex: '#DC143C', name: 'Carmesim' },
-    ],
-    avoid: [
-      { hex: '#F5DEB3', name: 'Bege Claro' },
-      { hex: '#FAEBD7', name: 'Creme' },
-      { hex: '#D2B48C', name: 'Castanho Claro' },
-      { hex: '#BC8F8F', name: 'Rosa Antigo' },
-    ],
-  },
-];
 
 interface ChromaticSimProps {
   onInteract: () => void;
@@ -118,10 +13,118 @@ interface ChromaticSimProps {
 }
 
 export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps) {
+  const { t } = useTranslation('landing');
   const [selected, setSelected] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [currentStep, setCurrentStep] = useState(-1);
   const [showResult, setShowResult] = useState(false);
+
+  const ANALYSIS_STEPS = [
+    { label: t('chromatic.stepSkinTone'), icon: Droplets, duration: 1000 },
+    { label: t('chromatic.stepEyeColor'), icon: Eye, duration: 1000 },
+    { label: t('chromatic.stepHairUndertone'), icon: Scissors, duration: 1000 },
+    { label: t('chromatic.stepGeneratingPalette'), icon: Sparkles, duration: 1000 },
+  ];
+
+  const PROFILES = [
+    {
+      id: 'light',
+      photo: faceLight,
+      label: t('chromatic.profileLight'),
+      season: t('chromatic.seasonSpringLight'),
+      seasonColor: '#F4A6C0',
+      confidence: 94,
+      skin: t('chromatic.skinPorcelain'),
+      eyes: t('chromatic.eyesBlueGreen'),
+      hair: t('chromatic.hairLightBlonde'),
+      explanation: t('chromatic.explanationLight'),
+      colors: [
+        { hex: '#E8A0BF', name: t('chromatic.colorRosePetal') },
+        { hex: '#F4C2A1', name: t('chromatic.colorPeach') },
+        { hex: '#E8735A', name: t('chromatic.colorLivingCoral') },
+        { hex: '#82C4A0', name: t('chromatic.colorMint') },
+        { hex: '#87CEEB', name: t('chromatic.colorSkyBlue') },
+        { hex: '#B19CD9', name: t('chromatic.colorLavender') },
+        { hex: '#FFD700', name: t('chromatic.colorGold') },
+        { hex: '#FFDAB9', name: t('chromatic.colorSalmon') },
+        { hex: '#98D8C8', name: t('chromatic.colorTurquoise') },
+        { hex: '#DDA0DD', name: t('chromatic.colorPlum') },
+        { hex: '#F0E68C', name: t('chromatic.colorChamomile') },
+        { hex: '#FFB6C1', name: t('chromatic.colorLightPink') },
+      ],
+      avoid: [
+        { hex: '#000000', name: t('chromatic.colorPureBlack') },
+        { hex: '#808080', name: t('chromatic.colorCoolGray') },
+        { hex: '#800020', name: t('chromatic.colorDarkBurgundy') },
+        { hex: '#191970', name: t('chromatic.colorNavyBlue') },
+      ],
+    },
+    {
+      id: 'medium',
+      photo: faceMedium,
+      label: t('chromatic.profileMedium'),
+      season: t('chromatic.seasonAutumnWarm'),
+      seasonColor: '#C0502D',
+      confidence: 91,
+      skin: t('chromatic.skinOlive'),
+      eyes: t('chromatic.eyesHazelHoney'),
+      hair: t('chromatic.hairMediumBrown'),
+      explanation: t('chromatic.explanationMedium'),
+      colors: [
+        { hex: '#C0502D', name: t('chromatic.colorTerracotta') },
+        { hex: '#D4A017', name: t('chromatic.colorMustard') },
+        { hex: '#6B8E23', name: t('chromatic.colorOlive') },
+        { hex: '#722F37', name: t('chromatic.colorWine') },
+        { hex: '#B87333', name: t('chromatic.colorCopper') },
+        { hex: '#C68E17', name: t('chromatic.colorCaramel') },
+        { hex: '#8B4513', name: t('chromatic.colorChocolate') },
+        { hex: '#BDB76B', name: t('chromatic.colorKhaki') },
+        { hex: '#556B2F', name: t('chromatic.colorMossGreen') },
+        { hex: '#CD853F', name: t('chromatic.colorPeru') },
+        { hex: '#DAA520', name: t('chromatic.colorOldGold') },
+        { hex: '#A0522D', name: t('chromatic.colorCinnamon') },
+      ],
+      avoid: [
+        { hex: '#FF69B4', name: t('chromatic.colorHotPink') },
+        { hex: '#00FFFF', name: t('chromatic.colorCyan') },
+        { hex: '#C0C0C0', name: t('chromatic.colorSilver') },
+        { hex: '#E6E6FA', name: t('chromatic.colorCoolLilac') },
+      ],
+    },
+    {
+      id: 'dark',
+      photo: faceDark,
+      label: t('chromatic.profileDark'),
+      season: t('chromatic.seasonWinterDeep'),
+      seasonColor: '#9B111E',
+      confidence: 96,
+      skin: t('chromatic.skinEbony'),
+      eyes: t('chromatic.eyesDarkBrown'),
+      hair: t('chromatic.hairBlack'),
+      explanation: t('chromatic.explanationDark'),
+      colors: [
+        { hex: '#9B111E', name: t('chromatic.colorRubyRed') },
+        { hex: '#046307', name: t('chromatic.colorEmerald') },
+        { hex: '#1E3A8A', name: t('chromatic.colorRoyalBlue') },
+        { hex: '#C71585', name: t('chromatic.colorMagenta') },
+        { hex: '#C0C0C0', name: t('chromatic.colorSilver') },
+        { hex: '#FFFAFA', name: t('chromatic.colorPureWhite') },
+        { hex: '#4B0082', name: t('chromatic.colorIndigo') },
+        { hex: '#FF4500', name: t('chromatic.colorVividOrange') },
+        { hex: '#00CED1', name: t('chromatic.colorTurquoise') },
+        { hex: '#FFD700', name: t('chromatic.colorGoldJewel') },
+        { hex: '#8B008B', name: t('chromatic.colorPurple') },
+        { hex: '#DC143C', name: t('chromatic.colorCrimson') },
+      ],
+      avoid: [
+        { hex: '#F5DEB3', name: t('chromatic.colorLightBeige') },
+        { hex: '#FAEBD7', name: t('chromatic.colorCream') },
+        { hex: '#D2B48C', name: t('chromatic.colorLightBrown') },
+        { hex: '#BC8F8F', name: t('chromatic.colorAntiqueRose') },
+      ],
+    },
+  ];
+
   const profile = PROFILES.find((p) => p.id === selected);
 
   const runAnalysis = useCallback(() => {
@@ -161,7 +164,7 @@ export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps
   return (
     <div className="flex flex-col items-center gap-6">
       <p className="text-base font-medium text-muted-foreground">
-        Selecione um perfil para análise cromática por IA
+        {t('chromatic.selectProfile')}
       </p>
 
       {/* Photo selection */}
@@ -182,7 +185,7 @@ export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps
             <div className="w-20 h-24 md:w-24 md:h-28 rounded-xl overflow-hidden shadow-md">
               <img
                 src={p.photo}
-                alt={`Perfil ${p.label}`}
+                alt={t('chromatic.profileAlt', { label: p.label })}
                 className="w-full h-full object-cover"
                 loading="lazy"
               />
@@ -214,7 +217,7 @@ export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps
           >
             <div className="flex items-center gap-2">
               <Loader2 className="w-5 h-5 text-primary animate-spin" />
-              <span className="text-base font-semibold text-foreground">Analisando com IA...</span>
+              <span className="text-base font-semibold text-foreground">{t('chromatic.analyzingWithAI')}</span>
             </div>
 
             <Progress value={progressValue} className="h-2 w-full" />
@@ -277,14 +280,14 @@ export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span>Confiança: {profile.confidence}%</span>
+                  <span>{t('chromatic.confidence', { value: profile.confidence })}</span>
                   <span>•</span>
-                  <span>Pele: {profile.skin}</span>
+                  <span>{t('chromatic.skin', { value: profile.skin })}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span>Olhos: {profile.eyes}</span>
+                  <span>{t('chromatic.eyes', { value: profile.eyes })}</span>
                   <span>•</span>
-                  <span>Cabelo: {profile.hair}</span>
+                  <span>{t('chromatic.hair', { value: profile.hair })}</span>
                 </div>
               </div>
             </div>
@@ -303,7 +306,7 @@ export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps
             <div>
               <h4 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2">
                 <Check className="w-4 h-4 text-primary" />
-                12 cores que te valorizam
+                {t('chromatic.colorsRecommended')}
               </h4>
               <div className="grid grid-cols-6 gap-2">
                 {profile.colors.map((color, i) => (
@@ -330,7 +333,7 @@ export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps
             <div>
               <h4 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2">
                 <X className="w-4 h-4 text-destructive" />
-                Cores para evitar
+                {t('chromatic.colorsAvoid')}
               </h4>
               <div className="flex gap-3">
                 {profile.avoid.map((color, i) => (
@@ -365,7 +368,7 @@ export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps
               onClick={() => document.getElementById('tester-signup')?.scrollIntoView({ behavior: 'smooth' })}
             >
               <Sparkles className="w-4 h-4" />
-              Descobrir minha paleta real com minha foto
+              {t('chromatic.ctaDiscover')}
               <ChevronRight className="w-4 h-4" />
             </motion.button>
           </motion.div>
@@ -380,7 +383,7 @@ export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
-          Toque em um perfil para ver a análise completa da IA
+          {t('chromatic.placeholder')}
         </motion.p>
       )}
     </div>
