@@ -39,45 +39,38 @@ serve(async (req) => {
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    // Validate JWT
     const authClient = createClient(supabaseUrl, supabaseServiceRoleKey ?? supabaseAnonKey);
     const { data: userData, error: authError } = await authClient.auth.getUser(token);
     const user = userData?.user ?? null;
 
     if (authError || !user) {
-      console.error('suggest-looks auth failed', {
-        authError: authError?.message,
-        hasToken: !!token,
-      });
-
+      console.error('suggest-looks auth failed', { authError: authError?.message, hasToken: !!token });
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Use an authed client for DB operations so RLS applies to this user
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: `Bearer ${token}` } },
     });
 
-    const { occasion, count = 3, capsule_only = false } = await req.json();
+    const { occasion, count = 3, capsule_only = false, locale = 'pt-BR' } = await req.json();
+    const isEN = locale.startsWith('en');
 
-    console.log(`Generating ${count} looks for user ${user.id}, occasion: ${occasion || 'any'}`);
+    console.log(`Generating ${count} looks for user ${user.id}, occasion: ${occasion || 'any'}, locale: ${locale}`);
 
-    // Fetch user's chromatic profile
     const { data: profile } = await supabase
       .from('profiles')
       .select('color_season, color_analysis')
       .eq('user_id', user.id)
       .single();
 
-    // Fetch user's wardrobe items (prioritize ideal compatibility)
     let query = supabase
       .from('wardrobe_items')
       .select('*')
       .eq('user_id', user.id)
-      .order('chromatic_compatibility', { ascending: true }); // ideal first
+      .order('chromatic_compatibility', { ascending: true });
 
     if (capsule_only) {
       query = query.eq('is_capsule', true);
@@ -88,10 +81,10 @@ serve(async (req) => {
     if (!items || items.length < 3) {
       return new Response(
         JSON.stringify({ 
-          error: 'Guarda-roupa insuficiente',
+          error: isEN ? 'Insufficient wardrobe' : 'Guarda-roupa insuficiente',
           message: capsule_only 
-            ? 'Adicione pelo menos 3 peças à sua cápsula para receber recomendações.'
-            : 'Adicione pelo menos 3 peças para receber recomendações de looks.'
+            ? (isEN ? 'Add at least 3 items to your capsule to receive recommendations.' : 'Adicione pelo menos 3 peças à sua cápsula para receber recomendações.')
+            : (isEN ? 'Add at least 3 items to receive look recommendations.' : 'Adicione pelo menos 3 peças para receber recomendações de looks.')
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -106,26 +99,83 @@ serve(async (req) => {
       );
     }
 
-    // Build wardrobe description with color details
     const wardrobeDescription = items.map(item => {
       const colors = item.dominant_colors 
         ? (item.dominant_colors as any[]).map(c => `${c.name} (${c.hex})`).join(', ')
-        : item.color_code || 'cor não analisada';
-      return `- ID: ${item.id} | ${item.category} | Cores: ${colors} | Compatibilidade: ${item.chromatic_compatibility || 'unknown'}`;
+        : item.color_code || (isEN ? 'color not analyzed' : 'cor não analisada');
+      return `- ID: ${item.id} | ${item.category} | ${isEN ? 'Colors' : 'Cores'}: ${colors} | ${isEN ? 'Compatibility' : 'Compatibilidade'}: ${item.chromatic_compatibility || 'unknown'}`;
     }).join('\n');
 
     const colorAnalysis = profile?.color_analysis as any;
-    const chromaticContext = colorAnalysis ? `
+    const chromaticContext = colorAnalysis ? (isEN ? `
+## USER'S CHROMATIC PROFILE
+Color season: ${colorAnalysis.season} ${colorAnalysis.subtype || ''}
+Recommended colors: ${colorAnalysis.recommended_colors?.slice(0, 6).join(', ') || 'not defined'}
+Colors to avoid: ${colorAnalysis.avoid_colors?.slice(0, 4).join(', ') || 'not defined'}
+Skin tone: ${colorAnalysis.skin_tone || 'not defined'}
+Undertone: ${colorAnalysis.undertone || 'not defined'}
+` : `
 ## PERFIL CROMÁTICO DO USUÁRIO
 Estação cromática: ${colorAnalysis.season} ${colorAnalysis.subtype || ''}
 Cores recomendadas: ${colorAnalysis.recommended_colors?.slice(0, 6).join(', ') || 'não definidas'}
 Cores a evitar: ${colorAnalysis.avoid_colors?.slice(0, 4).join(', ') || 'não definidas'}
 Tom de pele: ${colorAnalysis.skin_tone || 'não definido'}
 Subtom: ${colorAnalysis.undertone || 'não definido'}
-` : 'Análise cromática não disponível. Sugira looks harmoniosos baseados nas cores das peças.';
+`) : (isEN ? 'Chromatic analysis not available. Suggest harmonious looks based on garment colors.' : 'Análise cromática não disponível. Sugira looks harmoniosos baseados nas cores das peças.');
 
-    // Enhanced prompt with color theory
-    const prompt = `Você é Aura, uma stylist virtual de luxo especializada em colorimetria pessoal e teoria das cores.
+    const prompt = isEN
+      ? `You are Aura, a luxury virtual stylist specialized in personal color analysis and color theory.
+
+${chromaticContext}
+
+## AVAILABLE WARDROBE
+${wardrobeDescription}
+
+${occasion ? `## DESIRED OCCASION: ${occasion}` : '## OCCASION: Varied (create looks for different moments)'}
+
+## COLOR THEORY - USE THIS TO CREATE HARMONIES
+
+Color Harmony Types:
+1. **Monochromatic**: Tones of the same color in different saturations and values. Elegant and sophisticated.
+2. **Analogous**: Adjacent colors on the color wheel (e.g.: blue + teal + green). Harmonious and natural.
+3. **Complementary**: Opposite colors on the wheel (e.g.: blue + orange). High impact and contrast.
+4. **Triad**: Three equidistant colors (e.g.: red + blue + yellow). Vibrant and balanced.
+5. **Neutral + Accent**: Neutral base with an accent color. Classic and versatile.
+
+## TASK
+Create exactly ${count} complete and harmonious looks using ONLY pieces from the wardrobe above.
+
+## IMPORTANT RULES
+1. **PRIORITIZE** pieces with "ideal" compatibility - they are best for the user's season
+2. Use "neutral" pieces as base or complement
+3. **AVOID** pieces with "avoid" compatibility whenever possible
+4. Each look should have 2-4 pieces that work well together
+5. Consider color harmony between pieces (use color theory)
+6. Give creative and elegant names to the looks (in English)
+7. Explain color harmony using color theory terms
+8. Calculate a score of 0-100 based on chromatic compatibility of pieces
+
+## CHROMATIC SCORE CALCULATION
+- "ideal" piece = 100 points
+- "neutral" piece = 50 points  
+- "avoid" piece = 0 points
+- Final score = average of all pieces in the look
+
+Return ONLY a valid JSON object (no markdown, no backticks):
+{
+  "looks": [
+    {
+      "name": "Elegant and creative name in English",
+      "items": ["uuid1", "uuid2", "uuid3"],
+      "occasion": "casual|work|party|formal",
+      "harmony_type": "monochromatic|analogous|complementary|triad|neutral_accent",
+      "color_harmony": "Explanation of color harmony using color theory (max 50 words)",
+      "chromatic_score": 85,
+      "styling_tip": "Styling tip, accessory or how to wear"
+    }
+  ]
+}`
+      : `Você é Aura, uma stylist virtual de luxo especializada em colorimetria pessoal e teoria das cores.
 
 ${chromaticContext}
 
@@ -177,7 +227,6 @@ Retorne APENAS um objeto JSON válido (sem markdown, sem backticks):
   ]
 }`;
 
-    // Helper function to call AI with automatic retry on transient errors
     const fetchAIWithRetry = async (maxRetries = 2, delayMs = 2000): Promise<any> => {
       let lastError: Error | null = null;
 
@@ -206,25 +255,23 @@ Retorne APENAS um objeto JSON válido (sem markdown, sem backticks):
             const errorText = await response.text();
             console.error('AI gateway error:', response.status, errorText);
 
-            // Retry on 5xx errors
             if (response.status >= 500 && attempt < maxRetries) {
               lastError = new Error(`AI Gateway error: ${response.status}`);
               continue;
             }
 
             if (response.status === 429) {
-              throw { status: 429, message: 'Muitas requisições. Tente novamente em alguns segundos.' };
+              throw { status: 429, message: isEN ? 'Too many requests. Try again in a few seconds.' : 'Muitas requisições. Tente novamente em alguns segundos.' };
             }
             if (response.status === 402) {
-              throw { status: 402, message: 'Créditos de IA esgotados.' };
+              throw { status: 402, message: isEN ? 'AI credits exhausted.' : 'Créditos de IA esgotados.' };
             }
 
-            throw { status: 500, message: 'Erro ao gerar looks' };
+            throw { status: 500, message: isEN ? 'Error generating looks' : 'Erro ao gerar looks' };
           }
 
           const data = await response.json();
 
-          // Check for internal errors in response body
           if (data.error?.code === 500 || data.error?.message?.includes('Internal')) {
             console.log(`AI Gateway internal error on attempt ${attempt}: ${data.error.message}`);
             lastError = new Error(`AI Gateway internal error: ${data.error.message}`);
@@ -233,7 +280,7 @@ Retorne APENAS um objeto JSON válido (sem markdown, sem backticks):
 
           return data;
         } catch (fetchError: any) {
-          if (fetchError.status) throw fetchError; // Re-throw structured errors
+          if (fetchError.status) throw fetchError;
           console.error(`Fetch error on attempt ${attempt}:`, fetchError);
           lastError = fetchError instanceof Error ? fetchError : new Error('Network error');
           if (attempt < maxRetries) continue;
@@ -248,7 +295,7 @@ Retorne APENAS um objeto JSON válido (sem markdown, sem backticks):
       data = await fetchAIWithRetry();
     } catch (apiError: any) {
       return new Response(
-        JSON.stringify({ error: apiError.message || 'Erro ao gerar looks' }),
+        JSON.stringify({ error: apiError.message || (isEN ? 'Error generating looks' : 'Erro ao gerar looks') }),
         { status: apiError.status || 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -258,7 +305,7 @@ Retorne APENAS um objeto JSON válido (sem markdown, sem backticks):
     if (!content) {
       console.error('No content in AI response');
       return new Response(
-        JSON.stringify({ error: 'Resposta inválida da IA' }),
+        JSON.stringify({ error: isEN ? 'Invalid AI response' : 'Resposta inválida da IA' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -274,7 +321,7 @@ Retorne APENAS um objeto JSON válido (sem markdown, sem backticks):
     } catch (parseError) {
       console.error('Failed to parse AI response:', content);
       return new Response(
-        JSON.stringify({ error: 'Falha ao processar sugestões' }),
+        JSON.stringify({ error: isEN ? 'Failed to process suggestions' : 'Falha ao processar sugestões' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -285,7 +332,6 @@ Retorne APENAS um objeto JSON válido (sem markdown, sem backticks):
         .map((id: string) => items.find(item => item.id === id))
         .filter(Boolean);
       
-      // Calculate real chromatic score based on actual items
       const scores = lookItems.map((item: any) => {
         switch (item.chromatic_compatibility) {
           case 'ideal': return 100;
@@ -311,12 +357,10 @@ Retorne APENAS um objeto JSON válido (sem markdown, sem backticks):
       };
     });
 
-    // Sort by chromatic score (best first)
     enrichedLooks.sort((a: any, b: any) => (b.chromatic_score || 0) - (a.chromatic_score || 0));
 
     console.log(`Generated ${enrichedLooks.length} looks successfully`);
 
-    // Cache the result
     await supabase.from('recommended_looks').insert({
       user_id: user.id,
       occasion: occasion || 'mixed',

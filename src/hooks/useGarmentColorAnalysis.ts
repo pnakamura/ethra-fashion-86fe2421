@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { calculateCompatibility } from '@/lib/chromatic-match';
@@ -21,6 +22,7 @@ export function useGarmentColorAnalysis() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { i18n } = useTranslation();
 
   const analyzeGarment = useCallback(async (imageBase64: string): Promise<GarmentColorResult | null> => {
     setIsAnalyzing(true);
@@ -29,8 +31,9 @@ export function useGarmentColorAnalysis() {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
       
+      const locale = i18n.language || 'pt-BR';
       const { data, error } = await supabase.functions.invoke('analyze-garment-colors', {
-        body: { imageBase64 },
+        body: { imageBase64, locale },
         headers: token ? { Authorization: `Bearer ${token}` } : undefined
       });
 

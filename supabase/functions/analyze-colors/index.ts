@@ -17,24 +17,18 @@ interface ColorAnalysisResult {
 
 // Helper to validate image
 function validateImage(base64: string): { valid: boolean; error?: string } {
-  // Check if it's a data URL
   const isDataUrl = base64.startsWith('data:image/');
-  
-  // Estimate size (base64 is ~33% larger than binary)
   const sizeInBytes = isDataUrl 
     ? (base64.length - (base64.indexOf(',') + 1)) * 0.75
     : base64.length * 0.75;
-  
   const sizeInMB = sizeInBytes / (1024 * 1024);
   
   if (sizeInMB > 10) {
-    return { valid: false, error: 'Imagem muito grande. Use uma foto de até 10MB.' };
+    return { valid: false, error: 'Image too large. Use a photo up to 10MB.' };
   }
-  
   if (sizeInMB < 0.01) {
-    return { valid: false, error: 'Imagem muito pequena. Use uma foto de maior resolução.' };
+    return { valid: false, error: 'Image too small. Use a higher resolution photo.' };
   }
-  
   return { valid: true };
 }
 
@@ -57,9 +51,8 @@ async function callAIWithRetry(
         body: JSON.stringify(body),
       });
       
-      // If rate limited or server error, retry
       if ((response.status === 500 || response.status === 503) && attempt < maxRetries) {
-        const waitTime = Math.pow(2, attempt) * 1000; // Exponential backoff
+        const waitTime = Math.pow(2, attempt) * 1000;
         console.log(`[analyze-colors] Retry ${attempt + 1}/${maxRetries} after ${waitTime}ms`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
         continue;
@@ -81,22 +74,21 @@ async function callAIWithRetry(
 
 serve(async (req) => {
   const corsHeaders = createCorsHeaders(req);
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { image_base64 } = await req.json();
+    const { image_base64, locale = 'pt-BR' } = await req.json();
+    const isEN = locale.startsWith('en');
 
     if (!image_base64) {
       return new Response(
-        JSON.stringify({ error: 'Envie uma foto para análise' }),
+        JSON.stringify({ error: isEN ? 'Send a photo for analysis' : 'Envie uma foto para análise' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Validate image
     const validation = validateImage(image_base64);
     if (!validation.valid) {
       return new Response(
@@ -109,14 +101,37 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) {
       console.error('LOVABLE_API_KEY not configured');
       return new Response(
-        JSON.stringify({ error: 'Serviço de IA não configurado' }),
+        JSON.stringify({ error: isEN ? 'AI service not configured' : 'Serviço de IA não configurado' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     console.log('Starting color analysis with AI...');
 
-    const systemPrompt = `Você é uma consultora de colorimetria pessoal especializada no sistema das 12 estações sazonais. 
+    const systemPrompt = isEN
+      ? `You are a personal color analysis consultant specialized in the 12-season color system.
+Analyze the person's photo and determine their most likely color season.
+
+The 12 seasons are:
+- Light Spring (spring-light): light and warm tones
+- Warm Spring (spring-warm): vibrant and warm tones
+- Bright Spring (spring-bright): high contrast and vivid warm colors
+- Light Summer (summer-light): soft and cool tones
+- Soft Summer (summer-soft): muted and grayish tones
+- Cool Summer (summer-cool): cool tones with medium depth
+- Soft Autumn (autumn-soft): soft earthy tones
+- Warm Autumn (autumn-warm): rich and warm earthy tones
+- Deep Autumn (autumn-deep): dark and warm tones
+- Cool Winter (winter-cool): cool tones with high contrast
+- Deep Winter (winter-deep): dark and cool tones
+- Bright Winter (winter-bright): high contrast with vivid cool colors
+
+Analyze:
+1. Skin tone (warm/cool undertone, light/medium/dark)
+2. Eye color
+3. Hair color (consider natural color)
+4. Overall contrast between skin, eyes and hair`
+      : `Você é uma consultora de colorimetria pessoal especializada no sistema das 12 estações sazonais. 
 Analise a foto da pessoa e determine sua estação cromática mais provável.
 
 As 12 estações são:
@@ -139,7 +154,11 @@ Analise:
 3. Cor do cabelo (considere a cor natural)
 4. Contraste geral entre pele, olhos e cabelo`;
 
-    const userPrompt = `Analise esta foto e determine a estação cromática da pessoa. Seja precisa e forneça uma explicação detalhada do porquê.`;
+    const userPrompt = isEN
+      ? `Analyze this photo and determine the person's color season. Be precise and provide a detailed explanation of why.`
+      : `Analise esta foto e determine a estação cromática da pessoa. Seja precisa e forneça uma explicação detalhada do porquê.`;
+
+    const lang = isEN ? 'English' : 'Portuguese';
 
     const requestBody = {
       model: 'google/gemini-2.5-flash',
@@ -177,20 +196,20 @@ Analise:
                   ],
                   description: 'The ID of the color season'
                 },
-                season_name: { type: 'string', description: 'Name of the season in Portuguese (e.g., Primavera, Verão, Outono, Inverno)' },
-                subtype: { type: 'string', description: 'Subtype in Portuguese (e.g., Clara, Quente, Suave, Profundo, Brilhante, Frio)' },
+                season_name: { type: 'string', description: `Name of the season in ${lang} (e.g., ${isEN ? 'Spring, Summer, Autumn, Winter' : 'Primavera, Verão, Outono, Inverno'})` },
+                subtype: { type: 'string', description: `Subtype in ${lang} (e.g., ${isEN ? 'Light, Warm, Soft, Deep, Bright, Cool' : 'Clara, Quente, Suave, Profundo, Brilhante, Frio'})` },
                 confidence: { type: 'number', description: 'Confidence level 0-100' },
-                explanation: { type: 'string', description: 'Detailed explanation in Portuguese of why this season was chosen' },
-                skin_tone: { type: 'string', description: 'Description of skin tone in Portuguese' },
-                eye_color: { type: 'string', description: 'Description of eye color in Portuguese' },
-                hair_color: { type: 'string', description: 'Description of hair color in Portuguese' },
+                explanation: { type: 'string', description: `Detailed explanation in ${lang} of why this season was chosen` },
+                skin_tone: { type: 'string', description: `Description of skin tone in ${lang}` },
+                eye_color: { type: 'string', description: `Description of eye color in ${lang}` },
+                hair_color: { type: 'string', description: `Description of hair color in ${lang}` },
                 recommended_colors: {
                   type: 'array',
                   items: {
                     type: 'object',
                     properties: {
                       hex: { type: 'string', description: 'Hex color code' },
-                      name: { type: 'string', description: 'Color name in Portuguese' }
+                      name: { type: 'string', description: `Color name in ${lang}` }
                     },
                     required: ['hex', 'name']
                   },
@@ -202,7 +221,7 @@ Analise:
                     type: 'object',
                     properties: {
                       hex: { type: 'string', description: 'Hex color code' },
-                      name: { type: 'string', description: 'Color name in Portuguese' }
+                      name: { type: 'string', description: `Color name in ${lang}` }
                     },
                     required: ['hex', 'name']
                   },
@@ -226,20 +245,19 @@ Analise:
       
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: 'Muitas requisições. Tente novamente em alguns segundos.' }),
+          JSON.stringify({ error: isEN ? 'Too many requests. Try again in a few seconds.' : 'Muitas requisições. Tente novamente em alguns segundos.' }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: 'Créditos de IA esgotados. Tente novamente mais tarde.' }),
+          JSON.stringify({ error: isEN ? 'AI credits exhausted. Try again later.' : 'Créditos de IA esgotados. Tente novamente mais tarde.' }),
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
       return new Response(
-        JSON.stringify({ error: 'Erro ao processar análise' }),
+        JSON.stringify({ error: isEN ? 'Error processing analysis' : 'Erro ao processar análise' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -251,7 +269,7 @@ Analise:
     if (!toolCall?.function?.arguments) {
       console.error('No tool call in response:', JSON.stringify(data));
       return new Response(
-        JSON.stringify({ error: 'Não foi possível analisar a imagem. Tente com outra foto.' }),
+        JSON.stringify({ error: isEN ? 'Could not analyze the image. Try with another photo.' : 'Não foi possível analisar a imagem. Tente com outra foto.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -273,7 +291,7 @@ Analise:
   } catch (error) {
     console.error('Error in analyze-colors:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Erro desconhecido' }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

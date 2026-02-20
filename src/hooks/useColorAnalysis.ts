@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
@@ -19,6 +20,7 @@ export interface ColorAnalysisResult {
 
 export function useColorAnalysis() {
   const { user } = useAuth();
+  const { i18n } = useTranslation();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<ColorAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -37,8 +39,9 @@ export function useColorAnalysis() {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
       
+      const locale = i18n.language || 'pt-BR';
       const { data, error: fnError } = await supabase.functions.invoke('analyze-colors', {
-        body: { image_base64: imageBase64 },
+        body: { image_base64: imageBase64, locale },
         headers: token ? { Authorization: `Bearer ${token}` } : undefined
       });
 

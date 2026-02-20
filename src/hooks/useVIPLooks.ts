@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -59,6 +60,7 @@ export function useVIPLooks() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { i18n } = useTranslation();
 
   const generateVIPLooks = useCallback(async (count = 3) => {
     setIsLoading(true);
@@ -76,8 +78,9 @@ export function useVIPLooks() {
         const { data: sessionData } = await supabase.auth.getSession();
         const token = sessionData.session?.access_token;
         
+        const locale = i18n.language || 'pt-BR';
         const { data, error: fnError } = await supabase.functions.invoke('suggest-vip-looks', {
-          body: { count },
+          body: { count, locale },
           headers: token ? { Authorization: `Bearer ${token}` } : undefined
         });
         if (fnError) throw new Error(fnError.message);

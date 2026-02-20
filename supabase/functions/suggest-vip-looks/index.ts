@@ -39,7 +39,6 @@ serve(async (req) => {
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    // Validate JWT
     const authClient = createClient(supabaseUrl, supabaseServiceRoleKey ?? supabaseAnonKey);
     const { data: userData, error: authError } = await authClient.auth.getUser(token);
     const user = userData?.user ?? null;
@@ -52,23 +51,21 @@ serve(async (req) => {
       );
     }
 
-    // Use an authed client for DB operations
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: `Bearer ${token}` } },
     });
 
-    const { count = 3 } = await req.json();
+    const { count = 3, locale = 'pt-BR' } = await req.json();
+    const isEN = locale.startsWith('en');
 
-    console.log(`Generating ${count} VIP looks for user ${user.id}`);
+    console.log(`Generating ${count} VIP looks for user ${user.id}, locale: ${locale}`);
 
-    // Fetch user's chromatic profile
     const { data: profile } = await supabase
       .from('profiles')
       .select('color_season, color_analysis, subscription_plan_id')
       .eq('user_id', user.id)
       .single();
 
-    // Fetch user's wardrobe items (prioritize ideal compatibility)
     const { data: items } = await supabase
       .from('wardrobe_items')
       .select('*')
@@ -78,8 +75,8 @@ serve(async (req) => {
     if (!items || items.length < 3) {
       return new Response(
         JSON.stringify({ 
-          error: 'Guarda-roupa insuficiente',
-          message: 'Adicione pelo menos 3 peças para receber looks VIP exclusivos.'
+          error: isEN ? 'Insufficient wardrobe' : 'Guarda-roupa insuficiente',
+          message: isEN ? 'Add at least 3 items to receive exclusive VIP looks.' : 'Adicione pelo menos 3 peças para receber looks VIP exclusivos.'
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -94,30 +91,113 @@ serve(async (req) => {
       );
     }
 
-    // Build wardrobe description with color details
     const wardrobeDescription = items.map(item => {
       const colors = item.dominant_colors 
         ? (item.dominant_colors as any[]).map(c => `${c.name} (${c.hex})`).join(', ')
-        : item.color_code || 'cor não analisada';
-      return `- ID: ${item.id} | ${item.category} | Nome: ${item.name || 'Sem nome'} | Cores: ${colors} | Compat: ${item.chromatic_compatibility || 'unknown'}`;
+        : item.color_code || (isEN ? 'color not analyzed' : 'cor não analisada');
+      return `- ID: ${item.id} | ${item.category} | ${isEN ? 'Name' : 'Nome'}: ${item.name || (isEN ? 'Unnamed' : 'Sem nome')} | ${isEN ? 'Colors' : 'Cores'}: ${colors} | Compat: ${item.chromatic_compatibility || 'unknown'}`;
     }).join('\n');
 
     const colorAnalysis = profile?.color_analysis as any;
 
-    const chromaticContext = colorAnalysis ? `
+    const chromaticContext = colorAnalysis ? (isEN ? `
+## VIP CLIENT CHROMATIC PROFILE
+Season: ${colorAnalysis.season} ${colorAnalysis.subtype || ''}
+Ideal colors: ${colorAnalysis.recommended_colors?.slice(0, 8).join(', ') || 'not defined'}
+Colors to avoid: ${colorAnalysis.avoid_colors?.slice(0, 5).join(', ') || 'not defined'}
+Skin tone: ${colorAnalysis.skin_tone || 'not defined'}
+Undertone: ${colorAnalysis.undertone || 'not defined'}
+` : `
 ## PERFIL CROMÁTICO VIP DA CLIENTE
 Estação: ${colorAnalysis.season} ${colorAnalysis.subtype || ''}
 Cores ideais: ${colorAnalysis.recommended_colors?.slice(0, 8).join(', ') || 'não definidas'}
 Cores a evitar: ${colorAnalysis.avoid_colors?.slice(0, 5).join(', ') || 'não definidas'}
 Tom de pele: ${colorAnalysis.skin_tone || 'não definido'}
 Subtom: ${colorAnalysis.undertone || 'não definido'}
+`) : (isEN ? `
+## VIP CHROMATIC PROFILE
+Full analysis not available.
 ` : `
 ## PERFIL CROMÁTICO VIP
 Análise completa não disponível.
-`;
+`);
 
-    // VIP Elite Premium Prompt - Optimized for tokens (celebrities moved to static data)
-    const prompt = `Você é **Aura Elite**, consultora de imagem de celebridades e editora de moda premium. Crie looks VIP de alto impacto.
+    const prompt = isEN
+      ? `You are **Aura Elite**, a celebrity image consultant and premium fashion editor. Create high-impact VIP looks.
+
+${chromaticContext}
+
+## AVAILABLE WARDROBE
+${wardrobeDescription}
+
+## VIP ELITE MISSION
+Create exactly ${count} HIGH-IMPACT looks using ONLY pieces from the wardrobe above.
+
+## VIP CRITERIA
+
+### ADVANCED COLOR THEORY
+- **60-30-10 Rule**: 60% dominant color, 30% secondary, 10% accent
+- Provide the HEX palette of the look's main colors
+
+### COLOR HARMONIES
+- Triad, Split Complementary, Tetradic or Analogous with Accent
+
+### INVESTMENT PIECE
+Suggest ONE timeless piece to elevate the look.
+
+### OCCASION DETAILS
+- Where the look shines / Where to avoid / Best time
+
+### STYLING SECRETS
+2 exclusive tips from professional stylists
+
+### TRENDS 2024/2025
+Quiet Luxury, Old Money, Cherry Coded, Butter Yellow, Burgundy Renaissance
+
+### VIP CLASSIFICATION
+- GOLD: Score 90-100 | SILVER: 75-89 | BRONZE: 60-74
+
+## RULES
+1. Use ONLY "ideal" or "neutral" pieces
+2. NEVER use "avoid" pieces
+3. Each look: 2-4 pieces
+4. Glamorous names in English
+
+Return ONLY valid JSON:
+{
+  "looks": [
+    {
+      "name": "Glamorous name",
+      "items": ["uuid1", "uuid2"],
+      "occasion": "event|gala|date|photoshoot|work",
+      "harmony_type": "triad|split_complementary|tetradic|analogous",
+      "color_harmony": "Explanation of the applied harmony",
+      "chromatic_score": 95,
+      "styling_tip": "Main tip",
+      "trend_inspiration": "Trend",
+      "confidence_boost": "Empowering phrase",
+      "accessory_suggestions": ["accessory 1", "accessory 2"],
+      "vip_tier": "gold|silver|bronze",
+      "investment_piece": {
+        "category": "category",
+        "description": "Suggested piece",
+        "why": "Why to invest"
+      },
+      "color_theory_deep": {
+        "principle": "Applied principle",
+        "explanation": "60-30-10 explanation",
+        "hex_palette": ["#HEX1", "#HEX2", "#HEX3"]
+      },
+      "occasion_details": {
+        "perfect_for": "Where it shines",
+        "avoid_for": "Where to avoid",
+        "best_time": "Best time"
+      },
+      "styling_secrets": ["Secret 1", "Secret 2"]
+    }
+  ]
+}`
+      : `Você é **Aura Elite**, consultora de imagem de celebridades e editora de moda premium. Crie looks VIP de alto impacto.
 
 ${chromaticContext}
 
@@ -192,7 +272,6 @@ Retorne APENAS JSON válido:
   ]
 }`;
 
-    // Helper function with retry - Using Premium Model for VIP
     const fetchAIWithRetry = async (maxRetries = 2, delayMs = 2000): Promise<any> => {
       let lastError: Error | null = null;
 
@@ -210,7 +289,6 @@ Retorne APENAS JSON válido:
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              // VIP uses Premium model for superior reasoning
               model: 'google/gemini-2.5-pro',
               messages: [{ role: 'user', content: prompt }],
               max_tokens: 8000,
@@ -228,13 +306,13 @@ Retorne APENAS JSON válido:
             }
 
             if (response.status === 429) {
-              throw { status: 429, message: 'Muitas requisições. Tente novamente em alguns segundos.' };
+              throw { status: 429, message: isEN ? 'Too many requests. Try again in a few seconds.' : 'Muitas requisições. Tente novamente em alguns segundos.' };
             }
             if (response.status === 402) {
-              throw { status: 402, message: 'Créditos de IA esgotados.' };
+              throw { status: 402, message: isEN ? 'AI credits exhausted.' : 'Créditos de IA esgotados.' };
             }
 
-            throw { status: 500, message: 'Erro ao gerar looks VIP' };
+            throw { status: 500, message: isEN ? 'Error generating VIP looks' : 'Erro ao gerar looks VIP' };
           }
 
           const data = await response.json();
@@ -261,7 +339,7 @@ Retorne APENAS JSON válido:
       data = await fetchAIWithRetry();
     } catch (apiError: any) {
       return new Response(
-        JSON.stringify({ error: apiError.message || 'Erro ao gerar looks VIP' }),
+        JSON.stringify({ error: apiError.message || (isEN ? 'Error generating VIP looks' : 'Erro ao gerar looks VIP') }),
         { status: apiError.status || 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -271,14 +349,13 @@ Retorne APENAS JSON válido:
     if (!content) {
       console.error('No content in AI response');
       return new Response(
-        JSON.stringify({ error: 'Resposta inválida da IA' }),
+        JSON.stringify({ error: isEN ? 'Invalid AI response' : 'Resposta inválida da IA' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     let result;
     try {
-      // Strip markdown code fences if present
       let cleanContent = content.trim();
       if (cleanContent.startsWith('```')) {
         cleanContent = cleanContent.replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
@@ -291,32 +368,28 @@ Retorne APENAS JSON válido:
         throw new Error('No JSON found');
       }
       
-      // Validate the response has the expected structure
       if (!result.looks || !Array.isArray(result.looks) || result.looks.length === 0) {
         throw new Error('Invalid looks structure');
       }
     } catch (parseError) {
       console.error('Failed to parse AI response:', content.substring(0, 500));
       
-      // Check if response was truncated
       const finishReason = data.choices?.[0]?.finish_reason;
       if (finishReason === 'length') {
         console.error('Response was truncated due to max_tokens limit');
       }
       
       return new Response(
-        JSON.stringify({ error: 'Falha ao processar sugestões VIP. Tente novamente.' }),
+        JSON.stringify({ error: isEN ? 'Failed to process VIP suggestions. Try again.' : 'Falha ao processar sugestões VIP. Tente novamente.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Enrich looks with item details and calculate real chromatic score
     const enrichedLooks = result.looks.map((look: any) => {
       const lookItems = look.items
         .map((id: string) => items.find(item => item.id === id))
         .filter(Boolean);
       
-      // Calculate real chromatic score
       const scores = lookItems.map((item: any) => {
         switch (item.chromatic_compatibility) {
           case 'ideal': return 100;
@@ -329,7 +402,6 @@ Retorne APENAS JSON válido:
         ? Math.round(scores.reduce((a: number, b: number) => a + b, 0) / scores.length)
         : 0;
 
-      // Determine VIP tier based on real score
       let vipTier = 'bronze';
       if (realScore >= 90) vipTier = 'gold';
       else if (realScore >= 75) vipTier = 'silver';
@@ -348,12 +420,10 @@ Retorne APENAS JSON válido:
       };
     });
 
-    // Sort by chromatic score (best first)
     enrichedLooks.sort((a: any, b: any) => (b.chromatic_score || 0) - (a.chromatic_score || 0));
 
     console.log(`Generated ${enrichedLooks.length} VIP looks successfully`);
 
-    // Cache the result with 'vip' occasion tag
     await supabase.from('recommended_looks').insert({
       user_id: user.id,
       occasion: 'vip',

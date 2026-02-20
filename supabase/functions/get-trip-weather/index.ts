@@ -73,19 +73,18 @@ interface WeatherRecommendations {
   packing_list: PackingList;
 }
 
-// Map trip type to more descriptive Portuguese label
-function getTripTypeLabel(tripType: string): string {
-  const labels: Record<string, string> = {
-    leisure: "lazer e turismo",
-    business: "negócios e reuniões",
-    adventure: "aventura e esportes",
-    romantic: "viagem romântica",
-    beach: "praia e relaxamento",
+function getTripTypeLabel(tripType: string, isEN: boolean): string {
+  const labels: Record<string, Record<string, string>> = {
+    leisure: { en: "leisure and tourism", pt: "lazer e turismo" },
+    business: { en: "business and meetings", pt: "negócios e reuniões" },
+    adventure: { en: "adventure and sports", pt: "aventura e esportes" },
+    romantic: { en: "romantic trip", pt: "viagem romântica" },
+    beach: { en: "beach and relaxation", pt: "praia e relaxamento" },
   };
-  return labels[tripType] || tripType;
+  const lang = isEN ? 'en' : 'pt';
+  return labels[tripType]?.[lang] || tripType;
 }
 
-// Get climate vibe based on conditions and temperature
 function inferClimateVibe(conditions: string[], tempAvg: number): string {
   if (conditions.includes("snowy")) return "winter_wonderland";
   if (conditions.includes("rainy") || conditions.includes("stormy")) return "rainy_adventure";
@@ -100,12 +99,11 @@ interface GeocodingResult {
   lat: number;
   lon: number;
   name: string;
-  admin1?: string;  // state/region
+  admin1?: string;
   country: string;
   country_code: string;
 }
 
-// Country code to flag emoji mapping
 function getCountryFlag(countryCode: string): string {
   const code = countryCode.toUpperCase();
   return code
@@ -117,48 +115,24 @@ function getCountryFlag(countryCode: string): string {
 async function geocodeDestinationMultiple(destination: string, count = 5): Promise<GeocodingResult[]> {
   console.log(`Geocoding destination (multiple): ${destination}`);
   
-  const searchTerms = [
-    destination,
-    destination.split(',')[0].trim(),
-  ];
+  const searchTerms = [destination, destination.split(',')[0].trim()];
   
   for (const term of searchTerms) {
     try {
       console.log(`Trying geocoding with: ${term}`);
-      
       const response = await fetch(
         `${OPEN_METEO_GEOCODING}?name=${encodeURIComponent(term)}&count=${count}&language=pt&format=json`
       );
-      
-      if (!response.ok) {
-        console.error("Geocoding failed:", response.status);
-        continue;
-      }
-      
+      if (!response.ok) { console.error("Geocoding failed:", response.status); continue; }
       const data = await response.json();
-      
       if (data.results && data.results.length > 0) {
-        return data.results.map((result: {
-          latitude: number;
-          longitude: number;
-          name: string;
-          admin1?: string;
-          country: string;
-          country_code: string;
-        }) => ({
-          lat: result.latitude,
-          lon: result.longitude,
-          name: result.name,
-          admin1: result.admin1,
-          country: result.country,
-          country_code: result.country_code || 'XX',
+        return data.results.map((result: any) => ({
+          lat: result.latitude, lon: result.longitude, name: result.name,
+          admin1: result.admin1, country: result.country, country_code: result.country_code || 'XX',
         }));
       }
-    } catch (error) {
-      console.error("Geocoding error for term:", term, error);
-    }
+    } catch (error) { console.error("Geocoding error for term:", term, error); }
   }
-  
   console.log("No geocoding results found for any search term");
   return [];
 }
@@ -166,41 +140,29 @@ async function geocodeDestinationMultiple(destination: string, count = 5): Promi
 async function geocodeDestination(destination: string): Promise<{ lat: number; lon: number; name: string } | null> {
   const results = await geocodeDestinationMultiple(destination, 1);
   if (results.length === 0) return null;
-  
   const result = results[0];
   return {
-    lat: result.lat,
-    lon: result.lon,
-    name: result.admin1 
-      ? `${result.name}, ${result.admin1}, ${result.country}`
-      : `${result.name}, ${result.country}`,
+    lat: result.lat, lon: result.lon,
+    name: result.admin1 ? `${result.name}, ${result.admin1}, ${result.country}` : `${result.name}, ${result.country}`,
   };
 }
 
 async function getWeatherData(
-  lat: number,
-  lon: number,
-  startDate: string,
-  endDate: string
+  lat: number, lon: number, startDate: string, endDate: string
 ): Promise<{ tempMin: number; tempMax: number; precipitationSum: number; conditions: string[] } | null> {
   console.log(`Fetching weather for ${lat}, ${lon} from ${startDate} to ${endDate}`);
-  
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
   const start = new Date(startDate);
   const end = new Date(endDate);
-  
   const daysUntilEnd = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   
   try {
     let weatherData;
-    
     if (daysUntilEnd <= 16) {
       console.log("Using forecast API (within 16 days)");
       const response = await fetch(
         `${OPEN_METEO_FORECAST}?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode&start_date=${startDate}&end_date=${endDate}&timezone=auto`
       );
-      
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Forecast API failed:", response.status, errorText);
@@ -208,49 +170,32 @@ async function getWeatherData(
         weatherData = await response.json();
       }
     }
-    
     if (!weatherData) {
       console.log("Using historical data (previous year same period)");
-      const lastYearStart = new Date(start);
-      lastYearStart.setFullYear(lastYearStart.getFullYear() - 1);
-      const lastYearEnd = new Date(end);
-      lastYearEnd.setFullYear(lastYearEnd.getFullYear() - 1);
-      
+      const lastYearStart = new Date(start); lastYearStart.setFullYear(lastYearStart.getFullYear() - 1);
+      const lastYearEnd = new Date(end); lastYearEnd.setFullYear(lastYearEnd.getFullYear() - 1);
       const histStartStr = lastYearStart.toISOString().split('T')[0];
       const histEndStr = lastYearEnd.toISOString().split('T')[0];
-      
       console.log(`Historical period: ${histStartStr} to ${histEndStr}`);
-      
       const response = await fetch(
         `${OPEN_METEO_HISTORICAL}?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&start_date=${histStartStr}&end_date=${histEndStr}&timezone=auto`
       );
-      
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Historical API failed:", response.status, errorText);
         return null;
       }
-      
       weatherData = await response.json();
     }
-    
-    if (!weatherData.daily) {
-      console.log("No daily weather data");
-      return null;
-    }
-    
+    if (!weatherData.daily) { console.log("No daily weather data"); return null; }
     const daily = weatherData.daily;
     const tempMin = Math.min(...daily.temperature_2m_min);
     const tempMax = Math.max(...daily.temperature_2m_max);
     const precipitationSum = daily.precipitation_probability_max
       ? Math.max(...daily.precipitation_probability_max)
-      : daily.precipitation_sum
-        ? daily.precipitation_sum.reduce((a: number, b: number) => a + b, 0)
-        : 0;
-    
+      : daily.precipitation_sum ? daily.precipitation_sum.reduce((a: number, b: number) => a + b, 0) : 0;
     const weatherCodes = daily.weathercode || [];
     const conditions = new Set<string>();
-    
     for (const code of weatherCodes) {
       if (code === 0) conditions.add("sunny");
       else if (code >= 1 && code <= 3) conditions.add("partly_cloudy");
@@ -260,65 +205,39 @@ async function getWeatherData(
       else if (code >= 80 && code <= 82) conditions.add("showers");
       else if (code >= 95) conditions.add("stormy");
     }
-    
     console.log(`Weather: ${tempMin}°C - ${tempMax}°C, precipitation: ${precipitationSum}%`);
-    
-    return {
-      tempMin,
-      tempMax,
-      precipitationSum,
-      conditions: Array.from(conditions),
-    };
-  } catch (error) {
-    console.error("Weather fetch error:", error);
-    return null;
-  }
+    return { tempMin, tempMax, precipitationSum, conditions: Array.from(conditions) };
+  } catch (error) { console.error("Weather fetch error:", error); return null; }
 }
 
-// Helper function to call AI with automatic retry on transient errors
 async function callAIWithRetry(
-  payload: object,
-  maxRetries = 2,
-  delayMs = 2000
+  payload: object, maxRetries = 2, delayMs = 2000
 ): Promise<{ ok: boolean; status: number; data: any }> {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-  if (!LOVABLE_API_KEY) {
-    throw new Error("LOVABLE_API_KEY not configured");
-  }
-
+  if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
   let lastError: Error | null = null;
-
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     if (attempt > 0) {
       console.log(`AI Gateway retry attempt ${attempt} after error`);
       await new Promise((r) => setTimeout(r, delayMs));
     }
-
     try {
       const response = await fetch(LOVABLE_AI_GATEWAY, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
       const data = await response.json();
-
-      // Check for internal errors in response body (AI Gateway may return 200 with error)
       if (data.error?.code === 500 || data.error?.message?.includes("Internal")) {
         console.log(`AI Gateway internal error on attempt ${attempt}: ${data.error.message}`);
         lastError = new Error(`AI Gateway internal error: ${data.error.message}`);
-        continue; // Retry
+        continue;
       }
-
       if (!response.ok && response.status >= 500 && attempt < maxRetries) {
         console.log(`AI Gateway 5xx error on attempt ${attempt}: ${response.status}`);
         lastError = new Error(`AI Gateway error: ${response.status}`);
-        continue; // Retry
+        continue;
       }
-
       return { ok: response.ok, status: response.status, data };
     } catch (fetchError) {
       console.error(`Fetch error on attempt ${attempt}:`, fetchError);
@@ -326,7 +245,6 @@ async function callAIWithRetry(
       if (attempt < maxRetries) continue;
     }
   }
-
   throw lastError || new Error("AI Gateway failed after retries");
 }
 
@@ -335,23 +253,45 @@ async function analyzeWithAI(
   wardrobeItems: WardrobeItem[],
   tripType: string,
   destination: string,
-  tripDays: number
+  tripDays: number,
+  isEN: boolean
 ): Promise<WeatherRecommendations> {
-  console.log(`Analyzing with AI for ${wardrobeItems.length} wardrobe items`);
+  console.log(`Analyzing with AI for ${wardrobeItems.length} wardrobe items, locale: ${isEN ? 'en' : 'pt-BR'}`);
 
   const itemsSummary = wardrobeItems.slice(0, 50).map((item) => ({
-    id: item.id,
-    name: item.name || item.category,
-    category: item.category,
-    season: item.season_tag,
-    occasion: item.occasion,
+    id: item.id, name: item.name || item.category, category: item.category,
+    season: item.season_tag, occasion: item.occasion,
   }));
 
-  const tripTypeLabel = getTripTypeLabel(tripType);
+  const tripTypeLabel = getTripTypeLabel(tripType, isEN);
   const tempAvg = Math.round((weather.tempMin + weather.tempMax) / 2);
   const climateVibe = inferClimateVibe(weather.conditions, tempAvg);
 
-  const systemPrompt = `Você é a Aura, uma personal stylist brasileira especializada em viagens. 
+  const systemPrompt = isEN
+    ? `You are Aura, a personal stylist specialized in travel fashion. 
+Your tone is sophisticated yet relaxed, like a fashion-savvy friend who loves giving tips. 
+Use natural expressions and an occasional emoji for personality (but don't overdo it!).
+
+GOLDEN RULES:
+- Be specific about the destination: mention tourist spots, local culture, famous neighborhoods
+- Make light fashion-related puns when appropriate
+- Give practical but editorially charming tips
+- Consider typical activities for the trip type
+- Suggest looks with creative and evocative names (e.g., "Sunset at Porto da Barra", "City Explorer")
+- Use language that feels like a conversation between friends, not a technical manual
+- Each look needs a specific and useful style_tip
+
+IMPORTANT ABOUT PACKING_LIST:
+- Carefully analyze the wardrobe provided
+- For items that exist in the closet, use the exact ID and mark in_wardrobe=true
+- For items that DON'T exist, create suggestions with in_wardrobe=false
+- Specify quantities based on trip duration
+- Suggest ideal colors, styles and fabrics for the weather
+- Organize into: roupas, calcados, acessorios, chapeus
+- Each item needs a clear reason (why to bring/buy)
+
+Piece IDs MUST be valid IDs from the wardrobe provided when in_wardrobe=true.`
+    : `Você é a Aura, uma personal stylist brasileira especializada em viagens. 
 Seu tom é sofisticado mas descontraído, como uma amiga fashion que adora dar dicas. 
 Use expressões naturais e um emoji ocasional para dar personalidade (mas sem exagerar!).
 
@@ -375,7 +315,49 @@ IMPORTANTE SOBRE PACKING_LIST:
 
 Os IDs das peças DEVEM ser IDs válidos do guarda-roupa fornecido quando in_wardrobe=true.`;
 
-  const userPrompt = `
+  const userPrompt = isEN
+    ? `
+🌍 DESTINATION: ${destination}
+📅 DURATION: ${tripDays} days
+✈️ TRIP TYPE: ${tripTypeLabel}
+
+☀️ WEATHER CONDITIONS:
+- Minimum temperature: ${weather.tempMin}°C
+- Maximum temperature: ${weather.tempMax}°C  
+- Rain probability: ${weather.precipitationSum}%
+- Conditions: ${weather.conditions.join(", ")}
+
+👗 AVAILABLE WARDROBE (${itemsSummary.length} pieces):
+${JSON.stringify(itemsSummary, null, 2)}
+
+Please analyze and create:
+
+1. **weather_summary**: A CREATIVE and FUN weather summary in up to 2 sentences.
+2. **climate_vibe**: Use "${climateVibe}" or suggest another if you think it fits better
+3. **packing_mood**: An inspirational phrase/mantra for packing
+4. **trip_brief**: An editorial paragraph (3-4 sentences) about the destination vibe
+5. **packing_list**: Categorized list of items to pack:
+   - roupas: shirts, pants, dresses, etc.
+   - calcados: sneakers, sandals, shoes, etc.
+   - acessorios: bags, belts, sunglasses, watches, etc.
+   - chapeus: caps, hats, scarves, etc.
+   
+   For each item include:
+   - id: Wardrobe ID if it exists, otherwise omit
+   - name: Descriptive name (e.g., "White Linen Dress")
+   - category: Specific subcategory
+   - quantity: Recommended quantity
+   - colors: Array of colors in HEX (e.g., ["#FFFFFF", "#F5F5DC"])
+   - styles: Array of styles (casual, formal, sporty, etc.)
+   - fabrics: Array of ideal fabrics (linen, cotton, silk, etc.)
+   - in_wardrobe: true if the piece exists in the closet, false if it's a suggestion
+   - image_url: Image URL if from closet
+   - reason: Why this piece is recommended for the trip
+
+6. **essential_items**: IDs of ESSENTIAL pieces from wardrobe (max 8)
+7. **suggested_looks**: 3 creative looks with name, occasion, items, description, style_tip
+8. **tips**: Categorize into essentials, local_culture, avoid, pro_tips (2 each)`
+    : `
 🌍 DESTINO: ${destination}
 📅 DURAÇÃO: ${tripDays} dias
 ✈️ TIPO DE VIAGEM: ${tripTypeLabel}
@@ -392,13 +374,9 @@ ${JSON.stringify(itemsSummary, null, 2)}
 Por favor, analise e crie:
 
 1. **weather_summary**: Um resumo CRIATIVO e DIVERTIDO do clima em até 2 frases.
-
 2. **climate_vibe**: Use "${climateVibe}" ou sugira outro se achar melhor
-
 3. **packing_mood**: Uma frase inspiracional/mantra para a mala
-
 4. **trip_brief**: Um parágrafo editorial (3-4 frases) sobre a vibe do destino
-
 5. **packing_list**: Lista categorizada de itens para a mala:
    - roupas: camisas, calças, vestidos, etc.
    - calcados: tênis, sandálias, sapatos, etc.
@@ -418,10 +396,13 @@ Por favor, analise e crie:
    - reason: Por que essa peça é recomendada para a viagem
 
 6. **essential_items**: IDs das peças ESSENCIAIS do guarda-roupa (máximo 8)
-
 7. **suggested_looks**: 3 looks criativos com nome, ocasião, items, description, style_tip
-
 8. **tips**: Categorize em essentials, local_culture, avoid, pro_tips (2 cada)`;
+
+  const lang = isEN ? 'English' : 'Portuguese';
+  const toolDescription = isEN
+    ? "Returns packing suggestions and looks for the trip with a categorized checklist"
+    : "Retorna sugestões de peças e looks para a viagem com checklist categorizado";
 
   const payload = {
     model: "google/gemini-3-flash-preview",
@@ -434,45 +415,29 @@ Por favor, analise e crie:
         type: "function",
         function: {
           name: "suggest_packing",
-          description: "Retorna sugestões de peças e looks para a viagem com checklist categorizado",
+          description: toolDescription,
           parameters: {
             type: "object",
             properties: {
-              weather_summary: {
-                type: "string",
-                description: "Resumo criativo e amigável do clima em português",
-              },
-              climate_vibe: {
-                type: "string",
-                description: "Vibe climática",
-              },
-              packing_mood: {
-                type: "string",
-                description: "Frase inspiracional/mantra para a mala",
-              },
-              trip_brief: {
-                type: "string",
-                description: "Parágrafo editorial sobre o destino",
-              },
+              weather_summary: { type: "string", description: isEN ? "Creative and friendly weather summary" : "Resumo criativo e amigável do clima em português" },
+              climate_vibe: { type: "string", description: isEN ? "Climate vibe" : "Vibe climática" },
+              packing_mood: { type: "string", description: isEN ? "Inspirational phrase/mantra for packing" : "Frase inspiracional/mantra para a mala" },
+              trip_brief: { type: "string", description: isEN ? "Editorial paragraph about the destination" : "Parágrafo editorial sobre o destino" },
               packing_list: {
                 type: "object",
-                description: "Lista categorizada de itens para a mala",
+                description: isEN ? "Categorized list of items for packing" : "Lista categorizada de itens para a mala",
                 properties: {
                   roupas: {
                     type: "array",
                     items: {
                       type: "object",
                       properties: {
-                        id: { type: "string", description: "ID do guarda-roupa se existir" },
-                        name: { type: "string" },
-                        category: { type: "string" },
-                        quantity: { type: "number" },
+                        id: { type: "string", description: isEN ? "Wardrobe ID if exists" : "ID do guarda-roupa se existir" },
+                        name: { type: "string" }, category: { type: "string" }, quantity: { type: "number" },
                         colors: { type: "array", items: { type: "string" } },
                         styles: { type: "array", items: { type: "string" } },
                         fabrics: { type: "array", items: { type: "string" } },
-                        in_wardrobe: { type: "boolean" },
-                        image_url: { type: "string" },
-                        reason: { type: "string" },
+                        in_wardrobe: { type: "boolean" }, image_url: { type: "string" }, reason: { type: "string" },
                       },
                       required: ["name", "category", "quantity", "colors", "styles", "fabrics", "in_wardrobe", "reason"],
                     },
@@ -482,16 +447,10 @@ Por favor, analise e crie:
                     items: {
                       type: "object",
                       properties: {
-                        id: { type: "string" },
-                        name: { type: "string" },
-                        category: { type: "string" },
-                        quantity: { type: "number" },
-                        colors: { type: "array", items: { type: "string" } },
-                        styles: { type: "array", items: { type: "string" } },
-                        fabrics: { type: "array", items: { type: "string" } },
-                        in_wardrobe: { type: "boolean" },
-                        image_url: { type: "string" },
-                        reason: { type: "string" },
+                        id: { type: "string" }, name: { type: "string" }, category: { type: "string" }, quantity: { type: "number" },
+                        colors: { type: "array", items: { type: "string" } }, styles: { type: "array", items: { type: "string" } },
+                        fabrics: { type: "array", items: { type: "string" } }, in_wardrobe: { type: "boolean" },
+                        image_url: { type: "string" }, reason: { type: "string" },
                       },
                       required: ["name", "category", "quantity", "colors", "styles", "fabrics", "in_wardrobe", "reason"],
                     },
@@ -501,16 +460,10 @@ Por favor, analise e crie:
                     items: {
                       type: "object",
                       properties: {
-                        id: { type: "string" },
-                        name: { type: "string" },
-                        category: { type: "string" },
-                        quantity: { type: "number" },
-                        colors: { type: "array", items: { type: "string" } },
-                        styles: { type: "array", items: { type: "string" } },
-                        fabrics: { type: "array", items: { type: "string" } },
-                        in_wardrobe: { type: "boolean" },
-                        image_url: { type: "string" },
-                        reason: { type: "string" },
+                        id: { type: "string" }, name: { type: "string" }, category: { type: "string" }, quantity: { type: "number" },
+                        colors: { type: "array", items: { type: "string" } }, styles: { type: "array", items: { type: "string" } },
+                        fabrics: { type: "array", items: { type: "string" } }, in_wardrobe: { type: "boolean" },
+                        image_url: { type: "string" }, reason: { type: "string" },
                       },
                       required: ["name", "category", "quantity", "colors", "styles", "fabrics", "in_wardrobe", "reason"],
                     },
@@ -520,16 +473,10 @@ Por favor, analise e crie:
                     items: {
                       type: "object",
                       properties: {
-                        id: { type: "string" },
-                        name: { type: "string" },
-                        category: { type: "string" },
-                        quantity: { type: "number" },
-                        colors: { type: "array", items: { type: "string" } },
-                        styles: { type: "array", items: { type: "string" } },
-                        fabrics: { type: "array", items: { type: "string" } },
-                        in_wardrobe: { type: "boolean" },
-                        image_url: { type: "string" },
-                        reason: { type: "string" },
+                        id: { type: "string" }, name: { type: "string" }, category: { type: "string" }, quantity: { type: "number" },
+                        colors: { type: "array", items: { type: "string" } }, styles: { type: "array", items: { type: "string" } },
+                        fabrics: { type: "array", items: { type: "string" } }, in_wardrobe: { type: "boolean" },
+                        image_url: { type: "string" }, reason: { type: "string" },
                       },
                       required: ["name", "category", "quantity", "colors", "styles", "fabrics", "in_wardrobe", "reason"],
                     },
@@ -537,21 +484,15 @@ Por favor, analise e crie:
                 },
                 required: ["roupas", "calcados", "acessorios", "chapeus"],
               },
-              essential_items: {
-                type: "array",
-                items: { type: "string" },
-                description: "Lista de IDs das peças essenciais do guarda-roupa",
-              },
+              essential_items: { type: "array", items: { type: "string" }, description: isEN ? "List of essential wardrobe piece IDs" : "Lista de IDs das peças essenciais do guarda-roupa" },
               suggested_looks: {
                 type: "array",
                 items: {
                   type: "object",
                   properties: {
-                    name: { type: "string" },
-                    occasion: { type: "string" },
+                    name: { type: "string" }, occasion: { type: "string" },
                     items: { type: "array", items: { type: "string" } },
-                    description: { type: "string" },
-                    style_tip: { type: "string" },
+                    description: { type: "string" }, style_tip: { type: "string" },
                   },
                   required: ["name", "occasion", "items", "description", "style_tip"],
                 },
@@ -575,31 +516,26 @@ Por favor, analise e crie:
     tool_choice: { type: "function", function: { name: "suggest_packing" } },
   };
 
-  // Use the retry wrapper
   const { ok, status, data } = await callAIWithRetry(payload);
 
   if (!ok) {
     console.error("AI Gateway error after retries:", status);
-    if (status === 429) {
-      throw new Error("Rate limit exceeded");
-    }
-    if (status === 402) {
-      throw new Error("Payment required");
-    }
+    if (status === 429) throw new Error("Rate limit exceeded");
+    if (status === 402) throw new Error("Payment required");
     throw new Error(`AI analysis failed: ${status}`);
   }
 
   console.log("AI response received");
   
-  // Check if response contains an error (AI Gateway may return 200 with error body)
   if (data.error) {
     console.error("AI Gateway returned error in body:", JSON.stringify(data));
     throw new Error(`AI service error: ${data.error.message || 'Unknown error'}`);
   }
   
   const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+  const fallbackPacking = isEN ? "Travel light, travel in style!" : "Viaje leve, viaje com estilo!";
+
   if (!toolCall || toolCall.function.name !== "suggest_packing") {
-    // Try to extract from regular content as fallback
     const content = data.choices?.[0]?.message?.content;
     if (content) {
       console.log("Attempting to parse from content fallback");
@@ -609,7 +545,6 @@ Por favor, analise e crie:
           const parsed = JSON.parse(jsonMatch[0]);
           if (parsed.weather_summary || parsed.essential_items) {
             console.log("Successfully parsed from content fallback");
-            const tempAvg = Math.round((weather.tempMin + weather.tempMax) / 2);
             const tips: TipsCategories = {
               essentials: parsed.tips?.essentials || [],
               local_culture: parsed.tips?.local_culture || [],
@@ -618,28 +553,19 @@ Por favor, analise e crie:
             };
             return {
               weather: {
-                summary: parsed.weather_summary || `Temperatura entre ${weather.tempMin}°C e ${weather.tempMax}°C`,
+                summary: parsed.weather_summary || (isEN ? `Temperature between ${weather.tempMin}°C and ${weather.tempMax}°C` : `Temperatura entre ${weather.tempMin}°C e ${weather.tempMax}°C`),
                 climate_vibe: parsed.climate_vibe || climateVibe,
-                packing_mood: parsed.packing_mood || "Viaje leve, viaje com estilo!",
-                temp_avg: tempAvg,
-                temp_min: Math.round(weather.tempMin),
-                temp_max: Math.round(weather.tempMax),
-                rain_probability: Math.round(weather.precipitationSum),
-                conditions: weather.conditions,
+                packing_mood: parsed.packing_mood || fallbackPacking,
+                temp_avg: tempAvg, temp_min: Math.round(weather.tempMin), temp_max: Math.round(weather.tempMax),
+                rain_probability: Math.round(weather.precipitationSum), conditions: weather.conditions,
               },
               trip_brief: parsed.trip_brief || "",
-              recommendations: {
-                essential_items: parsed.essential_items || [],
-                suggested_looks: parsed.suggested_looks || [],
-                tips,
-              },
+              recommendations: { essential_items: parsed.essential_items || [], suggested_looks: parsed.suggested_looks || [], tips },
               packing_list: parsed.packing_list || { roupas: [], calcados: [], acessorios: [], chapeus: [] },
             };
           }
         }
-      } catch (parseErr) {
-        console.error("Content fallback parse failed:", parseErr);
-      }
+      } catch (parseErr) { console.error("Content fallback parse failed:", parseErr); }
     }
     console.error("Unexpected AI response format:", JSON.stringify(data));
     throw new Error("Invalid AI response format");
@@ -647,7 +573,6 @@ Por favor, analise e crie:
   
   const suggestions = JSON.parse(toolCall.function.arguments);
   
-  // Ensure tips is properly structured
   const tips: TipsCategories = {
     essentials: suggestions.tips?.essentials || [],
     local_culture: suggestions.tips?.local_culture || [],
@@ -659,19 +584,12 @@ Por favor, analise e crie:
     weather: {
       summary: suggestions.weather_summary,
       climate_vibe: suggestions.climate_vibe || climateVibe,
-      packing_mood: suggestions.packing_mood || "Viaje leve, viaje com estilo!",
-      temp_avg: tempAvg,
-      temp_min: Math.round(weather.tempMin),
-      temp_max: Math.round(weather.tempMax),
-      rain_probability: Math.round(weather.precipitationSum),
-      conditions: weather.conditions,
+      packing_mood: suggestions.packing_mood || fallbackPacking,
+      temp_avg: tempAvg, temp_min: Math.round(weather.tempMin), temp_max: Math.round(weather.tempMax),
+      rain_probability: Math.round(weather.precipitationSum), conditions: weather.conditions,
     },
     trip_brief: suggestions.trip_brief || "",
-    recommendations: {
-      essential_items: suggestions.essential_items || [],
-      suggested_looks: suggestions.suggested_looks || [],
-      tips,
-    },
+    recommendations: { essential_items: suggestions.essential_items || [], suggested_looks: suggestions.suggested_looks || [], tips },
     packing_list: suggestions.packing_list || { roupas: [], calcados: [], acessorios: [], chapeus: [] },
   };
 }
@@ -683,9 +601,10 @@ serve(async (req) => {
   }
   
   try {
-    const { destination, start_date, end_date, trip_type, user_id, mode, lat, lon } = await req.json();
+    const { destination, start_date, end_date, trip_type, user_id, mode, lat, lon, locale = 'pt-BR' } = await req.json();
+    const isEN = locale.startsWith('en');
     
-    console.log(`Processing trip weather request: ${destination}, mode: ${mode || 'full'}`);
+    console.log(`Processing trip weather request: ${destination}, mode: ${mode || 'full'}, locale: ${locale}`);
     
     if (!destination) {
       return new Response(
@@ -694,33 +613,24 @@ serve(async (req) => {
       );
     }
     
-    // GEOCODE-ONLY MODE: Return multiple location options
     if (mode === 'geocode') {
       const locations = await geocodeDestinationMultiple(destination, 5);
-      
       if (locations.length === 0) {
         return new Response(
-          JSON.stringify({ error: "Could not find destination. Try a more specific location." }),
+          JSON.stringify({ error: isEN ? "Could not find destination. Try a more specific location." : "Não foi possível encontrar o destino. Tente um local mais específico." }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      
-      // Add flag emoji to each location
       const locationsWithFlags = locations.map(loc => ({
-        ...loc,
-        flag: getCountryFlag(loc.country_code),
-        display_name: loc.admin1 
-          ? `${loc.name}, ${loc.admin1}, ${loc.country}`
-          : `${loc.name}, ${loc.country}`,
+        ...loc, flag: getCountryFlag(loc.country_code),
+        display_name: loc.admin1 ? `${loc.name}, ${loc.admin1}, ${loc.country}` : `${loc.name}, ${loc.country}`,
       }));
-      
       return new Response(
         JSON.stringify({ locations: locationsWithFlags }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     
-    // FULL ANALYSIS MODE (default)
     if (!start_date || !end_date) {
       return new Response(
         JSON.stringify({ error: "Missing required fields: start_date, end_date" }),
@@ -728,19 +638,15 @@ serve(async (req) => {
       );
     }
     
-    // Resolve location - use provided coordinates or geocode
     let location: { lat: number; lon: number; name: string };
-    
     if (lat && lon) {
-      // Use provided coordinates (from location picker)
       location = { lat, lon, name: destination };
       console.log(`Using provided coordinates: ${lat}, ${lon}`);
     } else {
-      // Fallback: geocode the destination
       const geocoded = await geocodeDestination(destination);
       if (!geocoded) {
         return new Response(
-          JSON.stringify({ error: "Could not geocode destination" }),
+          JSON.stringify({ error: isEN ? "Could not geocode destination" : "Não foi possível geocodificar o destino" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -748,12 +654,10 @@ serve(async (req) => {
       console.log(`Geocoded to: ${location.name}`);
     }
     
-    // Fetch weather data
     const weather = await getWeatherData(location.lat, location.lon, start_date, end_date);
-    
     if (!weather) {
       return new Response(
-        JSON.stringify({ error: "Could not fetch weather data" }),
+        JSON.stringify({ error: isEN ? "Could not fetch weather data" : "Não foi possível obter dados do clima" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -765,76 +669,60 @@ serve(async (req) => {
     ) + 1;
     
     let wardrobeItems: WardrobeItem[] = [];
-    
     if (user_id) {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
       const supabase = createClient(supabaseUrl, supabaseKey);
-      
       const { data: items, error } = await supabase
         .from("wardrobe_items")
         .select("id, name, category, season_tag, occasion, image_url")
         .eq("user_id", user_id);
-      
-      if (error) {
-        console.error("Error fetching wardrobe:", error);
-      } else {
-        wardrobeItems = items || [];
-      }
+      if (error) console.error("Error fetching wardrobe:", error);
+      else wardrobeItems = items || [];
     }
     
     console.log(`Found ${wardrobeItems.length} wardrobe items for user`);
     
-    // If no wardrobe items, return basic weather info with creative defaults
     if (wardrobeItems.length === 0) {
       const tempAvg = Math.round((weather.tempMin + weather.tempMax) / 2);
       const climateVibe = inferClimateVibe(weather.conditions, tempAvg);
       
+      const summary = isEN
+        ? `${location.name} awaits you with temperatures between ${Math.round(weather.tempMin)}°C and ${Math.round(weather.tempMax)}°C. Get ready for amazing days! ✨`
+        : `${location.name} te espera com temperaturas entre ${Math.round(weather.tempMin)}°C e ${Math.round(weather.tempMax)}°C. Prepare-se para dias incríveis! ✨`;
+      const packingMood = isEN ? "First step: add your pieces to the closet! 👗" : "Primeiro passo: adicione suas peças ao closet! 👗";
+      const tripBrief = isEN
+        ? "Add pieces to your virtual wardrobe so I can create perfect looks for your trip! The more pieces you have, the more personalized your packing will be."
+        : "Adicione peças ao seu guarda-roupa virtual para que eu possa criar looks perfeitos para sua viagem! Quanto mais peças você tiver, mais personalizada será a sua mala.";
+      const tipEssential = isEN ? "Add pieces to your closet to receive personalized suggestions" : "Adicione peças ao seu closet para receber sugestões personalizadas";
+      const tipPro = isEN ? "Photograph your favorite clothes to always have them at hand" : "Fotografe suas roupas favoritas para ter sempre à mão";
+
       return new Response(
         JSON.stringify({
           weather: {
-            summary: `${location.name} te espera com temperaturas entre ${Math.round(weather.tempMin)}°C e ${Math.round(weather.tempMax)}°C. Prepare-se para dias incríveis! ✨`,
-            climate_vibe: climateVibe,
-            packing_mood: "Primeiro passo: adicione suas peças ao closet! 👗",
-            temp_avg: tempAvg,
-            temp_min: Math.round(weather.tempMin),
-            temp_max: Math.round(weather.tempMax),
-            rain_probability: Math.round(weather.precipitationSum),
-            conditions: weather.conditions,
+            summary, climate_vibe: climateVibe, packing_mood: packingMood, temp_avg: tempAvg,
+            temp_min: Math.round(weather.tempMin), temp_max: Math.round(weather.tempMax),
+            rain_probability: Math.round(weather.precipitationSum), conditions: weather.conditions,
           },
-          trip_brief: "Adicione peças ao seu guarda-roupa virtual para que eu possa criar looks perfeitos para sua viagem! Quanto mais peças você tiver, mais personalizada será a sua mala.",
+          trip_brief: tripBrief,
           recommendations: {
-            essential_items: [],
-            suggested_looks: [],
-            tips: {
-              essentials: ["Adicione peças ao seu closet para receber sugestões personalizadas"],
-              local_culture: [],
-              avoid: [],
-              pro_tips: ["Fotografe suas roupas favoritas para ter sempre à mão"],
-            },
+            essential_items: [], suggested_looks: [],
+            tips: { essentials: [tipEssential], local_culture: [], avoid: [], pro_tips: [tipPro] },
           },
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     
-    const result = await analyzeWithAI(
-      weather,
-      wardrobeItems,
-      trip_type || "leisure",
-      location.name,
-      tripDays
-    );
+    const result = await analyzeWithAI(weather, wardrobeItems, trip_type || "leisure", location.name, tripDays, isEN);
     
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
     console.error("get-trip-weather error:", error);
-    
     const message = error instanceof Error ? error.message : "Unknown error";
     const status = message.includes("Rate limit") ? 429 : message.includes("Payment") ? 402 : 500;
-    
     return new Response(
       JSON.stringify({ error: message }),
       { status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
