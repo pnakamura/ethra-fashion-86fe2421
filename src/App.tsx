@@ -94,6 +94,7 @@ function AppRoutes() {
             <Route path="/canvas" element={<Canvas />} />
             <Route path="/voyager" element={<Voyager />} />
             <Route path="/provador" element={<VirtualTryOn />} />
+            <Route path="/try-on" element={<VirtualTryOn />} />
             <Route path="/recommendations" element={<Recommendations />} />
             <Route path="/subscription" element={<Subscription />} />
             <Route path="/admin" element={<Admin />} />

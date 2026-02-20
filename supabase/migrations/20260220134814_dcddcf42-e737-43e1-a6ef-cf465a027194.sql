@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN locale TEXT DEFAULT 'pt-BR';

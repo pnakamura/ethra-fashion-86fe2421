@@ -1,5 +1,6 @@
 import { Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface CelebrityDisclaimerProps {
   variant?: 'inline' | 'subtle';
@@ -7,6 +8,8 @@ interface CelebrityDisclaimerProps {
 }
 
 export function CelebrityDisclaimer({ variant = 'subtle', className }: CelebrityDisclaimerProps) {
+  const { t } = useTranslation('legal');
+
   if (variant === 'inline') {
     return (
       <div className={cn(
@@ -14,10 +17,7 @@ export function CelebrityDisclaimer({ variant = 'subtle', className }: Celebrity
         className
       )}>
         <Info className="w-4 h-4 mt-0.5 shrink-0" />
-        <p>
-          Nomes de celebridades são usados apenas como referência ilustrativa de coloração pessoal, 
-          sem vínculo comercial ou endorsement.
-        </p>
+        <p>{t('celebrityDisclaimer.inline')}</p>
       </div>
     );
   }
@@ -27,7 +27,7 @@ export function CelebrityDisclaimer({ variant = 'subtle', className }: Celebrity
       "text-xs text-muted-foreground italic",
       className
     )}>
-      * Nomes de celebridades são usados apenas como referência ilustrativa de coloração pessoal.
+      {t('celebrityDisclaimer.subtle')}
     </p>
   );
 }

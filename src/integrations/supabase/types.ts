@@ -333,6 +333,7 @@ export type Database = {
           id: string
           is_banned: boolean | null
           is_tester: boolean | null
+          locale: string | null
           onboarding_complete: boolean | null
           privacy_accepted_at: string | null
           privacy_version: string | null
@@ -364,6 +365,7 @@ export type Database = {
           id?: string
           is_banned?: boolean | null
           is_tester?: boolean | null
+          locale?: string | null
           onboarding_complete?: boolean | null
           privacy_accepted_at?: string | null
           privacy_version?: string | null
@@ -395,6 +397,7 @@ export type Database = {
           id?: string
           is_banned?: boolean | null
           is_tester?: boolean | null
+          locale?: string | null
           onboarding_complete?: boolean | null
           privacy_accepted_at?: string | null
           privacy_version?: string | null

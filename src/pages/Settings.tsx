@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { 
   Sun, Moon, Monitor, Type, Bell, MapPin, Clock, 
   LogOut, CreditCard, User, ChevronRight, Sparkles,
-  Calendar, CloudSun, Image, EyeOff, Palette, Upload, Trash2, Loader2, Mail, Shield, AlertTriangle, Download, Send
+  Calendar, CloudSun, Image, EyeOff, Palette, Upload, Trash2, Loader2, Mail, Shield, AlertTriangle, Download, Send, Globe
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,7 +38,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
+import { useLocale } from '@/i18n/useLocale';
 
 interface NotificationPrefs {
   look_of_day_enabled: boolean;
@@ -49,26 +50,29 @@ interface NotificationPrefs {
   city: string;
 }
 
-const themeOptions: { value: ThemePreference; label: string; icon: React.ComponentType<any> }[] = [
-  { value: 'system', label: 'Sistema', icon: Monitor },
-  { value: 'light', label: 'Claro', icon: Sun },
-  { value: 'dark', label: 'Escuro', icon: Moon },
+// These will be overridden by translations in the component
+const themeOptionKeys = [
+  { value: 'system' as ThemePreference, labelKey: 'appearance.themeSystem', icon: Monitor },
+  { value: 'light' as ThemePreference, labelKey: 'appearance.themeLight', icon: Sun },
+  { value: 'dark' as ThemePreference, labelKey: 'appearance.themeDark', icon: Moon },
 ];
 
-const fontSizeOptions: { value: FontSize; label: string; sample: string }[] = [
-  { value: 'normal', label: 'Normal', sample: 'Aa' },
-  { value: 'large', label: 'Grande', sample: 'Aa' },
-  { value: 'xlarge', label: 'Extra Grande', sample: 'Aa' },
+const fontSizeOptionKeys = [
+  { value: 'normal' as FontSize, labelKey: 'appearance.fontNormal', sample: 'Aa' },
+  { value: 'large' as FontSize, labelKey: 'appearance.fontLarge', sample: 'Aa' },
+  { value: 'xlarge' as FontSize, labelKey: 'appearance.fontXLarge', sample: 'Aa' },
 ];
 
-const backgroundOptions: { value: BackgroundVariant; label: string; icon: React.ComponentType<any> }[] = [
-  { value: 'abstract', label: 'Abstrato', icon: Palette },
-  { value: 'portrait', label: 'Retrato', icon: Image },
-  { value: 'custom', label: 'Personalizado', icon: Upload },
-  { value: 'none', label: 'Desativado', icon: EyeOff },
+const backgroundOptionKeys = [
+  { value: 'abstract' as BackgroundVariant, labelKey: 'appearance.bgAbstract', icon: Palette },
+  { value: 'portrait' as BackgroundVariant, labelKey: 'appearance.bgPortrait', icon: Image },
+  { value: 'custom' as BackgroundVariant, labelKey: 'appearance.bgCustom', icon: Upload },
+  { value: 'none' as BackgroundVariant, labelKey: 'appearance.bgNone', icon: EyeOff },
 ];
 
 export default function Settings() {
+  const { t } = useTranslation('settings');
+  const { locale, dateFnsLocale, dateFormat, changeLanguage } = useLocale();
   const { user, signOut, loading: authLoading } = useAuth();
   const { profile } = useProfile();
   const navigate = useNavigate();
@@ -283,7 +287,7 @@ export default function Settings() {
               <div className="space-y-3">
                 <label className="text-sm font-medium text-muted-foreground">Tema</label>
                 <div className="grid grid-cols-3 gap-2">
-                  {themeOptions.map((option) => {
+                  {themeOptionKeys.map((option) => {
                     const Icon = option.icon;
                     const isSelected = themePreference === option.value;
                     return (
@@ -300,7 +304,7 @@ export default function Settings() {
                       >
                         <Icon className={`w-6 h-6 ${isSelected ? 'text-primary dark:neon-text-gold' : 'text-muted-foreground'}`} />
                         <span className={`text-sm font-medium ${isSelected ? 'text-foreground' : 'text-muted-foreground'}`}>
-                          {option.label}
+                          {t(option.labelKey)}
                         </span>
                       </motion.button>
                     );
@@ -317,7 +321,7 @@ export default function Settings() {
                   Tamanho do Texto
                 </label>
                 <div className="grid grid-cols-3 gap-2">
-                  {fontSizeOptions.map((option) => {
+                  {fontSizeOptionKeys.map((option) => {
                     const isSelected = fontSize === option.value;
                     const sampleSizes: Record<FontSize, string> = {
                       normal: 'text-base',
@@ -340,7 +344,7 @@ export default function Settings() {
                           {option.sample}
                         </span>
                         <span className={`text-xs font-medium ${isSelected ? 'text-foreground' : 'text-muted-foreground'}`}>
-                          {option.label}
+                          {t(option.labelKey)}
                         </span>
                       </motion.button>
                     );
@@ -377,7 +381,7 @@ export default function Settings() {
                       <TabsContent key={mode} value={mode} className="space-y-4 mt-0">
                         {/* Variant Selection */}
                         <div className="grid grid-cols-4 gap-2">
-                          {backgroundOptions.map((option) => {
+                          {backgroundOptionKeys.map((option) => {
                             const Icon = option.icon;
                             const isSelected = modeSettings.variant === option.value;
                             const isCustom = option.value === 'custom';
@@ -403,7 +407,7 @@ export default function Settings() {
                               >
                                 <Icon className={`w-5 h-5 ${isSelected ? 'text-primary dark:neon-text-gold' : 'text-muted-foreground'}`} />
                                 <span className={`text-xs font-medium ${isSelected ? 'text-foreground' : 'text-muted-foreground'}`}>
-                                  {option.label}
+                                  {t(option.labelKey)}
                                 </span>
                               </motion.button>
                             );
@@ -518,7 +522,54 @@ export default function Settings() {
             </div>
           </motion.section>
 
-          {/* Notifications Section */}
+          {/* Language Section */}
+          <motion.section
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="space-y-4"
+          >
+            <h2 className="font-display text-xl font-semibold flex items-center gap-2">
+              <Globe className="w-5 h-5 text-primary" />
+              {t('language.title')}
+            </h2>
+
+            <div className="bg-card rounded-2xl border border-border p-4 space-y-3">
+              <label className="text-sm font-medium text-muted-foreground">{t('language.label')}</label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { value: 'pt-BR', label: t('language.ptBR'), flag: '🇧🇷' },
+                  { value: 'en-US', label: t('language.enUS'), flag: '🇺🇸' },
+                ].map((lang) => {
+                  const isSelected = locale.startsWith(lang.value.split('-')[0]);
+                  return (
+                    <motion.button
+                      key={lang.value}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={async () => {
+                        await changeLanguage(lang.value);
+                        if (user) {
+                          supabase.from('profiles').update({ locale: lang.value }).eq('user_id', user.id);
+                        }
+                      }}
+                      className={`flex items-center gap-3 p-4 rounded-xl border transition-all ${
+                        isSelected
+                          ? 'border-primary bg-primary/5 dark:neon-border dark:bg-primary/10'
+                          : 'border-border hover:border-primary/30'
+                      }`}
+                    >
+                      <span className="text-2xl">{lang.flag}</span>
+                      <span className={`text-sm font-medium ${isSelected ? 'text-foreground' : 'text-muted-foreground'}`}>
+                        {lang.label}
+                      </span>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </div>
+          </motion.section>
+
           <motion.section
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -680,8 +731,8 @@ export default function Settings() {
                   <p className="text-sm font-medium">Plano Atual</p>
                   <p className="text-xs text-muted-foreground">
                     {profile?.subscription_expires_at 
-                      ? `Válido até ${format(new Date(profile.subscription_expires_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}`
-                      : 'Plano gratuito'
+                      ? t('profile.validUntil', { date: format(new Date(profile.subscription_expires_at), dateFormat.long, { locale: dateFnsLocale }) })
+                      : t('profile.freePlan')
                     }
                   </p>
                 </div>

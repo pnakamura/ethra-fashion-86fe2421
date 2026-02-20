@@ -1,5 +1,6 @@
 import { Bot, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface AIDisclaimerProps {
   variant?: 'banner' | 'inline' | 'compact';
@@ -7,6 +8,8 @@ interface AIDisclaimerProps {
 }
 
 export function AIDisclaimer({ variant = 'banner', className }: AIDisclaimerProps) {
+  const { t } = useTranslation('legal');
+
   if (variant === 'compact') {
     return (
       <div className={cn(
@@ -14,7 +17,7 @@ export function AIDisclaimer({ variant = 'banner', className }: AIDisclaimerProp
         className
       )}>
         <Bot className="w-3 h-3" />
-        <span>Gerado por IA</span>
+        <span>{t('aiDisclaimer.compact')}</span>
       </div>
     );
   }
@@ -26,9 +29,7 @@ export function AIDisclaimer({ variant = 'banner', className }: AIDisclaimerProp
         className
       )}>
         <Info className="w-4 h-4 mt-0.5 shrink-0" />
-        <p>
-          Resultado gerado por Inteligência Artificial para fins de entretenimento e autoconhecimento.
-        </p>
+        <p>{t('aiDisclaimer.inline')}</p>
       </div>
     );
   }
@@ -43,11 +44,10 @@ export function AIDisclaimer({ variant = 'banner', className }: AIDisclaimerProp
       </div>
       <div className="space-y-1">
         <p className="text-sm font-medium text-foreground">
-          Análise gerada por Inteligência Artificial
+          {t('aiDisclaimer.bannerTitle')}
         </p>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Esta análise é gerada por IA para fins de entretenimento e autoconhecimento. 
-          Não substitui consultoria profissional de imagem ou dermatológica.
+          {t('aiDisclaimer.bannerDescription')}
         </p>
       </div>
     </div>
