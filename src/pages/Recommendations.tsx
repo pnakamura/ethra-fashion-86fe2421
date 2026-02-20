@@ -22,14 +22,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useProfile } from '@/hooks/useProfile';
 import { useWardrobeItems } from '@/hooks/useWardrobeItems';
-
-const occasions = [
-  { value: 'all', label: 'Todos', icon: Sparkles },
-  { value: 'casual', label: 'Casual', icon: Sun },
-  { value: 'trabalho', label: 'Trabalho', icon: Briefcase },
-  { value: 'festa', label: 'Festa', icon: PartyPopper },
-  { value: 'formal', label: 'Formal', icon: Gem },
-];
+import { useTranslation } from 'react-i18next';
 
 // Type for color items (can be string or object with hex/name)
 type ColorItem = string | { hex: string; name: string };
@@ -47,6 +40,7 @@ const getColorHex = (color: ColorItem): string | undefined =>
   typeof color === 'object' ? color.hex : undefined;
 
 export default function Recommendations() {
+  const { t } = useTranslation('recommendations');
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [selectedOccasion, setSelectedOccasion] = useState('all');
@@ -55,6 +49,14 @@ export default function Recommendations() {
   const { looks, isLoading, generateLooks, loadCachedLooks } = useLookRecommendations();
   const { vipLooks, isLoading: isLoadingVIP, generateVIPLooks, loadCachedVIPLooks } = useVIPLooks();
   const { hasAccess: hasVIPAccess } = usePermission('vip_looks');
+
+  const occasions = [
+    { value: 'all', label: t('occasions.all'), icon: Sparkles },
+    { value: 'casual', label: t('occasions.casual'), icon: Sun },
+    { value: 'trabalho', label: t('occasions.trabalho'), icon: Briefcase },
+    { value: 'festa', label: t('occasions.festa'), icon: PartyPopper },
+    { value: 'formal', label: t('occasions.formal'), icon: Gem },
+  ];
 
   // Preload chromatic seasons data (lazy loaded)
   useChromaticSeasons();
@@ -167,18 +169,17 @@ export default function Recommendations() {
               <Palette className="w-8 h-8 text-primary" />
             </div>
             <h2 className="text-2xl font-display font-semibold mb-2">
-              Descubra sua paleta primeiro
+              {t('noAnalysis.title')}
             </h2>
             <p className="text-muted-foreground mb-6">
-              Faça sua análise cromática para receber recomendações de looks personalizadas
-              baseadas nas cores que mais valorizam você.
+              {t('noAnalysis.desc')}
             </p>
             <Button
               onClick={() => navigate('/chromatic')}
               className="rounded-xl gradient-primary"
             >
               <Sparkles className="w-4 h-4 mr-2" />
-              Fazer Análise Cromática
+              {t('noAnalysis.cta')}
             </Button>
           </div>
         </PageContainer>
@@ -212,7 +213,7 @@ export default function Recommendations() {
                 <h2 className="font-display text-lg font-medium">
                   {colorAnalysis?.season} {colorAnalysis?.subtype}
                 </h2>
-                <p className="text-sm text-muted-foreground">Sua paleta cromática</p>
+                <p className="text-sm text-muted-foreground">{t('hero.palette')}</p>
               </div>
               <Button
                 variant="ghost"
@@ -240,7 +241,7 @@ export default function Recommendations() {
               ) : (
                 <Sparkles className="w-6 h-6 text-primary" />
               )}
-              <span className="text-xs font-medium">Gerar Look</span>
+              <span className="text-xs font-medium">{t('actions.generateLook')}</span>
             </motion.button>
 
             <motion.button
@@ -251,7 +252,7 @@ export default function Recommendations() {
               className="flex flex-col items-center gap-2 p-4 rounded-xl bg-secondary/50 border border-border hover:border-primary/30 transition-colors"
             >
               <Shirt className="w-6 h-6 text-muted-foreground" />
-              <span className="text-xs font-medium">Meu Closet</span>
+              <span className="text-xs font-medium">{t('actions.myCloset')}</span>
             </motion.button>
 
             <motion.button
@@ -262,7 +263,7 @@ export default function Recommendations() {
               className="flex flex-col items-center gap-2 p-4 rounded-xl bg-secondary/50 border border-border hover:border-primary/30 transition-colors"
             >
               <Camera className="w-6 h-6 text-muted-foreground" />
-              <span className="text-xs font-medium">Provar</span>
+              <span className="text-xs font-medium">{t('actions.tryOn')}</span>
             </motion.button>
           </div>
 
@@ -295,7 +296,7 @@ export default function Recommendations() {
             }`}
           >
             <Diamond className={`w-3.5 h-3.5 ${capsuleOnly ? 'text-amber-500' : ''}`} />
-            Apenas Cápsula
+            {t('actions.capsuleOnly')}
           </button>
 
           <Tabs defaultValue="looks" className="w-full">
@@ -305,45 +306,43 @@ export default function Recommendations() {
                 className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm text-sm"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
-                Looks
+                {t('tabs.looks')}
               </TabsTrigger>
               <TabsTrigger
                 value="vip"
                 className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500/20 data-[state=active]:to-yellow-500/10 data-[state=active]:shadow-sm text-sm"
               >
                 <Crown className="w-4 h-4 mr-2 text-amber-500" />
-                VIP
+                {t('tabs.vip')}
               </TabsTrigger>
               <TabsTrigger
                 value="harmony"
                 className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm text-sm"
               >
                 <Palette className="w-4 h-4 mr-2" />
-                Harmonia
+                {t('tabs.harmony')}
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="looks" className="mt-5 space-y-5">
-              {/* Looks Carousel */}
               {looks.length === 0 && !isLoading ? (
                 <div className="text-center py-12">
                   <Sparkles className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground mb-4">Nenhum look gerado ainda</p>
+                  <p className="text-muted-foreground mb-4">{t('looks.noLooks')}</p>
                   <Button
                     onClick={handleGenerateLooks}
                     variant="outline"
                     className="rounded-xl"
                   >
-                    Gerar primeiro look
+                    {t('looks.generateFirst')}
                   </Button>
                 </div>
               ) : (
                 <>
-                  {/* Horizontal scroll carousel */}
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <h3 className="font-medium text-sm">Looks sugeridos</h3>
-                      <span className="text-xs text-muted-foreground">{looks.length} looks</span>
+                      <h3 className="font-medium text-sm">{t('looks.suggested')}</h3>
+                      <span className="text-xs text-muted-foreground">{t('looks.looksCount', { count: looks.length })}</span>
                     </div>
 
                     <div className="flex gap-3 overflow-x-auto pb-3 -mx-4 px-4 snap-x scrollbar-hide">
@@ -366,9 +365,8 @@ export default function Recommendations() {
                     </div>
                   </div>
 
-                  {/* Full cards grid */}
                   <div className="space-y-3">
-                    <h3 className="font-medium text-sm">Detalhes</h3>
+                    <h3 className="font-medium text-sm">{t('looks.details')}</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {looks.map((look, index) => (
                         <LookCard
@@ -390,9 +388,9 @@ export default function Recommendations() {
                     <Camera className="w-5 h-5 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-sm">Prova virtual</h4>
+                    <h4 className="font-medium text-sm">{t('tryOnCard.title')}</h4>
                     <p className="text-xs text-muted-foreground">
-                      Experimente as peças no provador IA
+                      {t('tryOnCard.desc')}
                     </p>
                   </div>
                   <Button
@@ -400,7 +398,7 @@ export default function Recommendations() {
                     className="gradient-primary flex-shrink-0"
                     onClick={() => navigate('/provador')}
                   >
-                    Provar
+                    {t('tryOnCard.cta')}
                   </Button>
                 </div>
               </Card>
@@ -410,11 +408,10 @@ export default function Recommendations() {
             <TabsContent value="vip" className="mt-5 space-y-5">
               {hasVIPAccess ? (
                 <>
-                  {/* VIP Header */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Crown className="w-5 h-5 text-amber-500" />
-                      <h3 className="font-display font-semibold">Looks Exclusivos</h3>
+                      <h3 className="font-display font-semibold">{t('vip.title')}</h3>
                     </div>
                     <Button
                       variant="outline"
@@ -428,26 +425,25 @@ export default function Recommendations() {
                       ) : (
                         <Sparkles className="w-4 h-4 mr-1.5 text-amber-500" />
                       )}
-                      {isLoadingVIP ? 'Criando...' : 'Gerar VIP'}
+                      {isLoadingVIP ? t('vip.creating') : t('vip.generate')}
                     </Button>
                   </div>
 
-                  {/* VIP Looks Grid */}
                   {vipLooks.length === 0 && !isLoadingVIP ? (
                     <div className="text-center py-12">
                       <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-500/20 to-yellow-500/10 flex items-center justify-center mx-auto mb-4">
                         <Crown className="w-8 h-8 text-amber-500" />
                       </div>
-                      <h4 className="font-medium mb-2">Nenhum look VIP gerado</h4>
+                      <h4 className="font-medium mb-2">{t('vip.noLooks')}</h4>
                       <p className="text-sm text-muted-foreground mb-4">
-                        Gere looks exclusivos com tendências de passarela e harmonias avançadas
+                        {t('vip.noLooksDesc')}
                       </p>
                       <Button
                         onClick={handleGenerateVIPLooks}
                         className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white rounded-xl"
                       >
                         <Sparkles className="w-4 h-4 mr-2" />
-                        Gerar Looks VIP
+                        {t('vip.generateVIP')}
                       </Button>
                     </div>
                   ) : (
@@ -489,10 +485,9 @@ export default function Recommendations() {
                 }
               />
 
-              {/* Color palette preview */}
               {colorAnalysis?.recommended_colors && (
                 <div className="space-y-3">
-                  <h3 className="font-medium text-sm">Suas cores ideais</h3>
+                  <h3 className="font-medium text-sm">{t('harmony.yourIdealColors')}</h3>
                   <div className="flex flex-wrap gap-2">
                     {(colorAnalysis.recommended_colors as ColorItem[]).slice(0, 8).map((color, i) => {
                       const name = getColorName(color);
@@ -521,7 +516,7 @@ export default function Recommendations() {
 
               {colorAnalysis?.avoid_colors && (
                 <div className="space-y-3">
-                  <h3 className="font-medium text-sm">Cores a evitar</h3>
+                  <h3 className="font-medium text-sm">{t('harmony.colorsToAvoid')}</h3>
                   <div className="flex flex-wrap gap-2">
                     {(colorAnalysis.avoid_colors as ColorItem[]).slice(0, 5).map((color, i) => {
                       const name = getColorName(color);
@@ -553,7 +548,7 @@ export default function Recommendations() {
                 variant="outline"
                 className="w-full rounded-xl"
               >
-                Refazer análise cromática
+                {t('harmony.redoAnalysis')}
               </Button>
             </TabsContent>
           </Tabs>

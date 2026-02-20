@@ -6,29 +6,21 @@ import { Progress } from '@/components/ui/progress';
 import { useMissions } from '@/hooks/useMissions';
 import { MISSIONS, CATEGORY_LABELS } from '@/data/missions';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 export const AchievementsPanel = memo(function AchievementsPanel() {
+  const { t } = useTranslation('dashboard');
   const [isOpen, setIsOpen] = useState(false);
-  const { 
-    completedMissions, 
-    totalPoints, 
-    badges, 
-    currentMission, 
-    progress,
-    completionPercentage 
-  } = useMissions();
+  const { completedMissions, totalPoints, badges, currentMission, progress, completionPercentage } = useMissions();
 
-  // Memoize current progress calculation
   const currentProgress = useMemo(() => {
     return currentMission ? progress.get(currentMission.id) : null;
   }, [currentMission, progress]);
 
-  // Memoize completed mission IDs for faster lookup
   const completedIds = useMemo(() => {
     return new Set(completedMissions.map(m => m.id));
   }, [completedMissions]);
 
-  // Memoize badges grid to avoid re-rendering when panel opens/closes
   const badgesGrid = useMemo(() => (
     <div className="grid grid-cols-5 gap-2">
       {MISSIONS.map((mission) => {
@@ -42,14 +34,14 @@ export const AchievementsPanel = memo(function AchievementsPanel() {
                 ? "bg-gradient-to-br from-primary/20 to-gold-soft/30 dark:shadow-[0_0_10px_hsl(45_100%_55%_/_0.2)]"
                 : "bg-muted/50 grayscale opacity-40"
             )}
-            title={isCompleted ? mission.title : `${mission.title} (Bloqueado)`}
+            title={isCompleted ? mission.title : `${mission.title} (${t('achievements.locked')})`}
           >
             {mission.reward.badge}
           </div>
         );
       })}
     </div>
-  ), [completedIds]);
+  ), [completedIds, t]);
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -61,62 +53,39 @@ export const AchievementsPanel = memo(function AchievementsPanel() {
             </div>
             <div className="text-left">
               <h4 className="font-display text-base font-semibold text-foreground">
-                Conquistas
+                {t('achievements.title')}
               </h4>
               <p className="text-xs text-muted-foreground">
-                {completedMissions.length} de {MISSIONS.length} missões • {totalPoints} pts
+                {completedMissions.length} de {MISSIONS.length} {t('achievements.missions')} • {totalPoints} {t('achievements.pts')}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            {/* Progress Ring */}
             <div className="relative w-10 h-10">
               <svg className="w-10 h-10 -rotate-90">
-                <circle
-                  cx="20"
-                  cy="20"
-                  r="16"
-                  fill="none"
-                  stroke="hsl(var(--muted))"
-                  strokeWidth="3"
-                />
-                <circle
-                  cx="20"
-                  cy="20"
-                  r="16"
-                  fill="none"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth="3"
-                  strokeDasharray={`${completionPercentage} 100`}
-                  strokeLinecap="round"
-                  className="transition-all duration-500"
-                />
+                <circle cx="20" cy="20" r="16" fill="none" stroke="hsl(var(--muted))" strokeWidth="3" />
+                <circle cx="20" cy="20" r="16" fill="none" stroke="hsl(var(--primary))" strokeWidth="3" strokeDasharray={`${completionPercentage} 100`} strokeLinecap="round" className="transition-all duration-500" />
               </svg>
               <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-foreground">
                 {completionPercentage}%
               </span>
             </div>
-            <ChevronDown className={cn(
-              "w-5 h-5 text-muted-foreground transition-transform duration-200",
-              isOpen && "rotate-180"
-            )} />
+            <ChevronDown className={cn("w-5 h-5 text-muted-foreground transition-transform duration-200", isOpen && "rotate-180")} />
           </div>
         </CollapsibleTrigger>
 
         <CollapsibleContent>
           <div className="px-4 pb-4 space-y-4">
-            {/* Badges Grid */}
             <div>
-              <h5 className="text-sm font-medium text-foreground mb-3">Badges Conquistados</h5>
+              <h5 className="text-sm font-medium text-foreground mb-3">{t('achievements.badgesEarned')}</h5>
               {badgesGrid}
             </div>
 
-            {/* Next Milestone */}
             {currentMission && currentProgress && (
               <div className="pt-2 border-t border-border/50">
                 <div className="flex items-center gap-2 mb-2">
                   <Star className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium text-foreground">Próximo Marco</span>
+                  <span className="text-sm font-medium text-foreground">{t('achievements.nextMilestone')}</span>
                   <span className="text-xs text-muted-foreground ml-auto">
                     {CATEGORY_LABELS[currentMission.category]}
                   </span>
@@ -126,28 +95,24 @@ export const AchievementsPanel = memo(function AchievementsPanel() {
                   <div className="flex-1">
                     <p className="text-sm text-foreground font-medium">{currentMission.title}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <Progress 
-                        value={currentProgress.percentage} 
-                        className="h-1.5 flex-1"
-                      />
+                      <Progress value={currentProgress.percentage} className="h-1.5 flex-1" />
                       <span className="text-xs text-muted-foreground">
                         {currentProgress.current}/{currentProgress.target}
                       </span>
                     </div>
                   </div>
                   <span className="text-xs font-bold text-primary">
-                    +{currentMission.reward.points}pts
+                    +{currentMission.reward.points}{t('achievements.pts')}
                   </span>
                 </div>
               </div>
             )}
 
-            {/* All Complete State */}
             {!currentMission && (
               <div className="pt-2 border-t border-border/50 text-center py-4">
                 <span className="text-3xl mb-2 block">👑</span>
-                <p className="text-sm font-semibold text-foreground">Mestre do Estilo!</p>
-                <p className="text-xs text-muted-foreground">Você completou todas as missões</p>
+                <p className="text-sm font-semibold text-foreground">{t('achievements.styleMaster')}</p>
+                <p className="text-xs text-muted-foreground">{t('achievements.allComplete')}</p>
               </div>
             )}
           </div>

@@ -3,6 +3,7 @@ import { Sparkles, Camera } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LookHarmonyMini } from './LookHarmonyBadge';
+import { useTranslation } from 'react-i18next';
 
 interface LookItem {
   id: string;
@@ -33,9 +34,9 @@ export function LookCardCompact({
   onTryOn,
   onOpenCanvas,
 }: LookCardCompactProps) {
+  const { t } = useTranslation('recommendations');
   const displayItems = look.items.slice(0, 3);
 
-  // Prepare items for harmony calculation
   const chromaticItems = look.items.map(item => ({
     chromatic_compatibility: item.chromatic_compatibility,
   }));
@@ -48,7 +49,6 @@ export function LookCardCompact({
       className="flex-shrink-0 w-48 snap-start"
     >
       <Card className="hover:shadow-lg transition-shadow">
-        {/* Visual stack of items */}
         <div className="relative h-32 bg-gradient-to-br from-secondary to-secondary/50 overflow-hidden">
           {displayItems.map((item, i) => {
             const imageUrl = item.image_url || item.imageUrl;
@@ -71,12 +71,10 @@ export function LookCardCompact({
             );
           })}
           
-          {/* Harmony badge - TOP LEFT */}
           <div className="absolute top-2 left-2 z-10">
             <LookHarmonyMini items={chromaticItems} />
           </div>
           
-          {/* Item count badge */}
           {look.items.length > 3 && (
             <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-background/90 backdrop-blur rounded-full text-[10px] font-medium">
               +{look.items.length - 3}
@@ -89,7 +87,7 @@ export function LookCardCompact({
             <p className="font-medium text-sm truncate">{look.name}</p>
             <div className="flex items-center gap-1">
               <p className="text-[11px] text-muted-foreground truncate flex-1">
-                {look.items.length} peças • {look.occasion || 'Casual'}
+                {look.items.length} {t('looks.pieces')} • {look.occasion || 'Casual'}
               </p>
               {look.chromatic_score && (
                 <span className="text-[10px] text-primary font-medium">
@@ -115,7 +113,7 @@ export function LookCardCompact({
               onClick={onTryOn}
             >
               <Camera className="w-3 h-3 flex-shrink-0" />
-              <span className="hidden xs:inline ml-1 truncate">Provar</span>
+              <span className="hidden xs:inline ml-1 truncate">{t('actions.tryOn')}</span>
             </Button>
           </div>
         </div>
