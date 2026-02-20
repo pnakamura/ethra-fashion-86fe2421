@@ -1,35 +1,35 @@
 
 
-# Configure MONITORING_API_KEY Secret
+# Corrigir CORS para o header x-monitoring-key
 
-## What will be done
+## Problema identificado
 
-Add the **MONITORING_API_KEY** secret to the project so the `admin-monitoring` Edge Function can authenticate requests.
-
-## How it works
-
-The `admin-monitoring` function already checks for this secret:
+O arquivo `supabase/functions/_shared/cors.ts` define os headers CORS permitidos como:
 
 ```text
-Header received:  x-monitoring-key: <your_value>
-Compared against:  Deno.env.get("MONITORING_API_KEY")
+authorization, x-client-info, apikey, content-type
 ```
 
-If they match, the request proceeds. Otherwise, a 401 Unauthorized is returned.
+O header `x-monitoring-key`, usado pela funcao `admin-monitoring` para autenticacao, nao esta nessa lista. Quando o browser envia o preflight (OPTIONS), o servidor rejeita o header customizado e o browser bloqueia a requisicao.
 
-## Steps
+## Solucao
 
-1. Use the secrets tool to prompt you for the `MONITORING_API_KEY` value
-2. Deploy the `admin-monitoring` function so it picks up the new secret
-3. Test the endpoint with a curl call
+Adicionar `x-monitoring-key` a lista de `Access-Control-Allow-Headers` no arquivo `supabase/functions/_shared/cors.ts`.
 
-## Recommendation
-
-Generate a strong random string (32+ characters). You can use:
+Tanto na linha 38 (origem nao permitida) quanto na linha 44 (origem permitida), o valor passara a ser:
 
 ```text
-openssl rand -hex 32
+authorization, x-client-info, apikey, content-type, x-monitoring-key
 ```
 
-This will produce something like `a3f8b2c1d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1`
+## Impacto
+
+- Corrige o erro de CORS para chamadas ao endpoint `admin-monitoring` a partir do painel admin no browser.
+- Nenhuma outra funcao e afetada negativamente, pois adicionar um header permitido nao altera o comportamento de funcoes que nao o utilizam.
+
+## Detalhes tecnicos
+
+**Arquivo alterado:** `supabase/functions/_shared/cors.ts`
+
+Duas linhas modificadas (38 e 44) para incluir `x-monitoring-key` na string de headers permitidos. Apos a alteracao, a funcao sera reimplantada automaticamente.
 
