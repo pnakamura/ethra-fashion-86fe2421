@@ -15,6 +15,7 @@ import { Sparkles, ChevronRight, Crown, Camera, CalendarDays, ShirtIcon } from '
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import { getGreeting, getFirstName } from '@/lib/greeting';
+import { useTranslation } from 'react-i18next';
 
 function getPainPoint(profile: any): string | null {
   try {
@@ -25,17 +26,8 @@ function getPainPoint(profile: any): string | null {
   }
 }
 
-function getContextualSubtitle(painPoint: string | null): string {
-  switch (painPoint) {
-    case 'closet': return 'Vamos organizar seu closet hoje?';
-    case 'curadoria': return 'Que tal um look novo hoje?';
-    case 'evento': return 'Preparada para arrasar no próximo evento?';
-    default: return 'O que vamos vestir hoje?';
-  }
-}
-
 // Promo card components
-function VIPLooksCard({ navigate, delay }: { navigate: (p: string) => void; delay: number }) {
+function VIPLooksCard({ navigate, delay, t }: { navigate: (p: string) => void; delay: number; t: (k: string) => string }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -56,10 +48,10 @@ function VIPLooksCard({ navigate, delay }: { navigate: (p: string) => void; dela
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-foreground">Looks Exclusivos</h3>
+              <h3 className="font-semibold text-foreground">{t('promo.vipLooks')}</h3>
               <Badge className="text-[10px] px-1.5 py-0 h-4 bg-amber-500/20 text-amber-600 dark:bg-amber-500/30 dark:text-amber-400 border-0">VIP</Badge>
             </div>
-            <p className="text-sm text-muted-foreground">Combinações personalizadas com IA</p>
+            <p className="text-sm text-muted-foreground">{t('promo.vipLooksDesc')}</p>
           </div>
         </div>
         <ChevronRight className="w-5 h-5 text-amber-500/70 dark:text-amber-400/70" />
@@ -68,7 +60,7 @@ function VIPLooksCard({ navigate, delay }: { navigate: (p: string) => void; dela
   );
 }
 
-function ProvadorCard({ navigate, delay }: { navigate: (p: string) => void; delay: number }) {
+function ProvadorCard({ navigate, delay, t }: { navigate: (p: string) => void; delay: number; t: (k: string) => string }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -88,8 +80,8 @@ function ProvadorCard({ navigate, delay }: { navigate: (p: string) => void; dela
             <Camera className="w-5 h-5 text-[hsl(240_50%_75%)]" />
           </div>
           <div>
-            <h3 className="font-semibold text-foreground">Espelho Neural</h3>
-            <p className="text-sm text-muted-foreground">Experimente roupas virtualmente</p>
+            <h3 className="font-semibold text-foreground">{t('promo.neuralMirror')}</h3>
+            <p className="text-sm text-muted-foreground">{t('promo.neuralMirrorDesc')}</p>
           </div>
         </div>
         <ChevronRight className="w-5 h-5 text-muted-foreground" />
@@ -98,7 +90,7 @@ function ProvadorCard({ navigate, delay }: { navigate: (p: string) => void; dela
   );
 }
 
-function ClosetCard({ navigate, delay }: { navigate: (p: string) => void; delay: number }) {
+function ClosetCard({ navigate, delay, t }: { navigate: (p: string) => void; delay: number; t: (k: string) => string }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -118,8 +110,8 @@ function ClosetCard({ navigate, delay }: { navigate: (p: string) => void; delay:
             <ShirtIcon className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h3 className="font-semibold text-foreground">Closet Virtual</h3>
-            <p className="text-sm text-muted-foreground">Organize e descubra combinações</p>
+            <h3 className="font-semibold text-foreground">{t('promo.virtualCloset')}</h3>
+            <p className="text-sm text-muted-foreground">{t('promo.virtualClosetDesc')}</p>
           </div>
         </div>
         <ChevronRight className="w-5 h-5 text-muted-foreground" />
@@ -128,7 +120,7 @@ function ClosetCard({ navigate, delay }: { navigate: (p: string) => void; delay:
   );
 }
 
-function AgendaCard({ navigate, delay }: { navigate: (p: string) => void; delay: number }) {
+function AgendaCard({ navigate, delay, t }: { navigate: (p: string) => void; delay: number; t: (k: string) => string }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -148,8 +140,8 @@ function AgendaCard({ navigate, delay }: { navigate: (p: string) => void; delay:
             <CalendarDays className="w-5 h-5 text-season-autumn" />
           </div>
           <div>
-            <h3 className="font-semibold text-foreground">Agenda de Eventos</h3>
-            <p className="text-sm text-muted-foreground">Planeje o look perfeito</p>
+            <h3 className="font-semibold text-foreground">{t('promo.eventAgenda')}</h3>
+            <p className="text-sm text-muted-foreground">{t('promo.eventAgendaDesc')}</p>
           </div>
         </div>
         <ChevronRight className="w-5 h-5 text-muted-foreground" />
@@ -158,35 +150,35 @@ function AgendaCard({ navigate, delay }: { navigate: (p: string) => void; delay:
   );
 }
 
-function PromoCards({ painPoint, navigate }: { painPoint: string | null; navigate: (p: string) => void }) {
+function PromoCards({ painPoint, navigate, t }: { painPoint: string | null; navigate: (p: string) => void; t: (k: string) => string }) {
   switch (painPoint) {
     case 'closet':
       return (
         <>
-          <ClosetCard navigate={navigate} delay={0.25} />
-          <VIPLooksCard navigate={navigate} delay={0.3} />
-          <ProvadorCard navigate={navigate} delay={0.35} />
+          <ClosetCard navigate={navigate} delay={0.25} t={t} />
+          <VIPLooksCard navigate={navigate} delay={0.3} t={t} />
+          <ProvadorCard navigate={navigate} delay={0.35} t={t} />
         </>
       );
     case 'curadoria':
       return (
         <>
-          <ProvadorCard navigate={navigate} delay={0.25} />
-          <VIPLooksCard navigate={navigate} delay={0.3} />
+          <ProvadorCard navigate={navigate} delay={0.25} t={t} />
+          <VIPLooksCard navigate={navigate} delay={0.3} t={t} />
         </>
       );
     case 'evento':
       return (
         <>
-          <VIPLooksCard navigate={navigate} delay={0.25} />
-          <AgendaCard navigate={navigate} delay={0.3} />
+          <VIPLooksCard navigate={navigate} delay={0.25} t={t} />
+          <AgendaCard navigate={navigate} delay={0.3} t={t} />
         </>
       );
     default:
       return (
         <>
-          <VIPLooksCard navigate={navigate} delay={0.25} />
-          <ProvadorCard navigate={navigate} delay={0.35} />
+          <VIPLooksCard navigate={navigate} delay={0.25} t={t} />
+          <ProvadorCard navigate={navigate} delay={0.35} t={t} />
         </>
       );
   }
@@ -196,6 +188,7 @@ export default function Index() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { profile, isLoading: profileLoading, hasCompletedOnboarding } = useProfile();
+  const { t } = useTranslation('dashboard');
   const painPoint = getPainPoint(profile);
 
   useEffect(() => {
@@ -213,13 +206,18 @@ export default function Index() {
       <div className="min-h-screen flex items-center justify-center gradient-soft">
         <div className="text-center">
           <div className="w-12 h-12 rounded-full gradient-primary animate-pulse mx-auto mb-4" />
-          <p className="text-muted-foreground">Carregando...</p>
+          <p className="text-muted-foreground">{t('loading')}</p>
         </div>
       </div>
     );
   }
 
   if (!user) return null;
+
+  const subtitleKey = painPoint === 'closet' ? 'subtitle.closet'
+    : painPoint === 'curadoria' ? 'subtitle.curadoria'
+    : painPoint === 'evento' ? 'subtitle.evento'
+    : 'subtitle.default';
 
   return (
     <div className="min-h-screen dark:bg-transparent">
@@ -230,13 +228,13 @@ export default function Index() {
             <h2 className="text-3xl font-display font-semibold mb-1">
               {getGreeting(getFirstName(profile?.username))}
             </h2>
-            <p className="text-muted-foreground">{getContextualSubtitle(painPoint)}</p>
+            <p className="text-muted-foreground">{t(subtitleKey)}</p>
           </div>
           
           <TemporarySeasonBanner />
           <BiometricAlertBanner compact />
           <QuickActions painPoint={painPoint} />
-          <PromoCards painPoint={painPoint} navigate={navigate} />
+          <PromoCards painPoint={painPoint} navigate={navigate} t={t} />
           <LookOfTheDay />
           <MissionCard />
           <AchievementsPanel />

@@ -22,10 +22,16 @@
   "nav": {
     "home": "Início",
     "wardrobe": "Closet",
-    "chromatic": "Cromática",
+    "looks": "Looks",
+    "chromatic": "Cores",
     "tryOn": "Provador",
     "canvas": "Canvas",
-    "settings": "Configurações"
+    "settings": "Configurações",
+    "events": "Agenda",
+    "voyager": "Voyager",
+    "more": "Mais",
+    "moreOptions": "Mais Opções",
+    "palette": "Minha Paleta"
   },
   "errors": {
     "sessionExpired": "Sessão expirada. Faça login novamente.",

@@ -6,11 +6,15 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import commonPtBR from './locales/pt-BR/common.json';
 import legalPtBR from './locales/pt-BR/legal.json';
 import settingsPtBR from './locales/pt-BR/settings.json';
+import dashboardPtBR from './locales/pt-BR/dashboard.json';
+import authPtBR from './locales/pt-BR/auth.json';
 
 // EN-US translations
 import commonEnUS from './locales/en-US/common.json';
 import legalEnUS from './locales/en-US/legal.json';
 import settingsEnUS from './locales/en-US/settings.json';
+import dashboardEnUS from './locales/en-US/dashboard.json';
+import authEnUS from './locales/en-US/auth.json';
 
 i18n
   .use(LanguageDetector)
@@ -21,17 +25,21 @@ i18n
         common: commonPtBR,
         legal: legalPtBR,
         settings: settingsPtBR,
+        dashboard: dashboardPtBR,
+        auth: authPtBR,
       },
       'en-US': {
         common: commonEnUS,
         legal: legalEnUS,
         settings: settingsEnUS,
+        dashboard: dashboardEnUS,
+        auth: authEnUS,
       },
     },
     fallbackLng: 'pt-BR',
     supportedLngs: ['pt-BR', 'en-US'],
     defaultNS: 'common',
-    ns: ['common', 'legal', 'settings'],
+    ns: ['common', 'legal', 'settings', 'dashboard', 'auth'],
     interpolation: {
       escapeValue: false,
     },

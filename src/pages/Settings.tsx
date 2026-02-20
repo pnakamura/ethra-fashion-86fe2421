@@ -50,7 +50,6 @@ interface NotificationPrefs {
   city: string;
 }
 
-// These will be overridden by translations in the component
 const themeOptionKeys = [
   { value: 'system' as ThemePreference, labelKey: 'appearance.themeSystem', icon: Monitor },
   { value: 'light' as ThemePreference, labelKey: 'appearance.themeLight', icon: Sun },
@@ -106,7 +105,6 @@ export default function Settings() {
   const [searchParams] = useSearchParams();
   const privacySectionRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to privacy section when ?tab=privacy
   useEffect(() => {
     if (searchParams.get('tab') === 'privacy') {
       setTimeout(() => {
@@ -115,18 +113,16 @@ export default function Settings() {
     }
   }, [searchParams]);
 
-  // Auth guard
   useEffect(() => {
     if (!authLoading && !user) navigate('/welcome');
   }, [authLoading, user, navigate]);
 
-  // Export user data (LGPD Art. 18)
   const handleExportData = useCallback(async () => {
     try {
       setIsExporting(true);
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
-        toast.error('Sessão expirada. Faça login novamente.');
+        toast.error(t('privacy.sessionExpired', { defaultValue: t('privacy.exportError', { defaultValue: 'Session expired.' }) }));
         return;
       }
 
@@ -134,32 +130,28 @@ export default function Settings() {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
 
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
+      if (response.error) throw new Error(response.error.message);
 
-      // Create and download the JSON file
       const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `ethra-meus-dados-${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `ethra-data-${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      toast.success('Dados exportados com sucesso!');
+      toast.success(t('privacy.exportSuccess'));
     } catch (error) {
       console.error('Export error:', error);
-      toast.error('Erro ao exportar dados. Tente novamente.');
+      toast.error(t('privacy.exportError', { defaultValue: 'Export error.' }));
     } finally {
       setIsExporting(false);
     }
-  }, []);
+  }, [t]);
 
-  // Fetch notification preferences
-  const { data: savedPrefs, isLoading: prefsLoading } = useQuery({
+  const { data: savedPrefs } = useQuery({
     queryKey: ['notification-preferences', user?.id],
     queryFn: async () => {
       if (!user) return null;
@@ -168,7 +160,6 @@ export default function Settings() {
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
-      
       if (error) throw error;
       return data;
     },
@@ -188,27 +179,20 @@ export default function Settings() {
     }
   }, [savedPrefs]);
 
-  // Save notification preferences
   const saveNotifMutation = useMutation({
     mutationFn: async (prefs: NotificationPrefs) => {
       if (!user) throw new Error('Not authenticated');
-
       const { error } = await supabase
         .from('notification_preferences')
-        .upsert({
-          user_id: user.id,
-          ...prefs,
-          updated_at: new Date().toISOString(),
-        });
-
+        .upsert({ user_id: user.id, ...prefs, updated_at: new Date().toISOString() });
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notification-preferences'] });
-      toast.success('Preferências salvas!');
+      toast.success(t('notifications.saveSuccess'));
     },
     onError: () => {
-      toast.error('Erro ao salvar preferências');
+      toast.error(t('notifications.saveError'));
     },
   });
 
@@ -221,54 +205,46 @@ export default function Settings() {
     saveNotifMutation.mutate(notifPrefs);
   }, [saveNotifMutation, notifPrefs]);
 
-  // File upload handler
   const handleFileUpload = useCallback(async (mode: ThemeMode, file: File) => {
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Imagem muito grande. Máximo 5MB.');
+      toast.error(t('appearance.uploadTooBig'));
       return;
     }
     const result = await uploadCustomBackground(mode, file);
     if (result) {
-      toast.success('Fundo personalizado salvo!');
+      toast.success(t('appearance.uploadSuccess'));
     } else {
-      toast.error('Erro ao enviar imagem');
+      toast.error(t('appearance.uploadError'));
     }
-  }, [uploadCustomBackground]);
+  }, [uploadCustomBackground, t]);
 
-  // Delete custom background handler
   const handleDeleteBackground = useCallback(async (mode: ThemeMode) => {
     await deleteCustomBackground(mode);
-    toast.success('Fundo personalizado removido');
-  }, [deleteCustomBackground]);
+    toast.success(t('appearance.deleteSuccess'));
+  }, [deleteCustomBackground, t]);
 
-  // Notification preference change handlers
   const handleLookTimeChange = useCallback((value: string) => {
     setNotifPrefs(p => ({ ...p, look_of_day_time: value }));
   }, []);
-
   const handleLookEnabledChange = useCallback((checked: boolean) => {
     setNotifPrefs(p => ({ ...p, look_of_day_enabled: checked }));
   }, []);
-
   const handleWeatherEnabledChange = useCallback((checked: boolean) => {
     setNotifPrefs(p => ({ ...p, weather_alerts_enabled: checked }));
   }, []);
-
   const handleEventReminderHoursChange = useCallback((value: number) => {
     setNotifPrefs(p => ({ ...p, event_reminder_hours: value }));
   }, []);
-
   const handleEventEnabledChange = useCallback((checked: boolean) => {
     setNotifPrefs(p => ({ ...p, event_reminders_enabled: checked }));
   }, []);
-
   const handleCityChange = useCallback((value: string) => {
     setNotifPrefs(p => ({ ...p, city: value }));
   }, []);
 
   return (
     <>
-      <Header title="Configurações" showBack />
+      <Header title={t('title')} showBack />
       <PageContainer className="px-4 py-6">
         <div className="max-w-lg mx-auto md:max-w-2xl lg:max-w-3xl space-y-6">
           {/* Appearance Section */}
@@ -279,13 +255,13 @@ export default function Settings() {
           >
             <h2 className="font-display text-xl font-semibold flex items-center gap-2">
               <Sun className="w-5 h-5 text-primary" />
-              Aparência
+              {t('appearance.title')}
             </h2>
 
             <div className="bg-card rounded-2xl border border-border p-4 space-y-5">
               {/* Theme Selection */}
               <div className="space-y-3">
-                <label className="text-sm font-medium text-muted-foreground">Tema</label>
+                <label className="text-sm font-medium text-muted-foreground">{t('appearance.theme')}</label>
                 <div className="grid grid-cols-3 gap-2">
                   {themeOptionKeys.map((option) => {
                     const Icon = option.icon;
@@ -318,7 +294,7 @@ export default function Settings() {
               <div className="space-y-3">
                 <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                   <Type className="w-4 h-4" />
-                  Tamanho do Texto
+                  {t('appearance.fontSize')}
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {fontSizeOptionKeys.map((option) => {
@@ -354,22 +330,22 @@ export default function Settings() {
 
               <Separator />
 
-              {/* Background Selection with Tabs for Dark/Light Mode */}
+              {/* Background Selection */}
               <div className="space-y-3">
                 <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                   <Image className="w-4 h-4" />
-                  Fundo Artístico
+                  {t('appearance.background')}
                 </label>
                 
                 <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ThemeMode)} className="w-full">
                   <TabsList className="grid w-full grid-cols-2 mb-4">
                     <TabsTrigger value="dark" className="flex items-center gap-2">
                       <Moon className="w-4 h-4" />
-                      Modo Escuro
+                      {t('appearance.darkMode')}
                     </TabsTrigger>
                     <TabsTrigger value="light" className="flex items-center gap-2">
                       <Sun className="w-4 h-4" />
-                      Modo Claro
+                      {t('appearance.lightMode')}
                     </TabsTrigger>
                   </TabsList>
                   
@@ -379,7 +355,6 @@ export default function Settings() {
                     
                     return (
                       <TabsContent key={mode} value={mode} className="space-y-4 mt-0">
-                        {/* Variant Selection */}
                         <div className="grid grid-cols-4 gap-2">
                           {backgroundOptionKeys.map((option) => {
                             const Icon = option.icon;
@@ -414,7 +389,6 @@ export default function Settings() {
                           })}
                         </div>
                         
-                        {/* Hidden file input */}
                         <input
                           ref={fileInputRef}
                           type="file"
@@ -429,13 +403,12 @@ export default function Settings() {
                           }}
                         />
                         
-                        {/* Custom background preview & actions */}
                         {modeSettings.variant === 'custom' && modeSettings.customImageUrl && (
                           <div className="space-y-3">
                             <div className="relative rounded-xl overflow-hidden aspect-video border border-border">
                               <img 
                                 src={modeSettings.customImageUrl} 
-                                alt="Fundo personalizado" 
+                                alt={t('appearance.customAlt')}
                                 className="w-full h-full object-cover"
                               />
                               <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
@@ -452,7 +425,7 @@ export default function Settings() {
                                   ) : (
                                     <Upload className="w-3 h-3 mr-1" />
                                   )}
-                                  Trocar
+                                  {t('appearance.uploadSwap')}
                                 </Button>
                                 <Button
                                   variant="outline"
@@ -465,12 +438,11 @@ export default function Settings() {
                               </div>
                             </div>
                             <p className="text-xs text-muted-foreground text-center">
-                              Sua imagem personalizada de fundo ({mode === 'dark' ? 'modo escuro' : 'modo claro'})
+                              {t('appearance.customLabel')} ({mode === 'dark' ? t('appearance.customLabelDark') : t('appearance.customLabelLight')})
                             </p>
                           </div>
                         )}
                         
-                        {/* Upload prompt when custom is selected but no image */}
                         {modeSettings.variant === 'custom' && !modeSettings.customImageUrl && (
                           <div 
                             onClick={() => fileInputRef.current?.click()}
@@ -481,16 +453,15 @@ export default function Settings() {
                             ) : (
                               <Upload className="w-8 h-8 mx-auto mb-2 text-primary" />
                             )}
-                            <p className="text-sm font-medium">Clique para enviar imagem</p>
-                            <p className="text-xs text-muted-foreground mt-1">PNG, JPG até 5MB</p>
+                            <p className="text-sm font-medium">{t('appearance.uploadPrompt')}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{t('appearance.uploadHint')}</p>
                           </div>
                         )}
                         
-                        {/* Opacity Slider */}
                         {modeSettings.variant !== 'none' && (
                           <div className="space-y-2">
                             <div className="flex items-center justify-between">
-                              <span className="text-sm text-muted-foreground">Intensidade</span>
+                              <span className="text-sm text-muted-foreground">{t('appearance.intensity')}</span>
                               <span className="text-sm font-medium text-primary">{Math.round(modeSettings.opacity * 100)}%</span>
                             </div>
                             <Slider
@@ -502,17 +473,13 @@ export default function Settings() {
                               className="w-full"
                             />
                             <p className="text-xs text-muted-foreground">
-                              Ajuste a visibilidade do fundo artístico (15% - 100%)
+                              {t('appearance.intensityHint')}
                             </p>
                           </div>
                         )}
                         
-                        {/* Mode-specific tips */}
                         <p className="text-xs text-muted-foreground/70 italic">
-                          {mode === 'dark' 
-                            ? 'O fundo artístico no modo escuro cria uma atmosfera sofisticada e imersiva.'
-                            : 'No modo claro, recomendamos usar opacidade mais baixa para manter a legibilidade.'
-                          }
+                          {mode === 'dark' ? t('appearance.darkTip') : t('appearance.lightTip')}
                         </p>
                       </TabsContent>
                     );
@@ -570,6 +537,7 @@ export default function Settings() {
             </div>
           </motion.section>
 
+          {/* Notifications Section */}
           <motion.section
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -578,19 +546,18 @@ export default function Settings() {
           >
             <h2 className="font-display text-xl font-semibold flex items-center gap-2">
               <Bell className="w-5 h-5 text-primary" />
-              Notificações
+              {t('notifications.title')}
             </h2>
 
             <div className="bg-card rounded-2xl border border-border p-4 space-y-4">
-              {/* Look of the Day */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-full bg-primary/10">
                     <Sparkles className="w-4 h-4 text-primary" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium">Look do Dia</p>
-                    <p className="text-xs text-muted-foreground">Sugestão diária de look</p>
+                    <p className="text-sm font-medium">{t('notifications.lookOfDay')}</p>
+                    <p className="text-xs text-muted-foreground">{t('notifications.lookOfDayDesc')}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -601,43 +568,35 @@ export default function Settings() {
                     className="w-24 text-xs rounded-lg"
                     disabled={!notifPrefs.look_of_day_enabled}
                   />
-                  <Switch
-                    checked={notifPrefs.look_of_day_enabled}
-                    onCheckedChange={handleLookEnabledChange}
-                  />
+                  <Switch checked={notifPrefs.look_of_day_enabled} onCheckedChange={handleLookEnabledChange} />
                 </div>
               </div>
 
               <Separator />
 
-              {/* Weather Alerts */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-full bg-primary/10">
                     <CloudSun className="w-4 h-4 text-primary" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium">Alertas de Clima</p>
-                    <p className="text-xs text-muted-foreground">Mudanças climáticas importantes</p>
+                    <p className="text-sm font-medium">{t('notifications.weatherAlerts')}</p>
+                    <p className="text-xs text-muted-foreground">{t('notifications.weatherAlertsDesc')}</p>
                   </div>
                 </div>
-                <Switch
-                  checked={notifPrefs.weather_alerts_enabled}
-                  onCheckedChange={handleWeatherEnabledChange}
-                />
+                <Switch checked={notifPrefs.weather_alerts_enabled} onCheckedChange={handleWeatherEnabledChange} />
               </div>
 
               <Separator />
 
-              {/* Event Reminders */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-full bg-primary/10">
                     <Calendar className="w-4 h-4 text-primary" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium">Lembretes de Eventos</p>
-                    <p className="text-xs text-muted-foreground">Alertas para compromissos</p>
+                    <p className="text-sm font-medium">{t('notifications.eventReminders')}</p>
+                    <p className="text-xs text-muted-foreground">{t('notifications.eventRemindersDesc')}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -647,35 +606,29 @@ export default function Settings() {
                     className="text-xs rounded-lg border border-input bg-background px-2 py-1"
                     disabled={!notifPrefs.event_reminders_enabled}
                   >
-                    <option value={1}>1h antes</option>
-                    <option value={2}>2h antes</option>
-                    <option value={4}>4h antes</option>
-                    <option value={24}>1 dia antes</option>
+                    <option value={1}>{t('notifications.reminderBefore1h')}</option>
+                    <option value={2}>{t('notifications.reminderBefore2h')}</option>
+                    <option value={4}>{t('notifications.reminderBefore4h')}</option>
+                    <option value={24}>{t('notifications.reminderBefore1d')}</option>
                   </select>
-                  <Switch
-                    checked={notifPrefs.event_reminders_enabled}
-                    onCheckedChange={handleEventEnabledChange}
-                  />
+                  <Switch checked={notifPrefs.event_reminders_enabled} onCheckedChange={handleEventEnabledChange} />
                 </div>
               </div>
 
               <Separator />
 
-              {/* City */}
               <div className="space-y-2">
                 <label className="text-sm font-medium flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-muted-foreground" />
-                  Sua Cidade
+                  {t('notifications.city')}
                 </label>
                 <Input
                   value={notifPrefs.city}
                   onChange={(e) => handleCityChange(e.target.value)}
-                  placeholder="Ex: São Paulo, SP"
+                  placeholder={t('notifications.cityPlaceholder')}
                   className="rounded-xl"
                 />
-                <p className="text-xs text-muted-foreground">
-                  Usado para previsão de clima nas sugestões de looks
-                </p>
+                <p className="text-xs text-muted-foreground">{t('notifications.cityHint')}</p>
               </div>
 
               <Button
@@ -683,12 +636,12 @@ export default function Settings() {
                 disabled={saveNotifMutation.isPending}
                 className="w-full rounded-xl gradient-primary dark:neon-button"
               >
-                {saveNotifMutation.isPending ? 'Salvando...' : 'Salvar Preferências'}
+                {saveNotifMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                {t('notifications.savePrefs')}
               </Button>
             </div>
           </motion.section>
 
-          {/* Account Section */}
           {/* Profile Section */}
           <motion.section
             initial={{ opacity: 0, y: 10 }}
@@ -698,11 +651,10 @@ export default function Settings() {
           >
             <h2 className="font-display text-xl font-semibold flex items-center gap-2">
               <User className="w-5 h-5 text-primary" />
-              Meu Perfil
+              {t('profile.title')}
             </h2>
 
             <div className="bg-card rounded-2xl border border-border p-4 space-y-4">
-              {/* User info */}
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
                   <span className="text-xl font-display font-semibold text-primary">
@@ -712,7 +664,7 @@ export default function Settings() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <p className="font-semibold text-foreground truncate">
-                      {profile?.username || 'Usuário'}
+                      {profile?.username || t('profile.defaultUser', { defaultValue: 'User' })}
                     </p>
                     <PlanBadge planId={profile?.subscription_plan_id} size="sm" />
                   </div>
@@ -725,10 +677,9 @@ export default function Settings() {
               
               <Separator />
               
-              {/* Subscription status */}
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium">Plano Atual</p>
+                  <p className="text-sm font-medium">{t('profile.currentPlan')}</p>
                   <p className="text-xs text-muted-foreground">
                     {profile?.subscription_expires_at 
                       ? t('profile.validUntil', { date: format(new Date(profile.subscription_expires_at), dateFormat.long, { locale: dateFnsLocale }) })
@@ -741,7 +692,7 @@ export default function Settings() {
             </div>
           </motion.section>
 
-          {/* Privacy & Data Section (LGPD) */}
+          {/* Privacy & Data Section */}
           <motion.section
             ref={privacySectionRef}
             initial={{ opacity: 0, y: 10 }}
@@ -751,15 +702,14 @@ export default function Settings() {
           >
             <h2 className="font-display text-xl font-semibold flex items-center gap-2">
               <Shield className="w-5 h-5 text-primary" />
-              Privacidade e Dados
+              {t('privacy.title')}
             </h2>
 
             <div className="bg-card rounded-2xl border border-border p-4 space-y-5">
-              {/* Quick export button */}
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-foreground">Exportar meus dados</p>
-                  <p className="text-xs text-muted-foreground">Baixe uma cópia completa dos seus dados</p>
+                  <p className="text-sm font-medium text-foreground">{t('privacy.exportData')}</p>
+                  <p className="text-xs text-muted-foreground">{t('privacy.exportDataDesc')}</p>
                 </div>
                 <Button
                   variant="outline"
@@ -773,41 +723,38 @@ export default function Settings() {
                   ) : (
                     <Download className="w-4 h-4 mr-2" />
                   )}
-                  Exportar
+                  {t('privacy.exportData', { defaultValue: 'Export' })}
                 </Button>
               </div>
 
               <Separator />
 
-              {/* LGPD Request Form */}
               <div className="space-y-4">
-                <p className="text-sm font-medium text-foreground">Formulário de Solicitação de Direitos</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Exerça seus direitos previstos na LGPD (Art. 18). Selecione o tipo de solicitação abaixo.
-                </p>
+                <p className="text-sm font-medium text-foreground">{t('privacy.rightsForm')}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{t('privacy.rightsFormDesc')}</p>
 
                 <div className="space-y-3">
-                  <label className="text-sm text-muted-foreground">Tipo de solicitação *</label>
+                  <label className="text-sm text-muted-foreground">{t('privacy.requestType')}</label>
                   <Select value={requestType} onValueChange={setRequestType}>
                     <SelectTrigger className="rounded-xl">
-                      <SelectValue placeholder="Selecione o tipo de solicitação" />
+                      <SelectValue placeholder={t('privacy.requestTypePlaceholder')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="access">Acesso aos dados</SelectItem>
-                      <SelectItem value="correction">Correção de dados</SelectItem>
-                      <SelectItem value="portability">Portabilidade</SelectItem>
-                      <SelectItem value="deletion">Exclusão de dados</SelectItem>
-                      <SelectItem value="revocation">Revogação de consentimento</SelectItem>
+                      <SelectItem value="access">{t('privacy.requestAccess')}</SelectItem>
+                      <SelectItem value="correction">{t('privacy.requestCorrection')}</SelectItem>
+                      <SelectItem value="portability">{t('privacy.requestPortability')}</SelectItem>
+                      <SelectItem value="deletion">{t('privacy.requestDeletion')}</SelectItem>
+                      <SelectItem value="revocation">{t('privacy.requestRevocation')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-sm text-muted-foreground">Detalhes (opcional)</label>
+                  <label className="text-sm text-muted-foreground">{t('privacy.details')}</label>
                   <Textarea
                     value={requestDetails}
                     onChange={(e) => setRequestDetails(e.target.value)}
-                    placeholder="Descreva sua solicitação..."
+                    placeholder={t('privacy.detailsPlaceholder')}
                     className="rounded-xl resize-none"
                     maxLength={500}
                     rows={3}
@@ -822,7 +769,7 @@ export default function Settings() {
                         className="w-full rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       >
                         <Send className="w-4 h-4 mr-2" />
-                        Enviar solicitação de exclusão
+                        {t('privacy.sendDeletionRequest')}
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
@@ -831,20 +778,15 @@ export default function Settings() {
                           <div className="p-3 rounded-full bg-destructive/10">
                             <AlertTriangle className="w-6 h-6 text-destructive" />
                           </div>
-                          <AlertDialogTitle>Confirmar exclusão de dados?</AlertDialogTitle>
+                          <AlertDialogTitle>{t('privacy.confirmDeletion')}</AlertDialogTitle>
                         </div>
                         <AlertDialogDescription className="space-y-3">
-                          <p>
-                            Sua solicitação será analisada pela nossa equipe de privacidade.
-                            Todos os seus dados serão excluídos conforme a LGPD.
-                          </p>
-                          <p className="text-sm">
-                            Responderemos em até <strong>15 dias úteis</strong>.
-                          </p>
+                          <p>{t('privacy.confirmDeletionDesc')}</p>
+                          <p className="text-sm" dangerouslySetInnerHTML={{ __html: t('privacy.confirmDeletionTime') }} />
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogCancel>{t('actions.cancel', { ns: 'common' })}</AlertDialogCancel>
                         <AlertDialogAction
                           disabled={isRequestingDeletion}
                           onClick={async () => {
@@ -852,34 +794,27 @@ export default function Settings() {
                               setIsRequestingDeletion(true);
                               const { data: { session } } = await supabase.auth.getSession();
                               if (!session?.access_token) {
-                                toast.error('Sessão expirada. Faça login novamente.');
+                                toast.error(t('errors.sessionExpired', { ns: 'common' }));
                                 return;
                               }
-
                               const response = await supabase.functions.invoke('delete-user-data', {
                                 headers: { Authorization: `Bearer ${session.access_token}` },
                               });
-
-                              if (response.error) {
-                                throw new Error(response.error.message);
-                              }
-
-                              toast.success('Solicitação enviada. Responderemos em até 15 dias.');
+                              if (response.error) throw new Error(response.error.message);
+                              toast.success(t('privacy.deletionSuccess'));
                               setRequestType('');
                               setRequestDetails('');
                             } catch (error) {
                               console.error('Error requesting deletion:', error);
-                              toast.error('Erro ao enviar solicitação. Tente novamente.');
+                              toast.error(t('privacy.deletionError'));
                             } finally {
                               setIsRequestingDeletion(false);
                             }
                           }}
                           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
-                          {isRequestingDeletion ? (
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          ) : null}
-                          Confirmar solicitação
+                          {isRequestingDeletion ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                          {t('privacy.confirmDeletionBtn')}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
@@ -888,7 +823,7 @@ export default function Settings() {
                   <Button
                     onClick={async () => {
                       if (!requestType) {
-                        toast.error('Selecione o tipo de solicitação.');
+                        toast.error(t('privacy.selectTypeError'));
                         return;
                       }
                       if (requestType === 'access' || requestType === 'portability') {
@@ -897,9 +832,8 @@ export default function Settings() {
                         setRequestDetails('');
                       } else {
                         setIsSubmitting(true);
-                        // Simulate sending for correction/revocation
                         setTimeout(() => {
-                          toast.success('Solicitação enviada com sucesso. Responderemos em até 15 dias úteis conforme Art. 18 da LGPD.');
+                          toast.success(t('privacy.requestSuccess'));
                           setRequestType('');
                           setRequestDetails('');
                           setIsSubmitting(false);
@@ -909,19 +843,13 @@ export default function Settings() {
                     disabled={isSubmitting || !requestType}
                     className="w-full rounded-xl"
                   >
-                    {isSubmitting ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Send className="w-4 h-4 mr-2" />
-                    )}
-                    Enviar solicitação
+                    {isSubmitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
+                    {t('privacy.sendRequest')}
                   </Button>
                 )}
               </div>
 
-              <p className="text-xs text-muted-foreground/70 italic">
-                Suas solicitações são processadas conforme Art. 18 da LGPD.
-              </p>
+              <p className="text-xs text-muted-foreground/70 italic">{t('privacy.lgpdNote')}</p>
             </div>
           </motion.section>
 
@@ -934,7 +862,7 @@ export default function Settings() {
           >
             <h2 className="font-display text-xl font-semibold flex items-center gap-2">
               <CreditCard className="w-5 h-5 text-primary" />
-              Conta
+              {t('account.title')}
             </h2>
 
             <div className="bg-card rounded-2xl border border-border overflow-hidden">
@@ -947,8 +875,8 @@ export default function Settings() {
                     <CreditCard className="w-4 h-4 text-primary" />
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-medium">Assinatura</p>
-                    <p className="text-xs text-muted-foreground">Gerenciar seu plano</p>
+                    <p className="text-sm font-medium">{t('account.subscription')}</p>
+                    <p className="text-xs text-muted-foreground">{t('account.subscriptionDesc')}</p>
                   </div>
                 </div>
                 <ChevronRight className="w-5 h-5 text-muted-foreground" />
@@ -965,8 +893,8 @@ export default function Settings() {
                     <Shield className="w-4 h-4 text-primary" />
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-medium">Privacidade e Permissões</p>
-                    <p className="text-xs text-muted-foreground">Câmera, notificações e localização</p>
+                    <p className="text-sm font-medium">{t('account.privacyPermissions')}</p>
+                    <p className="text-xs text-muted-foreground">{t('account.privacyPermissionsDesc')}</p>
                   </div>
                 </div>
                 <ChevronRight className="w-5 h-5 text-muted-foreground" />
@@ -974,7 +902,6 @@ export default function Settings() {
 
               <Separator />
 
-              {/* Export Data (LGPD Art. 18) */}
               <button
                 onClick={handleExportData}
                 disabled={isExporting}
@@ -989,8 +916,8 @@ export default function Settings() {
                     )}
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-medium">Exportar meus dados</p>
-                    <p className="text-xs text-muted-foreground">Baixar em formato JSON (LGPD)</p>
+                    <p className="text-sm font-medium">{t('account.exportDataLgpd')}</p>
+                    <p className="text-xs text-muted-foreground">{t('account.exportDataLgpdDesc')}</p>
                   </div>
                 </div>
                 <ChevronRight className="w-5 h-5 text-muted-foreground" />
@@ -1005,23 +932,20 @@ export default function Settings() {
                 <div className="p-2 rounded-full bg-destructive/10">
                   <LogOut className="w-4 h-4" />
                 </div>
-                <span className="text-sm font-medium">Sair da Conta</span>
+                <span className="text-sm font-medium">{t('account.signOut')}</span>
               </button>
 
               <Separator />
 
-              {/* Delete Account */}
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <button
-                    className="w-full flex items-center gap-3 p-4 hover:bg-destructive/5 transition-colors text-destructive"
-                  >
+                  <button className="w-full flex items-center gap-3 p-4 hover:bg-destructive/5 transition-colors text-destructive">
                     <div className="p-2 rounded-full bg-destructive/10">
                       <Trash2 className="w-4 h-4" />
                     </div>
                     <div className="text-left">
-                      <span className="text-sm font-medium">Excluir minha conta</span>
-                      <p className="text-xs opacity-70">Remover todos os dados (LGPD)</p>
+                      <span className="text-sm font-medium">{t('account.deleteAccount')}</span>
+                      <p className="text-xs opacity-70">{t('account.deleteAccountDesc')}</p>
                     </div>
                   </button>
                 </AlertDialogTrigger>
@@ -1031,61 +955,47 @@ export default function Settings() {
                       <div className="p-3 rounded-full bg-destructive/10">
                         <AlertTriangle className="w-6 h-6 text-destructive" />
                       </div>
-                      <AlertDialogTitle>Excluir conta permanentemente?</AlertDialogTitle>
+                      <AlertDialogTitle>{t('account.deleteAccountTitle')}</AlertDialogTitle>
                     </div>
                     <AlertDialogDescription className="space-y-3">
-                      <p>
-                        Esta ação <strong>não pode ser desfeita</strong>. Todos os seus dados serão 
-                        excluídos permanentemente, incluindo:
-                      </p>
+                      <p dangerouslySetInnerHTML={{ __html: t('account.deleteAccountWarning') }} />
                       <ul className="list-disc list-inside text-sm space-y-1">
-                        <li>Perfil e preferências</li>
-                        <li>Análise cromática</li>
-                        <li>Guarda-roupa digital</li>
-                        <li>Looks salvos</li>
-                        <li>Histórico de provas virtuais</li>
-                        <li>Avatares</li>
+                        <li>{t('account.deleteAccountItems.profile')}</li>
+                        <li>{t('account.deleteAccountItems.chromatic')}</li>
+                        <li>{t('account.deleteAccountItems.wardrobe')}</li>
+                        <li>{t('account.deleteAccountItems.looks')}</li>
+                        <li>{t('account.deleteAccountItems.tryOn')}</li>
+                        <li>{t('account.deleteAccountItems.avatars')}</li>
                       </ul>
-                      <p className="text-sm">
-                        Conforme a LGPD, você tem o direito de solicitar a exclusão dos seus dados 
-                        pessoais. Este processo é irreversível.
-                      </p>
+                      <p className="text-sm">{t('account.deleteAccountLgpd')}</p>
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogCancel>{t('actions.cancel', { ns: 'common' })}</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={async () => {
                         try {
                           const { data: { session } } = await supabase.auth.getSession();
                           if (!session?.access_token) {
-                            toast.error('Sessão expirada. Faça login novamente.');
+                            toast.error(t('errors.sessionExpired', { ns: 'common' }));
                             return;
                           }
-
-                          toast.loading('Excluindo sua conta e dados...', { id: 'delete-account' });
-
+                          toast.loading(t('account.deleteAccountLoading'), { id: 'delete-account' });
                           const response = await supabase.functions.invoke('delete-user-data', {
                             headers: { Authorization: `Bearer ${session.access_token}` },
                           });
-
-                          if (response.error) {
-                            throw new Error(response.error.message);
-                          }
-
-                          toast.success('Conta excluída com sucesso.', { id: 'delete-account' });
-                          
-                          // Sign out and redirect
+                          if (response.error) throw new Error(response.error.message);
+                          toast.success(t('account.deleteAccountSuccess'), { id: 'delete-account' });
                           await signOut();
                           navigate('/welcome');
                         } catch (error) {
                           console.error('Error deleting account:', error);
-                          toast.error('Erro ao excluir conta. Tente novamente.', { id: 'delete-account' });
+                          toast.error(t('account.deleteAccountError'), { id: 'delete-account' });
                         }
                       }}
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     >
-                      Sim, excluir minha conta
+                      {t('account.deleteAccountConfirm')}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -1095,9 +1005,7 @@ export default function Settings() {
 
           {/* Version info */}
           <div className="text-center py-6">
-            <p className="text-xs text-muted-foreground">
-              Ethra Aura v1.0.0
-            </p>
+            <p className="text-xs text-muted-foreground">{t('version')}</p>
           </div>
         </div>
       </PageContainer>

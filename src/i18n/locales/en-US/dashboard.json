@@ -1,0 +1,26 @@
+{
+  "quickActions": {
+    "newItem": "New Item",
+    "tryOn": "Try On",
+    "palette": "My Palette",
+    "plan": "Plan Trip",
+    "agenda": "Agenda"
+  },
+  "subtitle": {
+    "closet": "Let's organize your closet today?",
+    "curadoria": "How about a new look today?",
+    "evento": "Ready to shine at your next event?",
+    "default": "What shall we wear today?"
+  },
+  "promo": {
+    "vipLooks": "Exclusive Looks",
+    "vipLooksDesc": "AI-powered personalized outfits",
+    "neuralMirror": "Neural Mirror",
+    "neuralMirrorDesc": "Try on clothes virtually",
+    "virtualCloset": "Virtual Closet",
+    "virtualClosetDesc": "Organize and discover combinations",
+    "eventAgenda": "Event Agenda",
+    "eventAgendaDesc": "Plan the perfect outfit"
+  },
+  "loading": "Loading..."
+}

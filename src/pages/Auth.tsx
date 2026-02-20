@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, Sparkles, ArrowLeft } from 'lucide-react';
@@ -10,11 +10,7 @@ import { ConsentCheckbox, AgeConfirmationCheckbox } from '@/components/legal/Con
 import { supabase } from '@/integrations/supabase/client';
 import { clearSavedQuizData } from '@/hooks/useStyleQuiz';
 import { z } from 'zod';
-
-const authSchema = z.object({
-  email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
-});
+import { useTranslation } from 'react-i18next';
 
 interface QuizData {
   aesthetics?: string[];
@@ -27,11 +23,11 @@ interface QuizData {
 }
 
 export default function Auth() {
+  const { t } = useTranslation('auth');
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const mode = searchParams.get('mode');
   
-  // Get quiz data from navigation state
   const quizData = (location.state as { quizData?: QuizData })?.quizData;
   
   const [isLogin, setIsLogin] = useState(mode !== 'signup');
@@ -46,10 +42,13 @@ export default function Auth() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Save quiz data to profile after successful signup
+  const authSchema = z.object({
+    email: z.string().email(t('errors.invalidEmail')),
+    password: z.string().min(6, t('errors.passwordTooShort')),
+  });
+
   const saveQuizDataToProfile = async (userId: string) => {
     if (!quizData) return;
-
     try {
       const stylePreferences = {
         aesthetics: quizData.aesthetics || [],
@@ -61,15 +60,10 @@ export default function Auth() {
         styleDNA: quizData.styleDNA,
         quizCompletedAt: new Date().toISOString(),
       };
-
       await supabase
         .from('profiles')
-        .update({
-          style_preferences: stylePreferences,
-        })
+        .update({ style_preferences: stylePreferences })
         .eq('user_id', userId);
-
-      // Clear saved quiz data from localStorage
       clearSavedQuizData();
     } catch (error) {
       console.error('Error saving quiz data:', error);
@@ -82,20 +76,19 @@ export default function Auth() {
     const validation = authSchema.safeParse({ email, password });
     if (!validation.success) {
       toast({
-        title: 'Erro de validação',
+        title: t('errors.validation'),
         description: validation.error.errors[0].message,
         variant: 'destructive',
       });
       return;
     }
 
-    // Validate consent for signup
     if (!isLogin) {
       if (!acceptedTerms || !ageConfirmed) {
         setShowConsentErrors(true);
         toast({
-          title: 'Consentimento necessário',
-          description: 'Aceite os termos e confirme sua idade para criar uma conta.',
+          title: t('errors.consentRequired'),
+          description: t('errors.consentRequiredDesc'),
           variant: 'destructive',
         });
         return;
@@ -112,31 +105,29 @@ export default function Auth() {
       if (error) {
         let message = error.message;
         if (error.message.includes('User already registered')) {
-          message = 'Este email já está cadastrado. Faça login.';
+          message = t('errors.alreadyRegistered');
           setIsLogin(true);
         } else if (error.message.includes('Invalid login credentials')) {
           message = isLogin 
-            ? 'Email ou senha incorretos. Se você não tem conta, clique em "Criar agora" abaixo.'
-            : 'Erro ao criar conta. Tente novamente.';
+            ? t('errors.invalidCredentials')
+            : t('errors.signupError');
         }
         toast({
-          title: 'Erro',
+          title: t('errors.generic'),
           description: message,
           variant: 'destructive',
         });
       } else {
         if (!isLogin) {
-          // Save quiz data if available
           const { data } = await supabase.auth.getUser();
           if (data.user && quizData) {
             await saveQuizDataToProfile(data.user.id);
           }
-
           toast({
-            title: 'Conta criada!',
+            title: t('success.accountCreated'),
             description: quizData 
-              ? 'Seu DNA de estilo foi salvo. Bem-vinda ao Ethra!'
-              : 'Bem-vinda ao Ethra.',
+              ? t('success.welcomeWithQuiz')
+              : t('success.welcome'),
           });
           navigate('/');
         } else {
@@ -150,7 +141,6 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 gradient-soft dark:bg-transparent">
-      {/* Back to welcome */}
       <div className="fixed top-6 left-6 z-50">
         <Button
           variant="ghost"
@@ -159,7 +149,7 @@ export default function Auth() {
           className="text-muted-foreground hover:text-foreground rounded-full"
         >
           <ArrowLeft className="w-4 h-4 mr-1.5" />
-          Voltar
+          {t('back')}
         </Button>
       </div>
 
@@ -169,7 +159,6 @@ export default function Auth() {
         transition={{ duration: 0.6 }}
         className="w-full max-w-sm"
       >
-        {/* Logo */}
         <div className="text-center mb-10">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
@@ -183,16 +172,14 @@ export default function Auth() {
             Ethra
           </h1>
           <p className="text-muted-foreground text-sm">
-            Seu GPS de Estilo Pessoal
+            {t('tagline')}
           </p>
         </div>
 
-        {/* Mode title */}
         <h2 className="text-xl font-medium text-center mb-6 text-foreground">
-          {isLogin ? 'Entrar na sua conta' : 'Criar nova conta'}
+          {isLogin ? t('loginTitle') : t('signupTitle')}
         </h2>
 
-        {/* Form */}
         <motion.form
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -204,7 +191,7 @@ export default function Auth() {
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
               type="email"
-              placeholder="Seu email"
+              placeholder={t('emailPlaceholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="pl-11 h-12 rounded-xl bg-card border-border"
@@ -215,7 +202,7 @@ export default function Auth() {
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
               type={showPassword ? 'text' : 'password'}
-              placeholder="Sua senha"
+              placeholder={t('passwordPlaceholder')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="pl-11 pr-11 h-12 rounded-xl bg-card border-border"
@@ -231,10 +218,9 @@ export default function Auth() {
                 <Eye className="w-5 h-5 text-muted-foreground" />
               )}
             </button>
-            <p className="text-xs text-muted-foreground mt-1.5">Mínimo de 6 caracteres</p>
+            <p className="text-xs text-muted-foreground mt-1.5">{t('passwordHint')}</p>
           </div>
 
-          {/* Consent Checkboxes - Only show for signup */}
           {!isLogin && (
             <div className="space-y-3 pt-2">
               <ConsentCheckbox
@@ -263,11 +249,10 @@ export default function Auth() {
             disabled={loading}
             className="w-full h-12 rounded-xl gradient-primary text-primary-foreground font-medium shadow-glow hover:opacity-90 transition-opacity"
           >
-            {loading ? 'Carregando...' : isLogin ? 'Entrar' : 'Criar Conta'}
+            {loading ? t('loading') : isLogin ? t('loginButton') : t('signupButton')}
           </Button>
         </motion.form>
 
-        {/* Toggle */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -279,9 +264,9 @@ export default function Auth() {
             onClick={() => setIsLogin(!isLogin)}
             className="text-sm text-muted-foreground hover:text-primary transition-colors"
           >
-            {isLogin ? 'Não tem conta? ' : 'Já tem conta? '}
+            {isLogin ? t('noAccount') : t('hasAccount')}
             <span className="text-primary font-medium">
-              {isLogin ? 'Criar agora' : 'Fazer login'}
+              {isLogin ? t('createNow') : t('loginNow')}
             </span>
           </button>
         </motion.div>
