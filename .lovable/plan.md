@@ -1,33 +1,35 @@
 
 
-# Configurar Secret MONITORING_API_KEY
+# Configure MONITORING_API_KEY Secret
 
-## O que sera feito
+## What will be done
 
-Solicitar a configuracao do secret **MONITORING_API_KEY** via ferramenta de secrets do projeto.
+Add the **MONITORING_API_KEY** secret to the project so the `admin-monitoring` Edge Function can authenticate requests.
 
-## Para que serve
+## How it works
 
-Este secret e a chave de autenticacao que seu aplicativo externo deve enviar no header `x-monitoring-key` ao fazer chamadas para o endpoint `admin-monitoring`.
-
-## Como usar no app externo
-
-Apos configurar o secret, seu app externo fara requisicoes assim:
+The `admin-monitoring` function already checks for this secret:
 
 ```text
-POST /functions/v1/admin-monitoring
-Header: x-monitoring-key: <valor_que_voce_definir>
+Header received:  x-monitoring-key: <your_value>
+Compared against:  Deno.env.get("MONITORING_API_KEY")
 ```
 
-## Recomendacao de valor
+If they match, the request proceeds. Otherwise, a 401 Unauthorized is returned.
 
-Gere uma string aleatoria forte (32+ caracteres). Exemplo de como gerar:
+## Steps
+
+1. Use the secrets tool to prompt you for the `MONITORING_API_KEY` value
+2. Deploy the `admin-monitoring` function so it picks up the new secret
+3. Test the endpoint with a curl call
+
+## Recommendation
+
+Generate a strong random string (32+ characters). You can use:
 
 ```text
 openssl rand -hex 32
 ```
 
-## Passo unico
-
-1. Usar a ferramenta de secrets para solicitar o valor do `MONITORING_API_KEY`
+This will produce something like `a3f8b2c1d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1`
 
