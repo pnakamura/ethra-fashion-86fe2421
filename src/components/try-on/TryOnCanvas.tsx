@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AIDisclaimer } from '@/components/legal/AIDisclaimer';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface TryOnResult {
   id: string;
@@ -30,34 +31,6 @@ interface TryOnCanvasProps {
   maxRetries?: number;
 }
 
-// Get model display info with descriptive labels
-const getModelInfo = (modelUsed: string | null | undefined) => {
-  if (!modelUsed) return { icon: Sparkles, label: 'Auto', color: 'text-muted-foreground', description: 'Modelo automático' };
-  
-  // IDM-VTON - specialized virtual try-on model
-  if (modelUsed.includes('IDM-VTON')) {
-    return { icon: Sparkles, label: 'Especializado', color: 'text-rose-500', description: 'IDM-VTON (Replicate)' };
-  }
-  
-  // Vertex AI - high fidelity
-  if (modelUsed.includes('vertex')) {
-    return { icon: Crown, label: 'Alta Fidelidade', color: 'text-green-500', description: 'Vertex AI (Google Cloud)' };
-  }
-  
-  // Gemini models
-  if (modelUsed.includes('3-pro') || modelUsed.includes('premium')) {
-    return { icon: Zap, label: 'Rápido', color: 'text-amber-500', description: 'Gemini 3 Pro' };
-  }
-  if (modelUsed.includes('flash')) {
-    return { icon: Zap, label: 'Flash', color: 'text-yellow-500', description: 'Gemini Flash' };
-  }
-  if (modelUsed.includes('2.5-pro')) {
-    return { icon: Sparkles, label: 'Pro', color: 'text-blue-500', description: 'Gemini 2.5 Pro' };
-  }
-  
-  return { icon: Sparkles, label: 'IA', color: 'text-muted-foreground', description: modelUsed };
-};
-
 export function TryOnCanvas({
   result,
   avatarImageUrl,
@@ -67,10 +40,33 @@ export function TryOnCanvas({
   onFeedback,
   maxRetries = 2,
 }: TryOnCanvasProps) {
+  const { t } = useTranslation('tryOn');
   const [showComparison, setShowComparison] = useState(false);
   const [comparisonPosition, setComparisonPosition] = useState(50);
   const [correctedImage, setCorrectedImage] = useState<string | null>(null);
   const [isCorrectingImage, setIsCorrectingImage] = useState(false);
+
+  const getModelInfo = (modelUsed: string | null | undefined) => {
+    if (!modelUsed) return { icon: Sparkles, label: t('canvas.auto'), color: 'text-muted-foreground', description: t('canvas.autoDesc') };
+    
+    if (modelUsed.includes('IDM-VTON')) {
+      return { icon: Sparkles, label: t('canvas.specialized'), color: 'text-rose-500', description: 'IDM-VTON (Replicate)' };
+    }
+    if (modelUsed.includes('vertex')) {
+      return { icon: Crown, label: t('canvas.highFidelity'), color: 'text-green-500', description: 'Vertex AI (Google Cloud)' };
+    }
+    if (modelUsed.includes('3-pro') || modelUsed.includes('premium')) {
+      return { icon: Zap, label: t('canvas.fast'), color: 'text-amber-500', description: 'Gemini 3 Pro' };
+    }
+    if (modelUsed.includes('flash')) {
+      return { icon: Zap, label: t('canvas.flash'), color: 'text-yellow-500', description: 'Gemini Flash' };
+    }
+    if (modelUsed.includes('2.5-pro')) {
+      return { icon: Sparkles, label: t('canvas.pro'), color: 'text-blue-500', description: 'Gemini 2.5 Pro' };
+    }
+    
+    return { icon: Sparkles, label: t('canvas.ai'), color: 'text-muted-foreground', description: modelUsed };
+  };
 
   // Correct image orientation using Canvas API (real correction, not CSS transform)
   useEffect(() => {
@@ -82,18 +78,15 @@ export function TryOnCanvas({
       img.crossOrigin = 'anonymous';
       
       img.onload = () => {
-        // If image is landscape (wider than tall by 20%), rotate via Canvas
         if (img.width > img.height * 1.2) {
           try {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             
             if (ctx) {
-              // Swap dimensions for correct orientation
               canvas.width = img.height;
               canvas.height = img.width;
               
-              // Rotate and draw
               ctx.translate(canvas.width / 2, canvas.height / 2);
               ctx.rotate((90 * Math.PI) / 180);
               ctx.drawImage(img, -img.width / 2, -img.height / 2);
@@ -107,7 +100,6 @@ export function TryOnCanvas({
             setCorrectedImage(result.result_image_url);
           }
         } else {
-          // Image is already in correct orientation
           setCorrectedImage(result.result_image_url);
         }
         setIsCorrectingImage(false);
@@ -149,8 +141,8 @@ export function TryOnCanvas({
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Meu Look Virtual',
-          text: 'Confira como esta peça ficou em mim!',
+          title: t('canvas.myVirtualLook'),
+          text: t('canvas.checkHowItLooks'),
           url: result.result_image_url,
         });
       } catch (error) {
@@ -168,7 +160,6 @@ export function TryOnCanvas({
   return (
     <TooltipProvider>
       <Card className="overflow-hidden shadow-elevated">
-        {/* Canvas Area - Fluid height for correct proportions */}
         <div className="relative bg-gradient-to-b from-secondary/50 to-secondary min-h-[300px]">
         <AnimatePresence mode="wait">
           {isProcessing ? (
@@ -193,10 +184,10 @@ export function TryOnCanvas({
               >
                 <Sparkles className="w-8 h-8 text-primary-foreground" />
               </motion.div>
-              <p className="text-sm font-medium text-foreground">Processando prova virtual...</p>
-              <p className="text-xs text-muted-foreground mt-1">⏱️ Geralmente leva 15-30 segundos</p>
+              <p className="text-sm font-medium text-foreground">{t('canvas.processing')}</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('canvas.processingTime')}</p>
               <p className="text-xs text-muted-foreground mt-3 max-w-[200px] text-center">
-                A IA está analisando proporções e ajustando a peça ao seu corpo.
+                {t('canvas.aiAnalyzing')}
               </p>
             </motion.div>
           ) : isCorrectingImage ? (
@@ -208,7 +199,7 @@ export function TryOnCanvas({
               className="flex items-center justify-center py-20"
             >
               <p className="text-sm text-muted-foreground animate-pulse">
-                Otimizando imagem...
+                {t('canvas.optimizingImage')}
               </p>
             </motion.div>
           ) : correctedImage ? (
@@ -221,25 +212,22 @@ export function TryOnCanvas({
             >
               {showComparison && avatarImageUrl ? (
                 <div className="relative aspect-[3/4]">
-                  {/* Before image */}
                   <img
                     src={avatarImageUrl}
-                    alt="Antes"
+                    alt={t('canvas.before')}
                     className="absolute inset-0 w-full h-full object-cover"
                   />
-                  {/* After image with clip */}
                   <div
                     className="absolute inset-0 overflow-hidden"
                     style={{ width: `${comparisonPosition}%` }}
                   >
                     <img
                       src={correctedImage}
-                      alt="Depois"
+                      alt={t('canvas.after')}
                       className="w-full h-full object-cover"
                       style={{ width: `${100 / (comparisonPosition / 100)}%` }}
                     />
                   </div>
-                  {/* Slider */}
                   <div
                     className="absolute top-0 bottom-0 w-1 bg-primary-foreground cursor-ew-resize"
                     style={{ left: `${comparisonPosition}%` }}
@@ -261,15 +249,13 @@ export function TryOnCanvas({
               ) : (
                 <img
                   src={correctedImage}
-                  alt="Resultado"
+                  alt={t('canvas.result')}
                   className="w-full h-auto block max-h-[70vh]"
                   style={{ objectFit: 'contain' }}
                 />
               )}
               
-              {/* Model and processing time badge */}
               <div className="absolute top-3 right-3 flex items-center gap-2">
-                {/* Help tooltip */}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-7 w-7 bg-background/80 backdrop-blur rounded-full">
@@ -277,12 +263,12 @@ export function TryOnCanvas({
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="max-w-[280px]">
-                    <p className="text-xs font-medium mb-1">Sobre o provador virtual:</p>
+                    <p className="text-xs font-medium mb-1">{t('canvas.aboutTryOn')}</p>
                     <ul className="text-xs space-y-1">
-                      <li>• Resultados são simulações de IA</li>
-                      <li>• Artefatos em mãos/dedos são comuns</li>
-                      <li>• Use "Tentar novamente" para melhor resultado</li>
-                      <li>• Prove a peça real antes de comprar</li>
+                      <li>• {t('canvas.aboutTip1')}</li>
+                      <li>• {t('canvas.aboutTip2')}</li>
+                      <li>• {t('canvas.aboutTip3')}</li>
+                      <li>• {t('canvas.aboutTip4')}</li>
                     </ul>
                   </TooltipContent>
                 </Tooltip>
@@ -312,7 +298,7 @@ export function TryOnCanvas({
               />
               <div className="absolute inset-0 flex items-center justify-center">
                 <p className="text-sm text-muted-foreground bg-background/80 px-4 py-2 rounded-full">
-                  Selecione uma peça para provar
+                  {t('canvas.selectPiece')}
                 </p>
               </div>
             </motion.div>
@@ -326,7 +312,7 @@ export function TryOnCanvas({
               <div className="text-center">
                 <Sparkles className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
                 <p className="text-sm text-muted-foreground">
-                  Configure seu avatar primeiro
+                  {t('canvas.configureAvatarFirst')}
                 </p>
               </div>
             </motion.div>
@@ -334,16 +320,13 @@ export function TryOnCanvas({
         </AnimatePresence>
       </div>
 
-      {/* Actions */}
       {correctedImage && !isProcessing && !isCorrectingImage && (
         <div className="p-4 border-t border-border space-y-3">
-          {/* AI Disclaimer */}
           <AIDisclaimer variant="compact" />
           
-          {/* Feedback row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Gostou do resultado?</span>
+              <span className="text-xs text-muted-foreground">{t('canvas.likedResult')}</span>
             </div>
             <div className="flex items-center gap-1">
               <Button
@@ -367,21 +350,18 @@ export function TryOnCanvas({
             </div>
           </div>
 
-          {/* Contextual tip when user gives negative feedback */}
           {currentFeedback === 'dislike' && canRetry && (
             <p className="text-xs text-amber-500 text-center bg-amber-500/10 rounded-md py-2 px-3">
-              💡 Dica: Artefatos em mãos são comuns em IA. Tente novamente com o modelo melhor ou use uma foto com mãos relaxadas.
+              {t('canvas.aiTip')}
             </p>
           )}
 
-          {/* Retry info */}
           {canRetry && !currentFeedback && (
             <p className="text-xs text-muted-foreground text-center">
-              {maxRetries - retryCount} tentativa(s) com modelo melhor disponível
+              {t('canvas.retriesAvailable', { count: maxRetries - retryCount })}
             </p>
           )}
 
-          {/* Action buttons */}
           <div className="flex items-center gap-2">
             {avatarImageUrl && (
               <Button
@@ -389,7 +369,7 @@ export function TryOnCanvas({
                 size="sm"
                 onClick={() => setShowComparison(!showComparison)}
               >
-                Comparar
+                {t('canvas.compare')}
               </Button>
             )}
             
@@ -400,7 +380,7 @@ export function TryOnCanvas({
               size="icon" 
               onClick={onRetry}
               disabled={!canRetry}
-              title={canRetry ? "Gerar novamente com modelo melhor" : "Limite de tentativas atingido"}
+              title={canRetry ? t('canvas.generateAgainBetter') : t('canvas.retryLimitReached')}
             >
               <RotateCcw className="w-4 h-4" />
             </Button>

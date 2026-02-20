@@ -26,6 +26,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getFirstName } from '@/lib/greeting';
+import { useTranslation } from 'react-i18next';
 
 interface SelectedGarment {
   id?: string;
@@ -51,16 +52,10 @@ interface TryOnResult {
 const MAX_OPTIONS = 3;
 const MAX_RETRIES = 2;
 
-// Model labels for user feedback
-const MODEL_LABELS: Record<number, string> = {
-  0: 'Flash (Rápido)',
-  1: 'Pro (Balanceado)',
-  2: 'Premium (Qualidade)',
-};
-
 type ViewMode = 'tryon' | 'benchmark';
 
 export default function VirtualTryOn() {
+  const { t } = useTranslation('tryOn');
   const { user } = useAuth();
   const { profile } = useProfile();
   const navigate = useNavigate();
@@ -72,7 +67,12 @@ export default function VirtualTryOn() {
   const [showBatchProgress, setShowBatchProgress] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('tryon');
   
-  // Track retry count per garment (by imageUrl)
+  const MODEL_LABELS: Record<number, string> = {
+    0: t('modelFlash'),
+    1: t('modelPro'),
+    2: t('modelPremium'),
+  };
+
   const [retryCountMap, setRetryCountMap] = useState<Record<string, number>>({});
 
   const {
@@ -115,7 +115,6 @@ export default function VirtualTryOn() {
   useEffect(() => {
     setGeneratedResults([]);
     setSelectedResultIndex(0);
-    // Reset retry count for new garment
     if (selectedGarment?.imageUrl) {
       setRetryCountMap(prev => ({
         ...prev,
@@ -134,9 +133,8 @@ export default function VirtualTryOn() {
         ? 'external_photo'
         : 'screenshot';
 
-      // Show which model we're using
       if (retryCount > 0) {
-        toast.info(`Gerando com modelo ${MODEL_LABELS[retryCount]}...`);
+        toast.info(t('generatingWithModel', { model: MODEL_LABELS[retryCount] }));
       }
 
       const result = await startTryOnAsync({
@@ -162,25 +160,22 @@ export default function VirtualTryOn() {
     const currentRetry = retryCountMap[garmentKey] || 0;
     
     if (currentRetry >= MAX_RETRIES) {
-      toast.info('Você já usou o modelo de maior qualidade. Tente com outra foto.');
+      toast.info(t('maxQualityUsed'));
       return;
     }
     
     const nextRetry = currentRetry + 1;
     
-    // Update retry count
     setRetryCountMap(prev => ({
       ...prev,
       [garmentKey]: nextRetry,
     }));
     
-    // Start new try-on with escalated model
     await handleStartTryOn(nextRetry);
   };
 
   const handleGenerateAnother = () => {
     if (generatedResults.length < MAX_OPTIONS && selectedGarment && !isProcessing) {
-      // Use current retry count for this garment
       const currentRetry = retryCountMap[selectedGarment.imageUrl] || 0;
       handleStartTryOn(currentRetry);
     }
@@ -189,15 +184,12 @@ export default function VirtualTryOn() {
   const handleDeleteOption = async (index: number) => {
     const resultToDelete = generatedResults[index];
     
-    // Remove from local state first
     setGeneratedResults((prev) => prev.filter((_, i) => i !== index));
     
-    // Adjust selected index
     if (selectedResultIndex >= index && selectedResultIndex > 0) {
       setSelectedResultIndex((prev) => prev - 1);
     }
 
-    // Delete from database
     if (resultToDelete) {
       try {
         await supabase
@@ -215,7 +207,6 @@ export default function VirtualTryOn() {
     if (result?.id) {
       submitFeedback({ resultId: result.id, feedback });
       
-      // Update local state to reflect feedback
       setGeneratedResults(prev => prev.map((r, i) => 
         i === selectedResultIndex ? { ...r, user_feedback: feedback } : r
       ));
@@ -266,14 +257,13 @@ export default function VirtualTryOn() {
     setSelectedGarment(null);
   };
 
-  // Handle batch try-on from LookSelector
   const handleTryAllPieces = async (pieces: SelectedGarment[], composeMode: boolean = false) => {
     if (!primaryAvatar) {
-      toast.error('Configure um avatar primeiro');
+      toast.error(t('configureAvatarFirst'));
       return;
     }
     if (pieces.length === 0) {
-      toast.warning('Este look não tem peças');
+      toast.warning(t('lookHasNoPieces'));
       return;
     }
 
@@ -288,7 +278,6 @@ export default function VirtualTryOn() {
   };
 
   const handleCloseBatchProgress = () => {
-    // If composition completed, show the result in the canvas
     if (batchState.isComposing && batchState.finalResultUrl) {
       const composedResult: TryOnResult = {
         id: `composed-${Date.now()}`,
@@ -307,7 +296,6 @@ export default function VirtualTryOn() {
     resetBatch();
   };
 
-  // Get current result to display
   const currentResult = generatedResults[selectedResultIndex] || null;
 
   if (!user) {
@@ -317,12 +305,12 @@ export default function VirtualTryOn() {
         <PageContainer className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <Sparkles className="w-12 h-12 text-primary mx-auto mb-4" />
-            <h2 className="font-display text-2xl mb-2">Provador Virtual</h2>
+            <h2 className="font-display text-2xl mb-2">{t('title')}</h2>
             <p className="text-muted-foreground mb-4">
-              Entre para acessar o provador virtual
+              {t('loginRequired')}
             </p>
             <Button onClick={() => navigate('/auth')} className="gradient-primary text-primary-foreground">
-              Entrar
+              {t('enter')}
             </Button>
           </div>
         </PageContainer>
@@ -341,22 +329,17 @@ export default function VirtualTryOn() {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-2xl mx-auto space-y-6"
         >
-          {/* Biometric Alert */}
           <BiometricAlertBanner />
-
-          {/* AI Disclaimer */}
           <AIDisclaimer variant="inline" className="mb-4" />
 
-          {/* Hero with Mode Toggle */}
           <div className="text-center pt-4">
             <h1 className="font-display text-3xl text-gradient mb-2">
-              {firstName ? `${firstName}, experimente!` : 'Provador Virtual'}
+              {firstName ? `${firstName}, ${t('experimentLabel')}` : t('title')}
             </h1>
             <p className="text-sm text-muted-foreground mb-4">
-              Experimente roupas virtualmente com IA
+              {t('tryClothesWithAI')}
             </p>
             
-            {/* Mode Toggle */}
             <div className="flex items-center justify-center gap-2">
               <Button
                 variant={viewMode === 'tryon' ? 'default' : 'outline'}
@@ -365,7 +348,7 @@ export default function VirtualTryOn() {
                 className={viewMode === 'tryon' ? 'gradient-primary text-primary-foreground' : ''}
               >
                 <Sparkles className="w-4 h-4 mr-2" />
-                Provar
+                {t('tryOn')}
               </Button>
               <Button
                 variant={viewMode === 'benchmark' ? 'default' : 'outline'}
@@ -374,35 +357,31 @@ export default function VirtualTryOn() {
                 className={viewMode === 'benchmark' ? 'gradient-primary text-primary-foreground' : ''}
               >
                 <FlaskConical className="w-4 h-4 mr-2" />
-                Benchmark
+                {t('benchmark')}
               </Button>
             </div>
           </div>
 
-          {/* Avatar Manager */}
           <AvatarManager />
 
-          {/* No Avatar Warning */}
           {!isLoadingAvatar && !primaryAvatar && (
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Configure seu avatar para começar a provar roupas virtualmente.
+                {t('configureAvatarWarning')}
               </AlertDescription>
             </Alert>
           )}
 
-          {/* Benchmark Mode */}
           {viewMode === 'benchmark' ? (
             <ModelBenchmark 
               avatarImageUrl={primaryAvatar?.image_url}
               onSelectResult={(imageUrl, model) => {
-                toast.success(`Resultado de ${model} selecionado!`);
+                toast.success(t('resultSelected', { model }));
               }}
             />
           ) : (
             <>
-              {/* Try-On Canvas */}
               <TryOnCanvas
                 result={currentResult}
                 avatarImageUrl={primaryAvatar?.image_url}
@@ -412,7 +391,6 @@ export default function VirtualTryOn() {
                 maxRetries={MAX_RETRIES}
               />
 
-              {/* Multiple Options Selector */}
               {generatedResults.length > 0 && (
                 <TryOnOptions
                   results={generatedResults}
@@ -425,20 +403,19 @@ export default function VirtualTryOn() {
                 />
               )}
 
-          {/* Garment Selection */}
           <Tabs defaultValue="closet" className="w-full">
             <TabsList className="grid grid-cols-3 mb-4">
               <TabsTrigger value="closet" className="text-xs sm:text-sm">
                 <Shirt className="w-3.5 h-3.5 mr-1 hidden sm:inline" />
-                Closet
+                {t('closet')}
               </TabsTrigger>
               <TabsTrigger value="looks" className="text-xs sm:text-sm">
                 <Layers className="w-3.5 h-3.5 mr-1 hidden sm:inline" />
-                Looks
+                {t('looks')}
               </TabsTrigger>
               <TabsTrigger value="capture" className="text-xs sm:text-sm">
                 <Camera className="w-3.5 h-3.5 mr-1 hidden sm:inline" />
-                Capturar
+                {t('capture')}
               </TabsTrigger>
             </TabsList>
 
@@ -461,7 +438,6 @@ export default function VirtualTryOn() {
             </TabsContent>
           </Tabs>
 
-          {/* Selected Garment Preview & Action */}
           <AnimatePresence>
             {selectedGarment && primaryAvatar && !isProcessing && generatedResults.length === 0 && (
               <motion.div
@@ -481,14 +457,14 @@ export default function VirtualTryOn() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-foreground truncate">
-                        {selectedGarment.name || 'Peça selecionada'}
+                        {selectedGarment.name || t('selectedPiece')}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {selectedGarment.source === 'wardrobe'
-                          ? 'Do seu closet'
+                          ? t('fromCloset')
                           : selectedGarment.source === 'camera_scan'
-                          ? 'Captura da câmera'
-                          : 'De print/URL'}
+                          ? t('cameraCapture')
+                          : t('fromPrintUrl')}
                       </p>
                     </div>
                     <Button
@@ -497,11 +473,11 @@ export default function VirtualTryOn() {
                       className="gradient-primary text-primary-foreground flex-shrink-0 min-w-[90px]"
                     >
                       {retryCountdown ? (
-                        <>Aguarde {retryCountdown}s</>
+                        <>{t('wait', { seconds: retryCountdown })}</>
                       ) : (
                         <>
                           <Sparkles className="w-4 h-4 mr-2" />
-                          Provar
+                          {t('tryOn')}
                         </>
                       )}
                     </Button>
@@ -511,7 +487,6 @@ export default function VirtualTryOn() {
             )}
           </AnimatePresence>
 
-          {/* History */}
           <TryOnGallery
             onSelectResult={(result) => {
               setGeneratedResults([result]);
@@ -526,7 +501,6 @@ export default function VirtualTryOn() {
 
       <BottomNav />
 
-      {/* Batch Try-On Progress Modal */}
       <AnimatePresence>
         {showBatchProgress && (
           <BatchTryOnProgress

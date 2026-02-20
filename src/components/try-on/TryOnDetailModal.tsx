@@ -9,8 +9,9 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
+import { useLocale } from '@/i18n/useLocale';
 
 interface TryOnResult {
   id: string;
@@ -34,6 +35,8 @@ export function TryOnDetailModal({
   onDelete,
   onTryAgain,
 }: TryOnDetailModalProps) {
+  const { t } = useTranslation('tryOn');
+  const { dateFnsLocale } = useLocale();
   const [correctedImage, setCorrectedImage] = useState<string | null>(null);
   const [isCorrectingImage, setIsCorrectingImage] = useState(false);
 
@@ -102,10 +105,10 @@ export function TryOnDetailModal({
       a.download = `try-on-${Date.now()}.png`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success('Imagem salva!');
+      toast.success(t('detailModal.imageSaved'));
     } catch (error) {
       console.error('Download error:', error);
-      toast.error('Erro ao baixar imagem');
+      toast.error(t('detailModal.downloadError'));
     }
   };
 
@@ -115,8 +118,8 @@ export function TryOnDetailModal({
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Meu Look Virtual',
-          text: 'Confira como esta peça ficou em mim!',
+          title: t('detailModal.myVirtualLook'),
+          text: t('detailModal.checkHowItLooks'),
           url: result.result_image_url,
         });
       } catch {
@@ -124,7 +127,7 @@ export function TryOnDetailModal({
       }
     } else {
       await navigator.clipboard.writeText(result.result_image_url);
-      toast.success('Link copiado!');
+      toast.success(t('detailModal.linkCopied'));
     }
   };
 
@@ -144,8 +147,8 @@ export function TryOnDetailModal({
     <Dialog open={!!result} onOpenChange={() => onClose()}>
       <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden">
         <DialogHeader className="sr-only">
-          <DialogTitle>Detalhes da Prova Virtual</DialogTitle>
-          <DialogDescription>Visualize, baixe ou compartilhe o resultado da sua prova virtual</DialogDescription>
+          <DialogTitle>{t('detailModal.title')}</DialogTitle>
+          <DialogDescription>{t('detailModal.description')}</DialogDescription>
         </DialogHeader>
 
         {/* Close button */}
@@ -161,28 +164,28 @@ export function TryOnDetailModal({
           {isCorrectingImage ? (
             <div className="flex items-center justify-center py-20">
               <p className="text-sm text-muted-foreground animate-pulse">
-                Otimizando imagem...
+                {t('detailModal.optimizingImage')}
               </p>
             </div>
           ) : correctedImage === 'error' ? (
             <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
               <AlertTriangle className="w-12 h-12 mb-3 text-destructive/50" />
-              <p className="text-sm font-medium">Imagem indisponível</p>
+              <p className="text-sm font-medium">{t('detailModal.imageUnavailable')}</p>
               <p className="text-xs text-center px-4 mt-1">
-                O arquivo pode ter expirado ou estar corrompido
+                {t('detailModal.imageExpired')}
               </p>
             </div>
           ) : correctedImage ? (
             <img
               src={correctedImage}
-              alt="Resultado da prova virtual"
+              alt={t('detailModal.result')}
               className="w-full h-auto block max-h-[70vh]"
               style={{ objectFit: 'contain' }}
             />
           ) : result?.result_image_url ? (
             <img
               src={result.result_image_url}
-              alt="Resultado da prova virtual"
+              alt={t('detailModal.result')}
               className="w-full h-auto block max-h-[70vh]"
               style={{ objectFit: 'contain' }}
             />
@@ -201,11 +204,11 @@ export function TryOnDetailModal({
               {result?.created_at &&
                 formatDistanceToNow(new Date(result.created_at), {
                   addSuffix: true,
-                  locale: ptBR,
+                  locale: dateFnsLocale,
                 })}
             </span>
             {result?.processing_time_ms && (
-              <span>Processado em {(result.processing_time_ms / 1000).toFixed(1)}s</span>
+              <span>{t('detailModal.processedIn', { time: (result.processing_time_ms / 1000).toFixed(1) })}</span>
             )}
           </div>
 
@@ -214,11 +217,11 @@ export function TryOnDetailModal({
             <div className="flex items-center gap-3 p-2 bg-secondary/50 rounded-lg">
               <img
                 src={result.garment_image_url}
-                alt="Peça usada"
+                alt={t('detailModal.garmentUsed')}
                 className="w-12 h-14 rounded object-cover"
               />
               <span className="text-sm text-muted-foreground">
-                Peça usada nesta prova
+                {t('detailModal.garmentUsedInTrial')}
               </span>
             </div>
           )}
@@ -231,7 +234,7 @@ export function TryOnDetailModal({
               onClick={handleTryAgain}
             >
               <RotateCcw className="w-4 h-4 mr-2" />
-              Provar novamente
+              {t('detailModal.tryAgain')}
             </Button>
             <Button variant="outline" size="icon" onClick={handleDownload}>
               <Download className="w-4 h-4" />

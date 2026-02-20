@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { ComposeLookWarning } from './ComposeLookWarning';
+import { useTranslation } from 'react-i18next';
 
 interface WardrobeItem {
   id: string;
@@ -42,6 +43,7 @@ interface LookSelectorProps {
 }
 
 export function LookSelector({ onSelectGarment, onTryAllPieces }: LookSelectorProps) {
+  const { t } = useTranslation('tryOn');
   const { user } = useAuth();
   const [expandedLookId, setExpandedLookId] = useState<string | null>(null);
   const [loadedPieces, setLoadedPieces] = useState<Record<string, WardrobeItem[]>>({});
@@ -100,7 +102,7 @@ export function LookSelector({ onSelectGarment, onTryAllPieces }: LookSelectorPr
   const handleSelectPiece = (piece: WardrobeItem) => {
     onSelectGarment({
       id: piece.id,
-      name: piece.name || 'Peça',
+      name: piece.name || t('lookSelector.piece'),
       imageUrl: piece.image_url,
       category: piece.category,
     });
@@ -125,7 +127,7 @@ export function LookSelector({ onSelectGarment, onTryAllPieces }: LookSelectorPr
       id: piece.id,
       imageUrl: piece.image_url,
       source: 'wardrobe' as const,
-      name: piece.name || 'Peça',
+      name: piece.name || t('lookSelector.piece'),
       category: piece.category,
     }));
 
@@ -184,10 +186,10 @@ export function LookSelector({ onSelectGarment, onTryAllPieces }: LookSelectorPr
       <Card className="p-6 shadow-soft text-center">
         <Layers className="w-10 h-10 text-muted-foreground/50 mx-auto mb-3" />
         <p className="text-sm text-muted-foreground mb-2">
-          Nenhum look salvo ainda
+          {t('lookSelector.noLooksSaved')}
         </p>
         <p className="text-xs text-muted-foreground/70">
-          Crie looks no Canvas para prová-los aqui
+          {t('lookSelector.createLooksHint')}
         </p>
       </Card>
     );
@@ -197,7 +199,7 @@ export function LookSelector({ onSelectGarment, onTryAllPieces }: LookSelectorPr
     <div className="space-y-3">
       <div className="flex items-center gap-2 mb-2">
         <Layers className="w-4 h-4 text-primary" />
-        <span className="text-sm font-medium">Meus Looks</span>
+        <span className="text-sm font-medium">{t('lookSelector.title')}</span>
         <span className="text-xs text-muted-foreground">
           ({looks.length})
         </span>
@@ -268,7 +270,7 @@ export function LookSelector({ onSelectGarment, onTryAllPieces }: LookSelectorPr
                     <div className="flex items-center justify-between mb-3">
                       <h4 className="font-medium text-sm">{look?.name}</h4>
                       <span className="text-xs text-muted-foreground">
-                        {pieces.length} peça{pieces.length !== 1 ? 's' : ''}
+                        {pieces.length} {t('lookSelector.pieces')}{pieces.length !== 1 ? 's' : ''}
                       </span>
                     </div>
 
@@ -283,7 +285,7 @@ export function LookSelector({ onSelectGarment, onTryAllPieces }: LookSelectorPr
                       </div>
                     ) : pieces.length === 0 ? (
                       <p className="text-sm text-muted-foreground text-center py-4">
-                        Este look não tem peças válidas
+                        {t('lookSelector.noValidPieces')}
                       </p>
                     ) : (
                       <>
@@ -302,7 +304,7 @@ export function LookSelector({ onSelectGarment, onTryAllPieces }: LookSelectorPr
                                     ? piece.image_url
                                     : `${piece.image_url}?width=100&height=133&resize=cover&quality=60`
                                 }
-                                alt={piece.name || 'Peça'}
+                                alt={piece.name || t('lookSelector.piece')}
                                 loading="lazy"
                                 className="w-full h-full object-cover"
                               />
@@ -322,11 +324,11 @@ export function LookSelector({ onSelectGarment, onTryAllPieces }: LookSelectorPr
                           size="sm"
                         >
                           <Layers className="w-4 h-4 mr-2" />
-                          Provar Look Completo ({pieces.length} peças)
+                          {t('lookSelector.tryFullLook', { count: pieces.length })}
                         </Button>
 
                         <p className="text-[10px] text-muted-foreground text-center mt-2">
-                          Ou clique em uma peça para provar individualmente
+                          {t('lookSelector.tryIndividually')}
                         </p>
                       </>
                     )}

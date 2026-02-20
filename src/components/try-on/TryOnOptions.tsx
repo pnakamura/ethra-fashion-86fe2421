@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { X, Plus, Loader2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface TryOnResult {
   id: string;
@@ -31,11 +32,13 @@ export function TryOnOptions({
   canGenerateMore,
   onGenerateAnother,
 }: TryOnOptionsProps) {
+  const { t } = useTranslation('tryOn');
+
   if (results.length === 0) return null;
 
   return (
     <div className="flex gap-2 items-center p-3 bg-secondary/50 rounded-xl">
-      <span className="text-xs text-muted-foreground mr-1">Opções:</span>
+      <span className="text-xs text-muted-foreground mr-1">{t('options.label')}</span>
       
       {results.map((result, index) => (
         <motion.button
@@ -53,7 +56,7 @@ export function TryOnOptions({
           {result.result_image_url ? (
             <img
               src={result.result_image_url}
-              alt={`Opção ${index + 1}`}
+              alt={t('options.option', { index: index + 1 })}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -62,7 +65,6 @@ export function TryOnOptions({
             </div>
           )}
 
-          {/* Delete button */}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -74,21 +76,18 @@ export function TryOnOptions({
             <X className="w-3 h-3" />
           </button>
 
-          {/* Selected indicator */}
           {selectedIndex === index && (
             <div className="absolute bottom-0.5 right-0.5 p-0.5 rounded-full bg-primary">
               <Check className="w-2.5 h-2.5 text-primary-foreground" />
             </div>
           )}
 
-          {/* Option number */}
           <span className="absolute bottom-0.5 left-0.5 text-[10px] font-medium bg-background/80 backdrop-blur px-1 rounded">
             {index + 1}
           </span>
         </motion.button>
       ))}
 
-      {/* Generate more button */}
       {canGenerateMore && (
         <Button
           variant="outline"

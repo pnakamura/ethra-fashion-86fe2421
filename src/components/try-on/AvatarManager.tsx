@@ -19,8 +19,10 @@ import { BiometricConsentModal } from '@/components/consent/BiometricConsentModa
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { useFaceEmbedding } from '@/hooks/useFaceEmbedding';
 import { FaceMatchResult as FaceMatchResultComponent } from '@/components/camera/FaceMatchResult';
+import { useTranslation } from 'react-i18next';
 
 export function AvatarManager() {
+  const { t } = useTranslation('tryOn');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showInstructions, setShowInstructions] = useState(false);
   const [settingPrimaryId, setSettingPrimaryId] = useState<string | null>(null);
@@ -239,11 +241,11 @@ export function AvatarManager() {
     <Card className="p-4 shadow-soft">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <h3 className="font-display text-lg font-medium">Seu Avatar</h3>
+          <h3 className="font-display text-lg font-medium">{t('avatar.title')}</h3>
           {primaryAvatar && (
             <Badge variant="secondary" className="text-xs">
               <Crown className="w-3 h-3 mr-1" />
-              Principal
+              {t('avatar.primary')}
             </Badge>
           )}
         </div>
@@ -262,7 +264,7 @@ export function AvatarManager() {
             onClick={() => setShowInstructions(!showInstructions)}
             className="text-muted-foreground"
           >
-            {showInstructions ? <X className="w-4 h-4" /> : 'Dicas'}
+            {showInstructions ? <X className="w-4 h-4" /> : t('avatar.tips')}
           </Button>
         </div>
       </div>
@@ -293,13 +295,13 @@ export function AvatarManager() {
             exit={{ opacity: 0, height: 0 }}
             className="mb-4 p-3 bg-secondary/50 rounded-lg text-sm text-muted-foreground"
           >
-            <p className="font-medium text-foreground mb-2">Para melhores resultados:</p>
+            <p className="font-medium text-foreground mb-2">{t('avatar.tipsTitle')}</p>
             <ul className="space-y-1 list-disc list-inside">
-              <li>Foto de corpo inteiro, pose frontal</li>
-              <li>Roupa justa e neutra (preferência)</li>
-              <li>Boa iluminação, fundo limpo</li>
-              <li>Braços levemente afastados do corpo</li>
-              <li>Pessoa centralizada na foto</li>
+              <li>{t('avatar.tip1')}</li>
+              <li>{t('avatar.tip2')}</li>
+              <li>{t('avatar.tip3')}</li>
+              <li>{t('avatar.tip4')}</li>
+              <li>{t('avatar.tip5')}</li>
             </ul>
           </motion.div>
         )}
@@ -317,16 +319,15 @@ export function AvatarManager() {
             <div className="flex items-center gap-2 mb-3">
               <ShieldAlert className="w-5 h-5 text-red-500" />
               <h4 className="font-medium text-red-700 dark:text-red-300">
-                Identidade não verificada
+                {t('avatar.identityNotVerified')}
               </h4>
             </div>
             <p className="text-sm text-muted-foreground mb-2">
-              O rosto na imagem não corresponde à sua selfie de referência.
-              Similaridade: {faceMatchResult.similarity}%
+              {t('avatar.faceNotMatch')}
+              {' '}{t('avatar.similarity', { value: faceMatchResult.similarity })}
             </p>
             <p className="text-xs text-muted-foreground mb-4">
-              Para sua segurança, envie uma foto do seu próprio rosto.
-              Você pode continuar mesmo assim se desejar.
+              {t('avatar.securityWarning')}
             </p>
             <div className="flex gap-2">
               <Button
@@ -335,7 +336,7 @@ export function AvatarManager() {
                 onClick={handleCancelUpload}
                 className="flex-1"
               >
-                Cancelar
+                {t('avatar.cancelUpload')}
               </Button>
               <Button
                 size="sm"
@@ -343,7 +344,7 @@ export function AvatarManager() {
                 onClick={handleForceUpload}
                 className="flex-1"
               >
-                Enviar mesmo assim
+                {t('avatar.uploadAnyway')}
               </Button>
             </div>
           </motion.div>
@@ -358,7 +359,7 @@ export function AvatarManager() {
           className="mb-4 p-3 rounded-xl bg-secondary/50 flex items-center justify-center gap-2"
         >
           <Fingerprint className="w-5 h-5 text-amber-500 animate-pulse" />
-          <span className="text-sm text-muted-foreground">Verificando identidade...</span>
+          <span className="text-sm text-muted-foreground">{t('avatar.verifyingIdentity')}</span>
         </motion.div>
       )}
 
@@ -371,7 +372,7 @@ export function AvatarManager() {
               initial={{ opacity: 0.5 }}
               animate={{ opacity: 1 }}
               src={primaryAvatar.image_url}
-              alt="Seu avatar"
+              alt={t('avatar.yourAvatar')}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -387,24 +388,24 @@ export function AvatarManager() {
         <div className="flex-1">
           {primaryAvatar ? (
             <div>
-              <p className="text-sm font-medium text-foreground">Avatar configurado</p>
+              <p className="text-sm font-medium text-foreground">{t('avatar.configured')}</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Pronto para provas virtuais
+                {t('avatar.readyForTryOn')}
               </p>
               {referenceUrl && (
                 <div className="flex items-center gap-1 mt-1.5">
                   <ShieldCheck className="w-3 h-3 text-green-500" />
                   <span className="text-[10px] text-green-600 dark:text-green-400">
-                    Verificação facial ativa
+                    {t('avatar.faceVerificationActive')}
                   </span>
                 </div>
               )}
             </div>
           ) : (
             <div>
-              <p className="text-sm font-medium text-foreground">Nenhum avatar</p>
+              <p className="text-sm font-medium text-foreground">{t('avatar.noAvatar')}</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Adicione uma foto de corpo inteiro
+                {t('avatar.addFullBodyPhoto')}
               </p>
             </div>
           )}
@@ -419,7 +420,7 @@ export function AvatarManager() {
           className="flex-1 gradient-primary text-primary-foreground"
         >
           <Camera className="w-4 h-4 mr-2" />
-          Câmera Inteligente
+          {t('avatar.smartCamera')}
         </Button>
         <Button
           onClick={requestUploadWithConsent}
@@ -435,7 +436,7 @@ export function AvatarManager() {
       {avatars && avatars.length > 1 && (
         <div className="mt-4 pt-4 border-t border-border">
           <p className="text-xs text-muted-foreground mb-3">
-            Toque em outro avatar para defini-lo como principal
+            {t('avatar.tapToSetPrimary')}
           </p>
           <div className="flex gap-2 overflow-x-auto pb-2">
             {avatars

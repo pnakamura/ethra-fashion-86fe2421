@@ -3,7 +3,7 @@ import Webcam from 'react-webcam';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Camera, X, Sun, SunDim, Sparkles, AlertCircle, Check, Loader2,
-  ShieldCheck, ShieldAlert, ShieldOff, Fingerprint, Eye, MoveHorizontal
+  ShieldCheck, ShieldAlert, ShieldOff, Fingerprint, Eye, MoveHorizontal, Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';

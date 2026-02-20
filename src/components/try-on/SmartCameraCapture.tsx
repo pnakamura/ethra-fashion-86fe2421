@@ -37,6 +37,7 @@ import { useSmartCamera, CameraAnalysis } from '@/hooks/useSmartCamera';
 import { blurFaceInImage, PRIVACY_INFO } from '@/lib/privacy-utils';
 import { cn } from '@/lib/utils';
 import { handleCameraError, showPermissionDeniedToast } from '@/lib/camera-permissions';
+import { useTranslation } from 'react-i18next';
 
 interface SmartCameraCaptureProps {
   onCapture: (blob: Blob) => void;
@@ -49,6 +50,7 @@ export function SmartCameraCapture({
   onCancel,
   mode = 'avatar'
 }: SmartCameraCaptureProps) {
+  const { t } = useTranslation('tryOn');
   const webcamRef = useRef<Webcam>(null);
   const [showConsentModal, setShowConsentModal] = useState(mode === 'avatar');
   const [hasConsented, setHasConsented] = useState(mode !== 'avatar');
@@ -66,14 +68,12 @@ export function SmartCameraCapture({
     QUALITY_THRESHOLD
   } = useSmartCamera();
 
-  // Handle camera access error
   const handleCameraAccessError = useCallback((error: string | DOMException) => {
     console.error('[SmartCamera] Access error:', error);
     handleCameraError(error);
     setCameraError(typeof error === 'string' ? error : error.message);
   }, []);
 
-  // Start analysis when webcam is ready
   const handleWebcamReady = useCallback(() => {
     setIsReady(true);
     const video = webcamRef.current?.video;
@@ -82,14 +82,12 @@ export function SmartCameraCapture({
     }
   }, [startAnalysis]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       stopAnalysis();
     };
   }, [stopAnalysis]);
 
-  // Handle capture
   const handleCapture = useCallback(async () => {
     if (!webcamRef.current) return;
 
@@ -106,11 +104,9 @@ export function SmartCameraCapture({
         throw new Error('Failed to capture image');
       }
 
-      // Convert base64 to blob
       const response = await fetch(imageSrc);
       let blob = await response.blob();
 
-      // Apply face blur if enabled
       if (blurFace && mode === 'avatar') {
         blob = await blurFaceInImage(blob, { blurRadius: 35 });
       }
@@ -148,28 +144,10 @@ export function SmartCameraCapture({
   };
 
   const getStatusText = (analysis: CameraAnalysis) => {
-    const texts = {
-      lighting: {
-        good: 'Iluminação boa',
-        low: 'Pouca luz',
-        overexposed: 'Muita luz'
-      },
-      background: {
-        simple: 'Fundo simples',
-        moderate: 'Fundo médio',
-        complex: 'Fundo complexo'
-      },
-      position: {
-        centered: 'Centralizado',
-        'off-center': 'Descentralizado',
-        'not-detected': 'Não detectado'
-      }
-    };
-
     return {
-      lighting: texts.lighting[analysis.lighting],
-      background: texts.background[analysis.backgroundComplexity],
-      position: texts.position[analysis.bodyPosition]
+      lighting: analysis.lighting === 'good' ? t('smartCamera.goodLighting') : analysis.lighting === 'low' ? t('smartCamera.lowLight') : t('smartCamera.tooMuchLight'),
+      background: analysis.backgroundComplexity === 'simple' ? t('smartCamera.simpleBackground') : analysis.backgroundComplexity === 'moderate' ? t('smartCamera.moderateBackground') : t('smartCamera.complexBackground'),
+      position: analysis.bodyPosition === 'centered' ? t('smartCamera.centered') : analysis.bodyPosition === 'off-center' ? t('smartCamera.offCenter') : t('smartCamera.notDetected'),
     };
   };
 
@@ -181,7 +159,6 @@ export function SmartCameraCapture({
         : 'bg-red-500'
     : 'bg-muted';
 
-  // Handle consent
   const handleConsentAccept = useCallback(() => {
     setShowConsentModal(false);
     setHasConsented(true);
@@ -192,7 +169,6 @@ export function SmartCameraCapture({
     onCancel();
   }, [onCancel]);
 
-  // Show consent modal for avatar mode
   if (mode === 'avatar' && !hasConsented) {
     return (
       <BiometricConsentModal
@@ -206,18 +182,16 @@ export function SmartCameraCapture({
 
   return (
     <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm flex flex-col">
-      {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={onCancel}>
             <X className="w-5 h-5" />
           </Button>
           <h2 className="font-display text-lg font-medium">
-            {mode === 'avatar' ? 'Capturar Avatar' : 'Capturar Peça'}
+            {mode === 'avatar' ? t('smartCamera.captureAvatar') : t('smartCamera.capturePiece')}
           </h2>
         </div>
         
-        {/* Privacy Toggle */}
         {mode === 'avatar' && (
           <TooltipProvider>
             <Tooltip>
@@ -229,18 +203,17 @@ export function SmartCameraCapture({
                   className="gap-2"
                 >
                   <Shield className={cn('w-4 h-4', blurFace && 'text-primary-foreground')} />
-                  {blurFace && <span className="text-xs">Privacidade</span>}
+                  {blurFace && <span className="text-xs">{t('smartCamera.privacy')}</span>}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Configurações de privacidade</p>
+                <p>{t('smartCamera.privacySettings')}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         )}
       </div>
 
-      {/* Camera View */}
       <div className="flex-1 relative overflow-hidden">
         <Webcam
           ref={webcamRef}
@@ -258,13 +231,12 @@ export function SmartCameraCapture({
           mirrored={mode === 'avatar'}
         />
 
-        {/* Camera Error State */}
         {cameraError && (
           <div className="absolute inset-0 bg-background/95 flex flex-col items-center justify-center text-center p-6">
             <AlertCircle className="w-12 h-12 text-destructive mb-4" />
-            <h3 className="font-display text-lg font-medium mb-2">Câmera Indisponível</h3>
+            <h3 className="font-display text-lg font-medium mb-2">{t('smartCamera.unavailable')}</h3>
             <p className="text-muted-foreground text-sm mb-4 max-w-xs">
-              Não foi possível acessar a câmera. Verifique as permissões do navegador.
+              {t('smartCamera.checkPermissions')}
             </p>
             <div className="flex gap-2">
               <Button
@@ -273,20 +245,19 @@ export function SmartCameraCapture({
                 onClick={() => window.location.reload()}
               >
                 <Settings className="w-4 h-4 mr-2" />
-                Tentar novamente
+                {t('smartCamera.tryAgain')}
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onCancel}
               >
-                Cancelar
+                {t('smartCamera.cancel')}
               </Button>
             </div>
           </div>
         )}
 
-        {/* Silhouette Overlay */}
         {mode === 'avatar' && isReady && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <svg
@@ -297,36 +268,29 @@ export function SmartCameraCapture({
               strokeWidth="1.5"
               strokeDasharray="6 4"
             >
-              {/* Head */}
               <ellipse cx="100" cy="45" rx="28" ry="35" className="text-foreground/60" />
-              {/* Neck */}
               <path d="M85 78 L85 95 L115 95 L115 78" className="text-foreground/60" />
-              {/* Body/Torso */}
               <path d="M60 95 L55 200 L145 200 L140 95 Z" className="text-foreground/60" />
-              {/* Arms */}
               <path d="M55 100 L25 180 M145 100 L175 180" className="text-foreground/60" />
-              {/* Legs */}
               <path d="M70 200 L65 290 M130 200 L135 290" className="text-foreground/60" />
             </svg>
             <p className="absolute bottom-32 text-xs text-muted-foreground bg-background/70 px-3 py-1 rounded-full">
-              Alinhe seu corpo com a silhueta
+              {t('smartCamera.alignBody')}
             </p>
           </div>
         )}
 
-        {/* Loading Overlay */}
         {(!isReady || isCapturing) && (
           <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
             <div className="text-center">
               <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-primary" />
               <p className="text-sm text-muted-foreground">
-                {isCapturing ? 'Processando...' : 'Iniciando câmera...'}
+                {isCapturing ? t('smartCamera.processingCapture') : t('smartCamera.startingCamera')}
               </p>
             </div>
           </div>
         )}
 
-        {/* Privacy Info Panel */}
         <AnimatePresence>
           {showPrivacyInfo && (
             <motion.div
@@ -338,7 +302,7 @@ export function SmartCameraCapture({
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <Shield className="w-5 h-5 text-primary" />
-                  <h3 className="font-medium">Privacidade</h3>
+                  <h3 className="font-medium">{t('smartCamera.privacy')}</h3>
                 </div>
                 <Button variant="ghost" size="icon" onClick={() => setShowPrivacyInfo(false)}>
                   <X className="w-4 h-4" />
@@ -352,7 +316,7 @@ export function SmartCameraCapture({
                   ) : (
                     <Eye className="w-4 h-4 text-muted-foreground" />
                   )}
-                  <span className="text-sm">Anonimizar rosto</span>
+                  <span className="text-sm">{t('smartCamera.anonymizeFace')}</span>
                 </div>
                 <Switch checked={blurFace} onCheckedChange={setBlurFace} />
               </div>
@@ -370,12 +334,10 @@ export function SmartCameraCapture({
         </AnimatePresence>
       </div>
 
-      {/* Analysis Feedback */}
       <div className="p-4 space-y-4 border-t border-border bg-background/95">
-        {/* Quality Score */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Qualidade da imagem</span>
+            <span className="text-muted-foreground">{t('smartCamera.imageQuality')}</span>
             <span className={cn(
               'font-medium',
               analysis?.isReady ? 'text-green-500' : 'text-muted-foreground'
@@ -389,7 +351,6 @@ export function SmartCameraCapture({
           />
         </div>
 
-        {/* Status Indicators */}
         {analysis && (
           <div className="grid grid-cols-3 gap-2">
             {(['lighting', 'background', 'position'] as const).map((type) => {
@@ -415,24 +376,21 @@ export function SmartCameraCapture({
           </div>
         )}
 
-        {/* Tips */}
         {analysis && analysis.tips.length > 0 && (
           <p className="text-xs text-center text-muted-foreground">
             💡 {analysis.tips[0]}
           </p>
         )}
 
-        {/* Privacy Badge */}
         {blurFace && (
           <div className="flex justify-center">
             <Badge variant="secondary" className="gap-1">
               <Shield className="w-3 h-3" />
-              Blur facial ativo
+              {t('smartCamera.faceBlurActive')}
             </Badge>
           </div>
         )}
 
-        {/* Capture Button */}
         <Button
           onClick={handleCapture}
           disabled={!isReady || isCapturing || (analysis && !analysis.isReady)}
@@ -441,12 +399,12 @@ export function SmartCameraCapture({
           {isCapturing ? (
             <>
               <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              Processando...
+              {t('smartCamera.processingCapture')}
             </>
           ) : (
             <>
               <Camera className="w-5 h-5 mr-2" />
-              {analysis?.isReady ? 'Capturar Foto' : 'Aguarde qualidade mínima'}
+              {analysis?.isReady ? t('smartCamera.capturePhoto') : t('smartCamera.waitMinQuality')}
             </>
           )}
         </Button>

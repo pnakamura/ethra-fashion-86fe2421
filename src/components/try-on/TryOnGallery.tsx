@@ -5,24 +5,14 @@ import { Card } from '@/components/ui/card';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { useVirtualTryOn } from '@/hooks/useVirtualTryOn';
 import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { TryOnDetailModal } from './TryOnDetailModal';
+import { useTranslation } from 'react-i18next';
+import { useLocale } from '@/i18n/useLocale';
 
-// Helper to detect URL type and apply appropriate treatment
 const getThumbnailUrl = (url: string | null): string | null => {
   if (!url) return null;
-  
-  // Base64 data - use directly without modification
-  if (url.startsWith('data:')) {
-    return url;
-  }
-  
-  // Supabase Storage - apply transforms
-  if (url.includes('supabase.co')) {
-    return `${url}?width=120&height=160&resize=cover&quality=60`;
-  }
-  
-  // External URLs (Replicate, Google, etc.) - use as-is
+  if (url.startsWith('data:')) return url;
+  if (url.includes('supabase.co')) return `${url}?width=120&height=160&resize=cover&quality=60`;
   return url;
 };
 
@@ -41,6 +31,8 @@ interface TryOnGalleryProps {
 }
 
 export function TryOnGallery({ onSelectResult, onTryAgainWithGarment }: TryOnGalleryProps) {
+  const { t } = useTranslation('tryOn');
+  const { dateFnsLocale } = useLocale();
   const { tryOnHistory, isLoadingHistory, deleteTryOnResult } = useVirtualTryOn();
   const [selectedDetail, setSelectedDetail] = useState<TryOnResult | null>(null);
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
@@ -77,11 +69,11 @@ export function TryOnGallery({ onSelectResult, onTryAgainWithGarment }: TryOnGal
   if (completedResults.length === 0) {
     return (
       <Card className="p-4 shadow-soft">
-        <h3 className="font-display text-lg font-medium mb-3">Histórico</h3>
+        <h3 className="font-display text-lg font-medium mb-3">{t('gallery.title')}</h3>
         <div className="py-8 text-center">
           <Clock className="w-10 h-10 text-muted-foreground/50 mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">
-            Suas provas virtuais aparecerão aqui
+            {t('gallery.virtualTrials')}
           </p>
         </div>
       </Card>
@@ -92,9 +84,9 @@ export function TryOnGallery({ onSelectResult, onTryAgainWithGarment }: TryOnGal
     <>
       <Card className="p-4 shadow-soft">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-display text-lg font-medium">Histórico</h3>
+          <h3 className="font-display text-lg font-medium">{t('gallery.title')}</h3>
           <span className="text-xs text-muted-foreground">
-            {completedResults.length} prova{completedResults.length !== 1 ? 's' : ''}
+            {completedResults.length} {completedResults.length !== 1 ? t('gallery.trials') : t('gallery.trial')}
           </span>
         </div>
 
@@ -115,7 +107,7 @@ export function TryOnGallery({ onSelectResult, onTryAgainWithGarment }: TryOnGal
                 {hasError ? (
                   <div className="w-full h-full flex flex-col items-center justify-center bg-destructive/10">
                     <AlertTriangle className="w-6 h-6 text-destructive/50" />
-                    <span className="text-[9px] text-destructive/50 mt-1">Expirada</span>
+                    <span className="text-[9px] text-destructive/50 mt-1">{t('gallery.expired')}</span>
                   </div>
                 ) : thumbnailUrl ? (
                   <OptimizedImage
@@ -136,7 +128,7 @@ export function TryOnGallery({ onSelectResult, onTryAgainWithGarment }: TryOnGal
                 <div className="absolute bottom-1 left-1 right-1 text-[10px] text-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity">
                   {formatDistanceToNow(new Date(result.created_at), {
                     addSuffix: true,
-                    locale: ptBR,
+                    locale: dateFnsLocale,
                   })}
                 </div>
               </motion.button>
@@ -145,7 +137,6 @@ export function TryOnGallery({ onSelectResult, onTryAgainWithGarment }: TryOnGal
         </div>
       </Card>
 
-      {/* Detail Modal */}
       <TryOnDetailModal
         result={selectedDetail}
         onClose={() => setSelectedDetail(null)}
