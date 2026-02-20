@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -93,18 +94,21 @@ export function useTripWeather(): UseTripWeatherResult {
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<TripWeatherResult | null>(null);
   const { toast } = useToast();
+  const { i18n } = useTranslation();
 
   const geocode = async (destination: string): Promise<LocationOption[] | null> => {
     setIsGeocoding(true);
     setError(null);
 
     try {
+      const locale = i18n.language || 'pt-BR';
       const { data: result, error: invokeError } = await supabase.functions.invoke(
         'get-trip-weather',
         {
           body: {
             destination,
             mode: 'geocode',
+            locale,
           },
         }
       );
@@ -147,6 +151,7 @@ export function useTripWeather(): UseTripWeatherResult {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
       
+      const locale = i18n.language || 'pt-BR';
       const { data: result, error: invokeError } = await supabase.functions.invoke(
         'get-trip-weather',
         {
@@ -156,6 +161,7 @@ export function useTripWeather(): UseTripWeatherResult {
             end_date: params.endDate,
             trip_type: params.tripType,
             user_id: params.userId,
+            locale,
             // Pass coordinates if available for precise geocoding
             ...(params.coordinates && {
               lat: params.coordinates.lat,

@@ -40,7 +40,7 @@ interface AISuggestion {
 }
 
 export function EventPlanner({ wardrobeItems, onEventCreated }: EventPlannerProps) {
-  const { t } = useTranslation('events');
+  const { t, i18n } = useTranslation('events');
   const { user } = useAuth();
   const [step, setStep] = useState<'details' | 'analyzing' | 'suggestions'>('details');
   const [isLoading, setIsLoading] = useState(false);
@@ -66,8 +66,9 @@ export function EventPlanner({ wardrobeItems, onEventCreated }: EventPlannerProp
     setStep('analyzing');
     setIsLoading(true);
     try {
+      const locale = i18n.language || 'pt-BR';
       const { data, error } = await supabase.functions.invoke('generate-event-look', {
-        body: { title, eventDate, eventTime, eventType, dressCode, location, notes },
+        body: { title, eventDate, eventTime, eventType, dressCode, location, notes, locale },
       });
       if (error) throw error;
       if (data?.suggestions) {

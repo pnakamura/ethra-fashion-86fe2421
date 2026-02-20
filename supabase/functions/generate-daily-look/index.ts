@@ -32,16 +32,24 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Generating daily look for user ${user.id}`);
+    // Read locale from request body (may be passed via query or body depending on caller)
+    let locale = 'pt-BR';
+    try {
+      const body = await req.json();
+      locale = body.locale || 'pt-BR';
+    } catch {
+      // No body, use default
+    }
+    const isEN = locale.startsWith('en');
 
-    // Fetch user's notification preferences for location
+    console.log(`Generating daily look for user ${user.id}, locale: ${locale}`);
+
     const { data: prefs } = await supabase
       .from('notification_preferences')
       .select('city, location_lat, location_lng')
       .eq('user_id', user.id)
       .single();
 
-    // Fetch today's events
     const today = new Date().toISOString().split('T')[0];
     const { data: events } = await supabase
       .from('user_events')
@@ -49,14 +57,12 @@ serve(async (req) => {
       .eq('user_id', user.id)
       .eq('event_date', today);
 
-    // Fetch user profile
     const { data: profile } = await supabase
       .from('profiles')
       .select('color_season, color_analysis')
       .eq('user_id', user.id)
       .single();
 
-    // Fetch wardrobe items
     const { data: items } = await supabase
       .from('wardrobe_items')
       .select('*')
@@ -65,25 +71,22 @@ serve(async (req) => {
 
     if (!items || items.length < 2) {
       return new Response(
-        JSON.stringify({ error: 'Guarda-roupa insuficiente' }),
+        JSON.stringify({ error: isEN ? 'Insufficient wardrobe' : 'Guarda-roupa insuficiente' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Fetch weather if we have location
     let weatherContext = '';
     if (prefs?.city) {
       try {
-        // Geocode the city
         const geoRes = await fetch(
-          `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(prefs.city)}&count=1&language=pt&format=json`
+          `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(prefs.city)}&count=1&language=${isEN ? 'en' : 'pt'}&format=json`
         );
         const geoData = await geoRes.json();
         
         if (geoData.results?.[0]) {
           const { latitude, longitude } = geoData.results[0];
           
-          // Get current weather
           const weatherRes = await fetch(
             `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code&timezone=auto`
           );
@@ -93,19 +96,26 @@ serve(async (req) => {
             const temp = weatherData.current.temperature_2m;
             const code = weatherData.current.weather_code;
             
-            let condition = 'ensolarado';
-            if (code >= 51 && code <= 67) condition = 'chuvoso';
-            else if (code >= 71 && code <= 77) condition = 'com neve';
-            else if (code >= 80 && code <= 82) condition = 'com pancadas';
-            else if (code >= 1 && code <= 3) condition = 'parcialmente nublado';
-            else if (code >= 45 && code <= 48) condition = 'nublado';
+            let condition: string;
+            if (isEN) {
+              condition = 'sunny';
+              if (code >= 51 && code <= 67) condition = 'rainy';
+              else if (code >= 71 && code <= 77) condition = 'snowy';
+              else if (code >= 80 && code <= 82) condition = 'with showers';
+              else if (code >= 1 && code <= 3) condition = 'partly cloudy';
+              else if (code >= 45 && code <= 48) condition = 'cloudy';
+            } else {
+              condition = 'ensolarado';
+              if (code >= 51 && code <= 67) condition = 'chuvoso';
+              else if (code >= 71 && code <= 77) condition = 'com neve';
+              else if (code >= 80 && code <= 82) condition = 'com pancadas';
+              else if (code >= 1 && code <= 3) condition = 'parcialmente nublado';
+              else if (code >= 45 && code <= 48) condition = 'nublado';
+            }
             
-            weatherContext = `\n## CLIMA ATUAL
-Temperatura: ${temp}°C
-Condição: ${condition}
-Cidade: ${prefs.city}
-
-Considere o clima ao sugerir roupas (camadas, tecidos leves ou pesados, etc.)`;
+            weatherContext = isEN
+              ? `\n## CURRENT WEATHER\nTemperature: ${temp}°C\nCondition: ${condition}\nCity: ${prefs.city}\n\nConsider the weather when suggesting clothes (layers, light or heavy fabrics, etc.)`
+              : `\n## CLIMA ATUAL\nTemperatura: ${temp}°C\nCondição: ${condition}\nCidade: ${prefs.city}\n\nConsidere o clima ao sugerir roupas (camadas, tecidos leves ou pesados, etc.)`;
           }
         }
       } catch (e) {
@@ -113,17 +123,17 @@ Considere o clima ao sugerir roupas (camadas, tecidos leves ou pesados, etc.)`;
       }
     }
 
-    // Build event context
     let eventContext = '';
     if (events && events.length > 0) {
       const eventList = events.map(e => 
-        `- ${e.event_type}: ${e.title}${e.event_time ? ` às ${e.event_time}` : ''}${e.location ? ` em ${e.location}` : ''}`
+        isEN
+          ? `- ${e.event_type}: ${e.title}${e.event_time ? ` at ${e.event_time}` : ''}${e.location ? ` at ${e.location}` : ''}`
+          : `- ${e.event_type}: ${e.title}${e.event_time ? ` às ${e.event_time}` : ''}${e.location ? ` em ${e.location}` : ''}`
       ).join('\n');
       
-      eventContext = `\n## COMPROMISSOS DO DIA
-${eventList}
-
-Priorize sugerir um look adequado para o compromisso mais importante.`;
+      eventContext = isEN
+        ? `\n## TODAY'S APPOINTMENTS\n${eventList}\n\nPrioritize suggesting a look suitable for the most important appointment.`
+        : `\n## COMPROMISSOS DO DIA\n${eventList}\n\nPriorize sugerir um look adequado para o compromisso mais importante.`;
     }
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -135,17 +145,39 @@ Priorize sugerir um look adequado para o compromisso mais importante.`;
     }
 
     const colorAnalysis = profile?.color_analysis as any;
-    const chromaticContext = colorAnalysis ? `
+    const chromaticContext = colorAnalysis ? (isEN ? `
+## CHROMATIC PROFILE
+Season: ${colorAnalysis.season} ${colorAnalysis.subtype || ''}
+Recommended colors: ${colorAnalysis.recommended_colors?.slice(0, 5).join(', ') || 'varied'}
+` : `
 ## PERFIL CROMÁTICO
 Estação: ${colorAnalysis.season} ${colorAnalysis.subtype || ''}
 Cores recomendadas: ${colorAnalysis.recommended_colors?.slice(0, 5).join(', ') || 'variadas'}
-` : '';
+`) : '';
 
     const wardrobeDesc = items.slice(0, 20).map(item => 
       `- ${item.id}: ${item.category} (${item.chromatic_compatibility || 'unknown'})`
     ).join('\n');
 
-    const prompt = `Você é Aura, stylist virtual de luxo. Crie O LOOK DO DIA perfeito para o usuário.
+    const prompt = isEN
+      ? `You are Aura, a luxury virtual stylist. Create THE LOOK OF THE DAY perfect for the user.
+
+${chromaticContext}${weatherContext}${eventContext}
+
+## WARDROBE
+${wardrobeDesc}
+
+Create 1 complete ideal look for today. Use 2-4 pieces.
+
+Return ONLY JSON:
+{
+  "name": "Creative look name",
+  "items": ["uuid1", "uuid2"],
+  "occasion": "${events?.[0]?.event_type || 'casual'}",
+  "message": "Good morning message personalized with styling tip (max 80 words)",
+  "chromatic_score": 85
+}`
+      : `Você é Aura, stylist virtual de luxo. Crie O LOOK DO DIA perfeito para o usuário.
 
 ${chromaticContext}${weatherContext}${eventContext}
 
@@ -180,7 +212,7 @@ Retorne APENAS JSON:
     if (!response.ok) {
       console.error('AI error:', await response.text());
       return new Response(
-        JSON.stringify({ error: 'Erro ao gerar look' }),
+        JSON.stringify({ error: isEN ? 'Error generating look' : 'Erro ao gerar look' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -199,12 +231,11 @@ Retorne APENAS JSON:
     } catch (e) {
       console.error('Parse error:', content);
       return new Response(
-        JSON.stringify({ error: 'Falha ao processar sugestão' }),
+        JSON.stringify({ error: isEN ? 'Failed to process suggestion' : 'Falha ao processar sugestão' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Enrich with item details
     const lookItems = result.items
       .map((id: string) => items.find(item => item.id === id))
       .filter(Boolean)
@@ -216,11 +247,14 @@ Retorne APENAS JSON:
         chromatic_compatibility: item.chromatic_compatibility
       }));
 
-    // Create notification
+    const notificationTitle = isEN
+      ? `Look of the Day: ${result.name}`
+      : `Look do Dia: ${result.name}`;
+
     await supabase.from('notifications').insert({
       user_id: user.id,
       type: 'look_of_day',
-      title: `Look do Dia: ${result.name}`,
+      title: notificationTitle,
       message: result.message,
       data: {
         look_name: result.name,

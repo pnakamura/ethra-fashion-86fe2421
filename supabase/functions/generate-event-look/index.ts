@@ -3,23 +3,62 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 import { createCorsHeaders } from '../_shared/cors.ts';
 
-const dressCodeDescriptions: Record<string, string> = {
-  black_tie: 'Black Tie - Traje de gala ultra formal. Homens: smoking preto. Mulheres: vestido longo elegante.',
-  cocktail: 'Cocktail - Semi-formal sofisticado. Vestidos midi/curtos elegantes, ternos bem cortados.',
-  formal: 'Formal/Traje Social - Terno e gravata para homens, vestido ou conjunto elegante para mulheres.',
-  smart_casual: 'Smart Casual - Elegante mas descontraído. Blazer opcional, peças bem acabadas.',
-  casual_chic: 'Casual Chic - Descontraído mas estiloso. Jeans escuro com peças mais sofisticadas funciona.',
-  casual: 'Casual - Confortável e apropriado. Evite roupas esportivas ou muito informais.',
-  theme: 'Temático - Considere o tema específico do evento na escolha das peças.',
+const dressCodeDescriptions: Record<string, Record<string, string>> = {
+  black_tie: {
+    'pt-BR': 'Black Tie - Traje de gala ultra formal. Homens: smoking preto. Mulheres: vestido longo elegante.',
+    'en': 'Black Tie - Ultra formal gala attire. Men: black tuxedo. Women: elegant long dress.',
+  },
+  cocktail: {
+    'pt-BR': 'Cocktail - Semi-formal sofisticado. Vestidos midi/curtos elegantes, ternos bem cortados.',
+    'en': 'Cocktail - Sophisticated semi-formal. Elegant midi/short dresses, well-tailored suits.',
+  },
+  formal: {
+    'pt-BR': 'Formal/Traje Social - Terno e gravata para homens, vestido ou conjunto elegante para mulheres.',
+    'en': 'Formal - Suit and tie for men, dress or elegant outfit for women.',
+  },
+  smart_casual: {
+    'pt-BR': 'Smart Casual - Elegante mas descontraído. Blazer opcional, peças bem acabadas.',
+    'en': 'Smart Casual - Elegant yet relaxed. Optional blazer, polished pieces.',
+  },
+  casual_chic: {
+    'pt-BR': 'Casual Chic - Descontraído mas estiloso. Jeans escuro com peças mais sofisticadas funciona.',
+    'en': 'Casual Chic - Relaxed but stylish. Dark jeans with more sophisticated pieces works well.',
+  },
+  casual: {
+    'pt-BR': 'Casual - Confortável e apropriado. Evite roupas esportivas ou muito informais.',
+    'en': 'Casual - Comfortable and appropriate. Avoid sportswear or overly informal clothing.',
+  },
+  theme: {
+    'pt-BR': 'Temático - Considere o tema específico do evento na escolha das peças.',
+    'en': 'Theme - Consider the specific theme of the event when choosing pieces.',
+  },
 };
 
-const eventTypeContext: Record<string, string> = {
-  wedding: 'Casamento - Evite branco (reservado para noiva). Tons pastel, florais ou cores vibrantes são ótimas escolhas.',
-  graduation: 'Formatura - Momento de celebração! Cores alegres, peças statement. O protagonista é o formando.',
-  gala: 'Gala/Baile - Evento glamouroso. Peças luxuosas, tecidos nobres, acessórios marcantes.',
-  anniversary: 'Aniversário - Celebração pessoal. Adapte ao estilo do aniversariante e local.',
-  corporate: 'Corporativo - Profissional mas elegante. Cores neutras com toques de personalidade.',
-  special: 'Evento Especial - Adapte ao contexto específico do evento.',
+const eventTypeContext: Record<string, Record<string, string>> = {
+  wedding: {
+    'pt-BR': 'Casamento - Evite branco (reservado para noiva). Tons pastel, florais ou cores vibrantes são ótimas escolhas.',
+    'en': 'Wedding - Avoid white (reserved for the bride). Pastels, florals or vibrant colors are great choices.',
+  },
+  graduation: {
+    'pt-BR': 'Formatura - Momento de celebração! Cores alegres, peças statement. O protagonista é o formando.',
+    'en': 'Graduation - Time to celebrate! Cheerful colors, statement pieces. The graduate is the protagonist.',
+  },
+  gala: {
+    'pt-BR': 'Gala/Baile - Evento glamouroso. Peças luxuosas, tecidos nobres, acessórios marcantes.',
+    'en': 'Gala/Ball - Glamorous event. Luxurious pieces, noble fabrics, striking accessories.',
+  },
+  anniversary: {
+    'pt-BR': 'Aniversário - Celebração pessoal. Adapte ao estilo do aniversariante e local.',
+    'en': 'Anniversary/Birthday - Personal celebration. Adapt to the host\'s style and venue.',
+  },
+  corporate: {
+    'pt-BR': 'Corporativo - Profissional mas elegante. Cores neutras com toques de personalidade.',
+    'en': 'Corporate - Professional but elegant. Neutral colors with touches of personality.',
+  },
+  special: {
+    'pt-BR': 'Evento Especial - Adapte ao contexto específico do evento.',
+    'en': 'Special Event - Adapt to the specific context of the event.',
+  },
 };
 
 serve(async (req) => {
@@ -57,18 +96,18 @@ serve(async (req) => {
 
     const userId = user.id;
 
-    const { title, eventDate, eventTime, eventType, dressCode, location, notes } = await req.json();
+    const { title, eventDate, eventTime, eventType, dressCode, location, notes, locale = 'pt-BR' } = await req.json();
+    const isEN = locale.startsWith('en');
+    const langKey = isEN ? 'en' : 'pt-BR';
 
-    console.log(`Generating event look for ${title} (${eventType}, ${dressCode})`);
+    console.log(`Generating event look for ${title} (${eventType}, ${dressCode}), locale: ${locale}`);
 
-    // Fetch user profile
     const { data: profile } = await supabase
       .from('profiles')
       .select('color_season, color_analysis')
       .eq('user_id', userId)
       .single();
 
-    // Fetch wardrobe items prioritizing compatible ones
     const { data: items } = await supabase
       .from('wardrobe_items')
       .select('*')
@@ -79,18 +118,17 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           suggestions: [],
-          message: 'Adicione mais peças ao seu closet para receber sugestões.' 
+          message: isEN ? 'Add more items to your closet to receive suggestions.' : 'Adicione mais peças ao seu closet para receber sugestões.' 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Try to get weather for the event date if location provided
     let weatherContext = '';
     if (location) {
       try {
         const geoRes = await fetch(
-          `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(location)}&count=1&language=pt&format=json`
+          `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(location)}&count=1&language=${isEN ? 'en' : 'pt'}&format=json`
         );
         const geoData = await geoRes.json();
 
@@ -111,9 +149,9 @@ serve(async (req) => {
               const maxTemp = weatherData.daily.temperature_2m_max[eventIndex];
               const minTemp = weatherData.daily.temperature_2m_min[eventIndex];
 
-              weatherContext = `\n## CLIMA PREVISTO
-Temperatura: ${minTemp}°C a ${maxTemp}°C
-Considere o clima ao escolher tecidos e camadas.`;
+              weatherContext = isEN
+                ? `\n## FORECAST WEATHER\nTemperature: ${minTemp}°C to ${maxTemp}°C\nConsider the weather when choosing fabrics and layers.`
+                : `\n## CLIMA PREVISTO\nTemperatura: ${minTemp}°C a ${maxTemp}°C\nConsidere o clima ao escolher tecidos e camadas.`;
             }
           }
         }
@@ -131,14 +169,18 @@ Considere o clima ao escolher tecidos e camadas.`;
     }
 
     const colorAnalysis = profile?.color_analysis as any;
-    const chromaticContext = colorAnalysis ? `
+    const chromaticContext = colorAnalysis ? (isEN ? `
+## CHROMATIC PROFILE
+Season: ${colorAnalysis.season} ${colorAnalysis.subtype || ''}
+Ideal colors: ${colorAnalysis.recommended_colors?.slice(0, 6).join(', ') || 'varied'}
+Colors to avoid: ${colorAnalysis.avoid_colors?.slice(0, 3).join(', ') || 'none specific'}
+` : `
 ## PERFIL CROMÁTICO
 Estação: ${colorAnalysis.season} ${colorAnalysis.subtype || ''}
 Cores ideais: ${colorAnalysis.recommended_colors?.slice(0, 6).join(', ') || 'variadas'}
 Cores a evitar: ${colorAnalysis.avoid_colors?.slice(0, 3).join(', ') || 'nenhuma específica'}
-` : '';
+`) : '';
 
-    // Group items by category
     const itemsByCategory: Record<string, any[]> = {};
     items.forEach(item => {
       if (!itemsByCategory[item.category]) {
@@ -149,15 +191,64 @@ Cores a evitar: ${colorAnalysis.avoid_colors?.slice(0, 3).join(', ') || 'nenhuma
 
     const wardrobeDesc = Object.entries(itemsByCategory).map(([category, catItems]) => {
       const itemsList = catItems.slice(0, 8).map(item => 
-        `  - ${item.id}: ${item.name || category} (${item.chromatic_compatibility || 'neutro'}${item.color_code ? ', ' + item.color_code : ''})`
+        `  - ${item.id}: ${item.name || category} (${item.chromatic_compatibility || (isEN ? 'neutral' : 'neutro')}${item.color_code ? ', ' + item.color_code : ''})`
       ).join('\n');
       return `### ${category}\n${itemsList}`;
     }).join('\n\n');
 
-    const dressCodeInfo = dressCodeDescriptions[dressCode] || dressCode;
-    const eventTypeInfo = eventTypeContext[eventType] || eventType;
+    const dressCodeInfo = dressCodeDescriptions[dressCode]?.[langKey] || dressCodeDescriptions[dressCode]?.['pt-BR'] || dressCode;
+    const eventTypeInfo = eventTypeContext[eventType]?.[langKey] || eventTypeContext[eventType]?.['pt-BR'] || eventType;
 
-    const prompt = `Você é Aura, personal stylist de luxo especializada em eventos especiais.
+    const prompt = isEN
+      ? `You are Aura, a luxury personal stylist specialized in special events.
+
+## EVENT
+Name: ${title}
+Type: ${eventTypeInfo}
+Dress Code: ${dressCodeInfo}
+Date: ${eventDate}${eventTime ? ` at ${eventTime}` : ''}
+${location ? `Location: ${location}` : ''}
+${notes ? `Notes: ${notes}` : ''}
+${weatherContext}
+
+${chromaticContext}
+
+## CLIENT'S WARDROBE
+${wardrobeDesc}
+
+Create 2 complete look suggestions for this event, prioritizing:
+1. Dress code adequacy
+2. Color harmony with the client's profile
+3. Pieces marked as "Ideal" or "Neutral"
+
+Return ONLY valid JSON:
+{
+  "suggestions": [
+    {
+      "look_name": "Creative look name",
+      "items": ["uuid1", "uuid2", "uuid3"],
+      "explanation": "Why this look works for the event (max 50 words)",
+      "styling_tips": "A styling tip or accessory that would complement (max 30 words)",
+      "score": 95,
+      "color_harmony": {
+        "palette_name": "Look color palette name",
+        "colors_used": ["#hex1", "#hex2"],
+        "harmony_type": "harmony type (analogous, complementary, monochromatic, triad)"
+      },
+      "weather_consideration": "Weather consideration if available (e.g.: Light fabrics for 26°C)",
+      "dress_code_match": "How well the look meets the dress code (e.g.: Perfect for Smart Casual)",
+      "improvements": ["Improvement suggestion 1", "Improvement suggestion 2"],
+      "event_type_tips": "Specific tip for this event type (e.g.: For weddings, avoid white)"
+    }
+  ],
+  "weather": {
+    "temp_min": 20,
+    "temp_max": 28,
+    "rain_probability": 10,
+    "weather_consideration": "General weather description for the event"
+  }
+}`
+      : `Você é Aura, personal stylist de luxo especializada em eventos especiais.
 
 ## EVENTO
 Nome: ${title}
@@ -223,7 +314,7 @@ Retorne APENAS JSON válido:
     if (!response.ok) {
       console.error('AI error:', await response.text());
       return new Response(
-        JSON.stringify({ error: 'Erro ao gerar sugestões' }),
+        JSON.stringify({ error: isEN ? 'Error generating suggestions' : 'Erro ao gerar sugestões' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -242,12 +333,11 @@ Retorne APENAS JSON válido:
     } catch (e) {
       console.error('Parse error:', content);
       return new Response(
-        JSON.stringify({ error: 'Falha ao processar sugestões' }),
+        JSON.stringify({ error: isEN ? 'Failed to process suggestions' : 'Falha ao processar sugestões' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Validate and enrich suggestions with item details
     const validSuggestions = (result.suggestions || []).map((suggestion: any) => {
       const validItems = suggestion.items
         .map((id: string) => items.find(item => item.id === id))

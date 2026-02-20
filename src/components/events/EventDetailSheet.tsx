@@ -34,7 +34,7 @@ interface EventDetailSheetProps {
 }
 
 export function EventDetailSheet({ event, isOpen, onClose, onDelete, onEventUpdated }: EventDetailSheetProps) {
-  const { t } = useTranslation('events');
+  const { t, i18n } = useTranslation('events');
   const { dateFnsLocale } = useLocale();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [suggestions, setSuggestions] = useState<any[] | null>(null);
@@ -63,11 +63,12 @@ export function EventDetailSheet({ event, isOpen, onClose, onDelete, onEventUpda
         return;
       }
 
+      const locale = i18n.language || 'pt-BR';
       const { data, error } = await supabase.functions.invoke('generate-event-look', {
         body: {
           title: event.title, eventDate: event.event_date, eventTime: event.event_time,
           eventType: event.event_type, dressCode: event.dress_code || 'casual',
-          location: event.location, notes: event.notes,
+          location: event.location, notes: event.notes, locale,
         },
         headers: { Authorization: `Bearer ${accessToken}` },
       });

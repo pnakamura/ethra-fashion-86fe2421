@@ -9,7 +9,8 @@ serve(async (req) => {
   }
 
   try {
-    const { imageBase64 } = await req.json();
+    const { imageBase64, locale = 'pt-BR' } = await req.json();
+    const isEN = locale.startsWith('en');
 
     if (!imageBase64) {
       return new Response(
@@ -29,7 +30,28 @@ serve(async (req) => {
 
     console.log('Analyzing garment colors...');
 
-    const prompt = `Você é um especialista em análise de cores para moda.
+    const prompt = isEN
+      ? `You are a fashion color analysis expert.
+
+Analyze this garment image and extract the dominant colors.
+
+Return ONLY a valid JSON object (no markdown, no extra text):
+{
+  "dominant_colors": [
+    {
+      "hex": "#XXXXXX",
+      "name": "color name in English",
+      "percentage": number 0-100
+    }
+  ],
+  "overall_tone": "warm" | "cool" | "neutral",
+  "saturation": "vivid" | "muted" | "neutral",
+  "brightness": "light" | "medium" | "dark"
+}
+
+Include 1 to 5 dominant colors, sorted by percentage (highest first).
+The sum of percentages should be approximately 100.`
+      : `Você é um especialista em análise de cores para moda.
 
 Analise esta imagem de uma peça de roupa e extraia as cores dominantes.
 
@@ -85,19 +107,19 @@ A soma das porcentagens deve ser aproximadamente 100.`;
       
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: 'Muitas requisições. Tente novamente em alguns segundos.' }),
+          JSON.stringify({ error: isEN ? 'Too many requests. Try again in a few seconds.' : 'Muitas requisições. Tente novamente em alguns segundos.' }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: 'Créditos de IA esgotados. Entre em contato com o suporte.' }),
+          JSON.stringify({ error: isEN ? 'AI credits exhausted. Contact support.' : 'Créditos de IA esgotados. Entre em contato com o suporte.' }),
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       
       return new Response(
-        JSON.stringify({ error: 'Erro ao analisar cores' }),
+        JSON.stringify({ error: isEN ? 'Error analyzing colors' : 'Erro ao analisar cores' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -108,12 +130,11 @@ A soma das porcentagens deve ser aproximadamente 100.`;
     if (!content) {
       console.error('No content in AI response');
       return new Response(
-        JSON.stringify({ error: 'Resposta inválida da IA' }),
+        JSON.stringify({ error: isEN ? 'Invalid AI response' : 'Resposta inválida da IA' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Parse JSON from response
     let result;
     try {
       const jsonMatch = content.match(/\{[\s\S]*\}/);
@@ -125,7 +146,7 @@ A soma das porcentagens deve ser aproximadamente 100.`;
     } catch (parseError) {
       console.error('Failed to parse AI response:', content);
       return new Response(
-        JSON.stringify({ error: 'Falha ao processar resposta da IA' }),
+        JSON.stringify({ error: isEN ? 'Failed to process AI response' : 'Falha ao processar resposta da IA' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
