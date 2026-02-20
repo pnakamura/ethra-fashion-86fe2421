@@ -35,13 +35,13 @@ export function createCorsHeaders(req: Request): Record<string, string> {
   if (!isOriginAllowed(origin)) {
     // Return headers without ACAO — browser will reject the response.
     return {
-      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-monitoring-key',
     };
   }
 
   return {
     'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-monitoring-key',
     'Vary': 'Origin',
   };
 }
