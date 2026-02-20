@@ -1,246 +1,97 @@
 
-# Traducao Completa: Fases 3 e 4
 
-## Diagnostico
+# AI Content Localization -- Edge Functions + Frontend Hooks
 
-A infraestrutura i18n funciona corretamente. Os componentes ja traduzidos (Header, BottomNav, QuickActions, Index, Auth, Settings) alternam entre PT-BR e EN-US sem problemas. Porem, **todas as outras paginas e componentes permanecem 100% em portugues hardcoded**, independente da selecao de idioma.
+## Overview
 
-**Impacto na versao PT-BR:** Nenhum. Os arquivos JSON de PT-BR contem exatamente os mesmos textos que hoje estao hardcoded. A substituicao de `"Texto"` por `t('chave')` carrega o mesmo texto do JSON quando o idioma e portugues. A unica diferenca e que o texto vem de um arquivo externo ao inves de estar embutido no codigo.
+All 7 AI-powered edge functions have hardcoded Portuguese prompts. When the user switches to English, UI labels change but AI-generated content (look names, color analysis, tips, etc.) remains in Portuguese. This plan adds `locale` passthrough from frontend to backend so AI responds in the correct language.
 
----
+## Part 1: Frontend Hooks (pass `locale`)
 
-## Paginas e Componentes a Traduzir
+Each hook/component that calls an edge function will include `locale: i18n.language` in the request body.
 
-### Fase 3A -- Wardrobe (8 arquivos)
+| File | Edge Function Called |
+|------|---------------------|
+| `src/hooks/useColorAnalysis.ts` | `analyze-colors` |
+| `src/hooks/useGarmentColorAnalysis.ts` | `analyze-garment-colors` |
+| `src/hooks/useLookRecommendations.ts` | `suggest-looks` |
+| `src/hooks/useVIPLooks.ts` | `suggest-vip-looks` |
+| `src/hooks/useTripWeather.ts` | `get-trip-weather` |
+| `src/components/events/EventPlanner.tsx` | `generate-event-look` |
+| `src/components/events/EventDetailSheet.tsx` | `generate-event-look` |
 
-| Arquivo | Strings hardcoded |
-|---------|-------------------|
-| `Wardrobe.tsx` | "Meu Closet", "Closet de X", "itens", "Todas", "Roupas", "Calcados", "Acessorios", "Joias", "Ideais", "Neutras", "Evitar", "Nova", "Upgrade", "Buscar pecas...", "Capsula", toasts |
-| `AddItemSheet.tsx` | Labels de formulario, categorias |
-| `EditItemSheet.tsx` | Labels de formulario |
-| `WardrobeEmptyState.tsx` | Textos de estado vazio |
-| `WardrobeItemCard.tsx` | Labels de acoes |
-| `WardrobeGrid.tsx` | (se houver) |
-| `CapsuleGuide.tsx` | Textos guia |
-| `CapsuleHealthCard.tsx` | Textos de saude da capsula |
-| `CompatibilityBadge.tsx` | Labels de compatibilidade |
+Pattern:
+```text
+import { useTranslation } from 'react-i18next';
+const { i18n } = useTranslation();
+const locale = i18n.language || 'pt-BR';
+body: { ...existingParams, locale }
+```
 
-Criar: `wardrobe.json` (PT-BR e EN-US)
+## Part 2: Edge Functions (bilingual prompts)
 
-### Fase 3B -- Chromatic (16 arquivos)
+Each edge function reads `locale` from request body (default `'pt-BR'`), sets `isEN = locale.startsWith('en')`, and switches prompts accordingly.
 
-| Arquivo | Strings hardcoded |
-|---------|-------------------|
-| `Chromatic.tsx` | "Cores", "Descobrir", "Paleta", "Beauty", "Explorar", "Faca login..." |
-| `ChromaticHero.tsx` | Textos do hero |
-| `ChromaticOnboarding.tsx` | Textos de onboarding |
-| `ColorAnalysis.tsx` | Labels da analise |
-| `ColorAnalysisResult.tsx` | Resultados |
-| `ColorPalette.tsx` | Labels |
-| `ColorJourney.tsx` | Jornada |
-| `SeasonExplorer.tsx` | Explorador |
-| `SeasonDetailModal.tsx` | Detalhes |
-| `SeasonSelector.tsx` | Seletor |
-| `MakeupHub.tsx` | Hub de makeup |
-| `QuickActionsGrid.tsx` | Acoes rapidas |
-| `TemporarySeasonBanner.tsx` | Banner temporario |
-| `TemporaryPalettePreview.tsx` | Preview |
-| `EnhancedSeasonCard.tsx` | Card de estacao |
-| `ChromaticCameraCapture.tsx` | Camera |
+### 2A. analyze-colors
+- Switch system prompt and tool descriptions to English
+- Season display names: "Primavera Clara" becomes "Light Spring"
+- Color names in user's language
+- Season IDs unchanged (`spring-light`, etc.)
 
-Criar: `chromatic.json` (PT-BR e EN-US)
+### 2B. analyze-garment-colors
+- Switch color analysis prompt to English
+- Color names in user's language
+- Enum values (`warm`, `cool`, etc.) unchanged
 
-### Fase 3C -- Virtual Try-On (15 arquivos)
+### 2C. suggest-looks
+- Switch full Aura stylist prompt to English
+- Look names, harmony explanations, styling tips in selected language
+- Error messages switch language
 
-| Arquivo | Strings hardcoded |
-|---------|-------------------|
-| `VirtualTryOn.tsx` | "Provador Virtual", "Flash (Rapido)", "Pro (Balanceado)", "Premium (Qualidade)", "Provar", "Benchmark", "experimente!", "Peca selecionada", "Do seu closet", etc. |
-| `AvatarManager.tsx` | Labels de avatar |
-| `TryOnCanvas.tsx` | Labels do canvas |
-| `TryOnOptions.tsx` | Opcoes |
-| `GarmentCapture.tsx` | Captura |
-| `WardrobeSelector.tsx` | Seletor |
-| `LookSelector.tsx` | Seletor de look |
-| `TryOnGallery.tsx` | Galeria |
-| `TryOnDetailModal.tsx` | Modal |
-| `BatchTryOnProgress.tsx` | Progresso |
-| `ModelBenchmark.tsx` | Benchmark |
-| `SmartCameraCapture.tsx` | Camera |
-| `PrivacySettings.tsx` | Privacidade |
-| `ComposeLookWarning.tsx` | Aviso |
+### 2D. suggest-vip-looks
+- Switch Aura Elite prompt to English
+- All descriptive fields in selected language
+- Celebrity names stay as-is (proper nouns)
 
-Criar: `tryOn.json` (PT-BR e EN-US)
+### 2E. generate-event-look
+- Bilingual `dressCodeDescriptions` and `eventTypeContext`
+- Switch prompt to English
+- Response fields in selected language
 
-### Fase 3D -- Recommendations (7 arquivos)
+### 2F. generate-daily-look
+- Switch weather labels, Aura prompt, notification title
+- "Look do Dia" becomes "Look of the Day"
 
-| Arquivo | Strings hardcoded |
-|---------|-------------------|
-| `Recommendations.tsx` | "Todos", "Casual", "Trabalho", "Festa", "Formal", "Gerar Look", "Meu Closet", "Provar", "Apenas Capsula", "Looks sugeridos", "Nenhum look gerado ainda", "Descubra sua paleta primeiro", "Harmonia", "Looks Exclusivos", "Sua paleta cromatica", etc. |
-| `LookCard.tsx` | Labels |
-| `LookCardCompact.tsx` | Labels |
-| `HarmonyStats.tsx` | Estatisticas |
-| `VIPLookCard.tsx` | Labels VIP |
-| `VIPLockedOverlay.tsx` | Overlay |
-| `LookHarmonyBadge.tsx` | Badge |
+### 2G. get-trip-weather
+- Switch `getTripTypeLabel()` to English
+- Bilingual system/user prompts
+- Fallback strings translated
+- Packing list category keys unchanged (code-level identifiers)
 
-Criar: `recommendations.json` (PT-BR e EN-US)
+## What stays the SAME regardless of language
+- JSON structure keys (`chromatic_score`, `harmony_type`, `items`)
+- Enum values (`ideal`, `neutral`, `avoid`, `casual`, `formal`)
+- Season IDs (`spring-light`, `winter-deep`)
+- Packing list category keys (`roupas`, `calcados`, `acessorios`)
+- UUID references, numeric scores
 
-### Fase 3E -- Events (6 arquivos)
+## What CHANGES per language
+- Look names, descriptions, styling tips
+- Color names ("Azul Marinho" vs "Navy Blue")
+- Season display names ("Primavera Clara" vs "Light Spring")
+- Explanations, messages, notifications
+- Error messages returned to client
 
-| Arquivo | Strings hardcoded |
-|---------|-------------------|
-| `Events.tsx` | "Agenda", "Reuniao", "Festa", "Encontro", "Entrevista", "Casamento", "Viagem", "Trabalho", "Especial", "Evento excluido", "Nenhum evento neste dia", "Proximos eventos", "Nenhum evento agendado", "Adicionar Evento", dias da semana `['D','S','T','Q','Q','S','S']`, `ptBR` hardcoded no date-fns |
-| `AddEventSheet.tsx` | Labels de formulario |
-| `EditEventSheet.tsx` | Labels |
-| `EventDetailSheet.tsx` | Detalhes |
-| `EventLookSuggestion.tsx` | Sugestoes |
-| `EventPlanner.tsx` | Planejador |
+## Risk Assessment
+- **Zero risk to PT-BR users**: Default locale is `pt-BR`; if no locale passed, prompts remain exactly as today
+- **No schema changes**: JSON keys and enum values unchanged
+- **Backward compatible**: Old cached content still displays correctly
 
-Criar: `events.json` (PT-BR e EN-US)
-Importante: substituir `{ locale: ptBR }` por `{ locale: dateFnsLocale }` do `useLocale()`
+## Implementation Order
+1. Update all 7 frontend files to pass `locale`
+2. Update `analyze-colors` and `analyze-garment-colors`
+3. Update `suggest-looks` and `suggest-vip-looks`
+4. Update `generate-event-look` and `generate-daily-look`
+5. Update `get-trip-weather`
+6. Deploy all edge functions
 
-### Fase 3F -- Voyager (11 arquivos)
-
-| Arquivo | Strings hardcoded |
-|---------|-------------------|
-| `Voyager.tsx` | "Voyager", "Viagem criada!", "Erro ao criar viagem", "Viagem excluida!", "PDF gerado!", "Abrindo Google Calendar...", categorias de packing list |
-| `TripPlanner.tsx` | Formulario de planejamento |
-| `TripList.tsx` | Lista de viagens |
-| `TripCard.tsx` | Card |
-| `TripDetailSheet.tsx` | Detalhes |
-| `TripBrief.tsx` | Resumo |
-| `TripReport.tsx` | Relatorio |
-| `PackingChecklist.tsx` | Checklist ("roupas", "calcados", "acessorios", "chapeus") |
-| `WeatherPreview.tsx` | Previsao |
-| `SuggestedLooks.tsx` | Looks sugeridos |
-| `MissingItemsSuggestion.tsx` | Sugestoes |
-| `LocationPicker.tsx` | Seletor |
-
-Criar: `voyager.json` (PT-BR e EN-US)
-
-### Fase 3G -- Quiz + Onboarding (16 arquivos)
-
-| Arquivo | Strings hardcoded |
-|---------|-------------------|
-| `Onboarding.tsx` | "Carregando..." |
-| `WelcomeScreen.tsx` | "Bem-vindo(a) ao", descricoes |
-| `NameInput.tsx` | Labels |
-| `StyleSelector.tsx` | Estilos |
-| `PainPointSelector.tsx` | Pontos de dor |
-| `ColorTeaser.tsx` | Teaser |
-| `WelcomeComplete.tsx` | Conclusao |
-| `Quiz.tsx` / `StyleQuiz.tsx` | Paginas de quiz |
-| `QuizStep.tsx` | Step |
-| `QuizAesthetics.tsx` | Esteticas |
-| `QuizSilhouette.tsx` | Silhuetas |
-| `QuizSkinTone.tsx` | Tons de pele |
-| `QuizPainPoints.tsx` | Pontos de dor |
-| `QuizResult.tsx` | Resultado |
-| `DNAReveal.tsx` | Revelacao DNA |
-| `AestheticPicker.tsx` / `SilhouettePicker.tsx` / `PainPointPicker.tsx` | Pickers |
-
-Criar: `quiz.json` e `onboarding.json` (PT-BR e EN-US)
-
-### Fase 3H -- Landing Page (10 arquivos)
-
-| Arquivo | Strings hardcoded |
-|---------|-------------------|
-| `Landing.tsx` | "Carregando..." |
-| `BetaHero.tsx` | "Colorimetria por IA", "Provador Virtual", "Closet Inteligente" + descricoes, CTA |
-| `DemoSection.tsx` | Secao demo |
-| `TesterSignupForm.tsx` | Formulario |
-| `Footer.tsx` | Rodape |
-| `ChromaticSim.tsx` | Simulador |
-| `ClosetSim.tsx` | Simulador |
-| `TryOnSim.tsx` | Simulador |
-
-Criar: `landing.json` (PT-BR e EN-US)
-
-### Fase 3I -- Subscription (5 arquivos)
-
-| Arquivo | Strings hardcoded |
-|---------|-------------------|
-| `Subscription.tsx` | Nomes de planos fallback, FAQs inteiras, "Escolha seu plano", "Desbloqueie recursos premium", "Voltar", "Inicio", "Seu uso atual", "Comparativo de recursos", "Perguntas frequentes", trust signals |
-| `PricingCard.tsx` | Labels de preco |
-| `UsageIndicator.tsx` | Indicador |
-| `FeatureGate.tsx` | Gate |
-| `LockedFeaturePage.tsx` | Pagina bloqueada |
-
-Criar: `subscription.json` (PT-BR e EN-US)
-
-### Fase 3J -- Admin (5 arquivos)
-
-| Arquivo | Strings hardcoded |
-|---------|-------------------|
-| `Admin.tsx` | Labels de admin |
-| `UserManagement.tsx` | Gestao |
-| `UserDetailSheet.tsx` | Detalhes |
-| `FeatureFlagsSettings.tsx` | Flags |
-| `SubscriptionManagement.tsx` | Gestao de assinatura |
-
-Criar: `admin.json` (PT-BR e EN-US)
-
-### Fase 3K -- Dashboard sub-components (3 arquivos)
-
-| Arquivo | Strings hardcoded |
-|---------|-------------------|
-| `LookOfTheDay.tsx` | "Look do Dia", "Gerar look", "Ver mais", etc. |
-| `MissionCard.tsx` | "Parabens, Mestre do Estilo!", categorias de missao |
-| `AchievementsPanel.tsx` | Labels de conquistas |
-
-Atualizar: `dashboard.json` com chaves adicionais
-
-### Fase 4A -- Paginas Juridicas (3 arquivos)
-
-| Arquivo | Acao |
-|---------|------|
-| `Terms.tsx` | Refatorar para carregar conteudo de `legal.json` (PT-BR: LGPD/CDC, EN-US: CCPA/general) |
-| `PrivacyPolicy.tsx` | Idem |
-| `Privacy.tsx` | Verificar e traduzir |
-
-### Fase 4B -- Dados e Utilitarios (5 arquivos)
-
-| Arquivo | Acao |
-|---------|------|
-| `normalize-color.ts` | Adicionar dicionario EN-US de nomes de cores |
-| `missions.ts` | Traduzir titulos e descricoes de missoes |
-| `chromatic-seasons.ts` | Traduzir nomes de estacoes e descricoes |
-| `quiz-aesthetics.ts` | Traduzir esteticas |
-| `PageLoader.tsx` / `EmptyState.tsx` | Usar `t()` |
-
----
-
-## Garantia de Seguranca para PT-BR
-
-A abordagem e segura porque:
-
-1. Cada string hardcoded em portugues sera movida para o JSON `pt-BR` **com o mesmo texto exato**
-2. A chave `t('wardrobe.title')` retorna `"Meu Closet"` em PT-BR e `"My Closet"` em EN-US
-3. O fallback e `pt-BR`, entao qualquer chave nao traduzida mostra o portugues original
-4. Os componentes ja traduzidos (Header, BottomNav, etc.) comprovam que a abordagem funciona sem quebrar nada
-
----
-
-## Ordem de Implementacao Sugerida
-
-Devido ao volume (~80 arquivos), sugiro implementar em blocos de 2-3 fases por prompt:
-
-**Bloco 1 (impacto visual maximo):**
-- Fase 3A (Wardrobe) + Fase 3D (Recommendations) + Fase 3K (Dashboard sub-components)
-
-**Bloco 2:**
-- Fase 3B (Chromatic) + Fase 3C (Try-On)
-
-**Bloco 3:**
-- Fase 3E (Events) + Fase 3F (Voyager)
-
-**Bloco 4:**
-- Fase 3G (Quiz/Onboarding) + Fase 3H (Landing)
-
-**Bloco 5:**
-- Fase 3I (Subscription) + Fase 3J (Admin)
-
-**Bloco 6:**
-- Fase 4A (Juridicas) + Fase 4B (Utilitarios)
-
-Cada bloco cria os JSONs de traducao necessarios e refatora os componentes para usar `t()`.
