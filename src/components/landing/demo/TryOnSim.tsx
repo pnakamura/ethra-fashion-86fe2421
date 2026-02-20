@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ChevronRight, Check, Loader2, Clock, ArrowLeftRight } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { useTranslation } from 'react-i18next';
 import modelBefore from '@/assets/demo/model-before.jpg';
 import garmentDress from '@/assets/demo/garment-dress.jpg';
 import garmentBlazer from '@/assets/demo/garment-blazer.jpg';
@@ -10,50 +11,30 @@ import tryonDress from '@/assets/demo/tryon-dress.jpg';
 import tryonBlazer from '@/assets/demo/tryon-blazer.jpg';
 import tryonShirt from '@/assets/demo/tryon-shirt.jpg';
 
-const PROCESSING_STEPS = [
-  { label: 'Detectando silhueta corporal...', duration: 2000 },
-  { label: 'Mapeando a peça selecionada...', duration: 2000 },
-  { label: 'Ajustando caimento e proporções...', duration: 2000 },
-  { label: 'Refinando iluminação e sombras...', duration: 2000 },
-];
-
-const GARMENTS = [
-  {
-    id: 'dress',
-    label: 'Vestido Floral',
-    image: garmentDress,
-    result: tryonDress,
-    harmony: 92,
-    processingTime: 18,
-  },
-  {
-    id: 'blazer',
-    label: 'Blazer Preto',
-    image: garmentBlazer,
-    result: tryonBlazer,
-    harmony: 87,
-    processingTime: 21,
-  },
-  {
-    id: 'shirt',
-    label: 'Camisa Branca',
-    image: garmentShirt,
-    result: tryonShirt,
-    harmony: 95,
-    processingTime: 16,
-  },
-];
-
 interface TryOnSimProps {
   onInteract: () => void;
   hasSkinTone: boolean;
 }
 
 export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
+  const { t } = useTranslation('landing');
   const [selected, setSelected] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [currentStep, setCurrentStep] = useState(-1);
   const [showResult, setShowResult] = useState(false);
+
+  const PROCESSING_STEPS = [
+    { label: t('tryOn.stepBody'), duration: 2000 },
+    { label: t('tryOn.stepGarment'), duration: 2000 },
+    { label: t('tryOn.stepFit'), duration: 2000 },
+    { label: t('tryOn.stepLighting'), duration: 2000 },
+  ];
+
+  const GARMENTS = [
+    { id: 'dress', label: t('tryOn.garmentDress'), image: garmentDress, result: tryonDress, harmony: 92, processingTime: 18 },
+    { id: 'blazer', label: t('tryOn.garmentBlazer'), image: garmentBlazer, result: tryonBlazer, harmony: 87, processingTime: 21 },
+    { id: 'shirt', label: t('tryOn.garmentShirt'), image: garmentShirt, result: tryonShirt, harmony: 95, processingTime: 16 },
+  ];
 
   const garment = GARMENTS.find((g) => g.id === selected);
 
@@ -93,7 +74,7 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
   return (
     <div className="flex flex-col items-center gap-6">
       <p className="text-base font-medium text-muted-foreground">
-        Escolha uma peça para experimentar virtualmente
+        {t('tryOn.selectGarment')}
       </p>
 
       {/* Garment options */}
@@ -112,12 +93,7 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
             whileTap={processing ? {} : { scale: 0.95 }}
           >
             <div className="w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden shadow-md bg-muted">
-              <img
-                src={g.image}
-                alt={g.label}
-                className="w-full h-full object-cover"
-                loading="lazy"
-              />
+              <img src={g.image} alt={g.label} className="w-full h-full object-cover" loading="lazy" />
             </div>
             <span className="text-sm font-medium text-center leading-tight">{g.label}</span>
             {selected === g.id && showResult && (
@@ -145,12 +121,11 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
           >
             <div className="flex items-center gap-2">
               <Loader2 className="w-5 h-5 text-primary animate-spin" />
-              <span className="text-base font-semibold text-foreground">Processando prova virtual...</span>
+              <span className="text-base font-semibold text-foreground">{t('tryOn.processing')}</span>
             </div>
 
-            {/* Model preview while processing */}
             <div className="w-32 h-40 rounded-xl overflow-hidden shadow-md border border-border opacity-60">
-              <img src={modelBefore} alt="Modelo" className="w-full h-full object-cover" />
+              <img src={modelBefore} alt={t('tryOn.modelAlt')} className="w-full h-full object-cover" />
             </div>
 
             <Progress value={progressValue} className="h-2 w-full" />
@@ -183,7 +158,7 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
             </div>
 
             <p className="text-sm text-muted-foreground/60 italic">
-              Tempo estimado: 15-25 segundos
+              {t('tryOn.estimatedTime')}
             </p>
           </motion.div>
         )}
@@ -200,22 +175,19 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
           >
-            {/* Before / After comparison */}
             <div className="flex items-center gap-3 w-full justify-center">
-              {/* Before */}
               <motion.div
                 className="flex flex-col items-center gap-2"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 }}
               >
-                <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Antes</span>
+                <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t('tryOn.before')}</span>
                 <div className="w-36 h-48 md:w-44 md:h-56 rounded-2xl overflow-hidden shadow-lg border border-border">
-                  <img src={modelBefore} alt="Antes" className="w-full h-full object-cover" />
+                  <img src={modelBefore} alt={t('tryOn.before')} className="w-full h-full object-cover" />
                 </div>
               </motion.div>
 
-              {/* Arrow */}
               <motion.div
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -224,17 +196,15 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
                 <ArrowLeftRight className="w-6 h-6 text-primary" />
               </motion.div>
 
-              {/* After */}
               <motion.div
                 className="flex flex-col items-center gap-2"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                <span className="text-sm font-semibold text-primary uppercase tracking-wider">Depois</span>
+                <span className="text-sm font-semibold text-primary uppercase tracking-wider">{t('tryOn.after')}</span>
                 <div className="relative w-36 h-48 md:w-44 md:h-56 rounded-2xl overflow-hidden shadow-lg border-2 border-primary/30">
-                  <img src={garment.result} alt="Depois" className="w-full h-full object-cover" />
-                  {/* Sparkle overlay */}
+                  <img src={garment.result} alt={t('tryOn.after')} className="w-full h-full object-cover" />
                   <motion.div
                     className="absolute inset-0 pointer-events-none"
                     initial={{ opacity: 1 }}
@@ -245,10 +215,7 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
                       <motion.div
                         key={i}
                         className="absolute"
-                        style={{
-                          left: `${15 + Math.random() * 70}%`,
-                          top: `${10 + Math.random() * 80}%`,
-                        }}
+                        style={{ left: `${15 + Math.random() * 70}%`, top: `${10 + Math.random() * 80}%` }}
                         initial={{ opacity: 1, scale: 0 }}
                         animate={{ opacity: 0, scale: 2 }}
                         transition={{ duration: 0.8, delay: 0.3 + i * 0.1 }}
@@ -261,20 +228,17 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
               </motion.div>
             </div>
 
-            {/* Metrics */}
             <motion.div
               className="flex items-center gap-4 flex-wrap justify-center"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
             >
-              {/* Processing time */}
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/80 text-sm text-muted-foreground">
                 <Clock className="w-3.5 h-3.5" />
-                <span>Processado em {garment.processingTime}s</span>
+                <span>{t('tryOn.processedIn', { time: garment.processingTime })}</span>
               </div>
 
-              {/* Harmony badge */}
               {hasSkinTone && (
                 <motion.div
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-sm font-medium text-primary"
@@ -283,12 +247,11 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
                   transition={{ delay: 0.7 }}
                 >
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>{garment.harmony}% compatível com sua paleta</span>
+                  <span>{t('tryOn.paletteCompatible', { score: garment.harmony })}</span>
                 </motion.div>
               )}
             </motion.div>
 
-            {/* CTA */}
             <motion.button
               className="inline-flex items-center justify-center gap-2 text-base font-semibold text-primary hover:underline mt-1"
               initial={{ opacity: 0 }}
@@ -297,7 +260,7 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
               onClick={() => document.getElementById('tester-signup')?.scrollIntoView({ behavior: 'smooth' })}
             >
               <Sparkles className="w-4 h-4" />
-              Experimentar com minha própria foto
+              {t('tryOn.ctaTryOwn')}
               <ChevronRight className="w-4 h-4" />
             </motion.button>
           </motion.div>
@@ -308,7 +271,7 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
       {!selected && !processing && !showResult && (
         <div className="flex flex-col items-center gap-4">
           <div className="w-36 h-48 md:w-44 md:h-56 rounded-2xl overflow-hidden shadow-md border border-border">
-            <img src={modelBefore} alt="Modelo" className="w-full h-full object-cover" />
+            <img src={modelBefore} alt={t('tryOn.modelAlt')} className="w-full h-full object-cover" />
           </div>
           <motion.p
             className="text-sm text-muted-foreground/60 italic"
@@ -316,7 +279,7 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            Selecione uma peça acima para ver o provador virtual em ação
+            {t('tryOn.placeholder')}
           </motion.p>
         </div>
       )}

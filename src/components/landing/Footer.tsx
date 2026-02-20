@@ -1,7 +1,10 @@
 import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export function Footer() {
+  const { t } = useTranslation('landing');
+
   return (
     <footer className="py-12 px-6 border-t border-border/50">
       <div className="max-w-6xl mx-auto">
@@ -22,25 +25,25 @@ export function Footer() {
           {/* Links */}
           <div className="flex items-center gap-8 text-base text-muted-foreground">
             <a href="/terms" className="hover:text-foreground transition-colors">
-              Termos de Uso
+              {t('footer.terms')}
             </a>
             <a href="/privacy-policy" className="hover:text-foreground transition-colors">
-              Privacidade
+              {t('footer.privacy')}
             </a>
             <a href="mailto:contato@ethra.app" className="hover:text-foreground transition-colors">
-              Contato
+              {t('footer.contact')}
             </a>
           </div>
 
           {/* Badge */}
           <div className="flex items-center gap-2 text-base text-muted-foreground">
-            <span>Powered by</span>
+            <span>{t('footer.poweredBy')}</span>
             <span className="text-primary font-medium">AI</span>
           </div>
         </div>
 
         <div className="mt-8 pt-8 border-t border-border/30 text-center text-base text-muted-foreground">
-          © {new Date().getFullYear()} Ethra. Todos os direitos reservados.
+          {t('footer.copyright', { year: new Date().getFullYear() })}
         </div>
       </div>
     </footer>

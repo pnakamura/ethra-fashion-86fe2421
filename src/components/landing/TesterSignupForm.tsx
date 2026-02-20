@@ -8,15 +8,11 @@ import { useToast } from '@/hooks/use-toast';
 import { ConsentCheckbox, AgeConfirmationCheckbox } from '@/components/legal/ConsentCheckbox';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
-const signupSchema = z.object({
-  name: z.string().trim().min(2, 'Nome deve ter pelo menos 2 caracteres').max(100),
-  email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
-});
-
 export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
+  const { t } = useTranslation('landing');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,13 +26,19 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  const signupSchema = z.object({
+    name: z.string().trim().min(2, t('signup.validationNameMin')).max(100),
+    email: z.string().email(t('signup.validationEmailInvalid')),
+    password: z.string().min(6, t('signup.validationPasswordMin')),
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const validation = signupSchema.safeParse({ name, email, password });
     if (!validation.success) {
       toast({
-        title: 'Erro de validação',
+        title: t('signup.validationError'),
         description: validation.error.errors[0].message,
         variant: 'destructive',
       });
@@ -46,8 +48,8 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
     if (!acceptedTerms || !ageConfirmed) {
       setShowConsentErrors(true);
       toast({
-        title: 'Consentimento necessário',
-        description: 'Aceite os termos e confirme sua idade para continuar.',
+        title: t('signup.consentRequired'),
+        description: t('signup.consentRequiredDesc'),
         variant: 'destructive',
       });
       return;
@@ -61,13 +63,12 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
       if (error) {
         let message = error.message;
         if (error.message.includes('User already registered')) {
-          message = 'Este email já está cadastrado. Faça login normalmente.';
+          message = t('signup.errorAlreadyRegistered');
         }
-        toast({ title: 'Erro', description: message, variant: 'destructive' });
+        toast({ title: t('signup.error'), description: message, variant: 'destructive' });
         return;
       }
 
-      // Get user id and update profile as tester
       const { data: userData } = await supabase.auth.getUser();
       if (userData.user) {
         await supabase
@@ -79,7 +80,6 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
           } as any)
           .eq('user_id', userData.user.id);
 
-        // Notify admins via edge function (fire and forget)
         supabase.functions.invoke('notify-tester-signup', {
           body: { user_id: userData.user.id },
         }).catch(console.error);
@@ -114,19 +114,19 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
 
               <div>
                 <h3 className="font-display text-2xl md:text-3xl font-semibold text-foreground mb-2">
-                  Você está dentro! 🎉
+                  {t('signup.successTitle')}
                 </h3>
                 <p className="text-muted-foreground text-base leading-relaxed">
-                  Seu acesso de beta tester foi confirmado. Confira seu email para ativar a conta e comece a explorar o Ethra.
+                  {t('signup.successDescription')}
                 </p>
               </div>
 
               <div className="space-y-3 text-left bg-primary/5 rounded-2xl p-5">
-                <p className="text-sm font-medium text-foreground">O que te espera:</p>
+                <p className="text-sm font-medium text-foreground">{t('signup.successWhatAwaits')}</p>
                 {[
-                  'Colorimetria pessoal por IA',
-                  'Provador virtual com suas roupas',
-                  'Closet inteligente com armário cápsula',
+                  t('signup.successFeature1'),
+                  t('signup.successFeature2'),
+                  t('signup.successFeature3'),
                 ].map((item, i) => (
                   <motion.div
                     key={item}
@@ -147,11 +147,11 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
                 className="w-full gradient-primary text-primary-foreground shadow-glow"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
-                Explorar o Ethra
+                {t('signup.successCta')}
               </Button>
 
               <p className="text-sm text-muted-foreground/70">
-                Testers terão acesso vitalício às funcionalidades premium.
+                {t('signup.successNote')}
               </p>
             </motion.div>
           ) : (
@@ -170,16 +170,16 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
                   viewport={{ once: true }}
                 >
                   <Sparkles className="w-4 h-4" />
-                  Programa BETA — Testadores Exclusivos
+                  {t('signup.badge')}
                 </motion.div>
 
                 <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-semibold">
-                  Garanta sua
+                  {t('signup.headline')}
                   <br />
-                  <span className="text-gradient">vaga agora</span>
+                  <span className="text-gradient">{t('signup.headlineHighlight')}</span>
                 </h2>
                 <p className="text-base text-muted-foreground max-w-sm mx-auto">
-                  Preencha seus dados e seja uma das primeiras a experimentar o Ethra
+                  {t('signup.description')}
                 </p>
               </div>
 
@@ -189,7 +189,7 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
                     type="text"
-                    placeholder="Seu nome"
+                    placeholder={t('signup.namePlaceholder')}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="pl-11 h-12 md:h-14"
@@ -201,7 +201,7 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
                     type="email"
-                    placeholder="Seu melhor email"
+                    placeholder={t('signup.emailPlaceholder')}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-11 h-12 md:h-14"
@@ -212,7 +212,7 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Crie uma senha"
+                    placeholder={t('signup.passwordPlaceholder')}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-11 pr-11 h-12 md:h-14"
@@ -228,7 +228,7 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
                       <Eye className="w-5 h-5 text-muted-foreground" />
                     )}
                   </button>
-                  <p className="text-sm text-muted-foreground mt-1.5">Mínimo de 6 caracteres</p>
+                  <p className="text-sm text-muted-foreground mt-1.5">{t('signup.passwordHint')}</p>
                 </div>
 
                 <div className="space-y-3 pt-2">
@@ -257,11 +257,11 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
                   disabled={loading}
                   className="w-full h-12 md:h-14 gradient-primary text-primary-foreground font-medium shadow-glow hover:opacity-90 transition-opacity text-base md:text-lg"
                 >
-                  {loading ? 'Criando sua conta...' : 'Quero ser BETA tester'}
+                  {loading ? t('signup.submitting') : t('signup.submitButton')}
                 </Button>
 
                 <p className="text-sm text-center text-muted-foreground/70">
-                  Vagas limitadas • Acesso vitalício ao premium para testers
+                  {t('signup.bottomNote')}
                 </p>
               </form>
             </motion.div>
