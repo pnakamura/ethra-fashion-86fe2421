@@ -56,3 +56,6 @@ verify_jwt = false
 
 [functions.admin-health-check]
 verify_jwt = false
+
+[functions.admin-monitoring]
+verify_jwt = false
