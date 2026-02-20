@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Crown, Lock, Sparkles, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 interface VIPLockedOverlayProps {
   previewCount?: number;
@@ -9,6 +10,9 @@ interface VIPLockedOverlayProps {
 
 export function VIPLockedOverlay({ previewCount = 3 }: VIPLockedOverlayProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation('recommendations');
+
+  const features = t('locked.features', { returnObjects: true }) as string[];
 
   return (
     <div className="relative">
@@ -48,7 +52,6 @@ export function VIPLockedOverlay({ previewCount = 3 }: VIPLockedOverlayProps) {
         className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm rounded-2xl"
       >
         <div className="text-center p-8 max-w-md">
-          {/* Animated Crown */}
           <motion.div
             initial={{ y: -10 }}
             animate={{ y: 0 }}
@@ -58,51 +61,40 @@ export function VIPLockedOverlay({ previewCount = 3 }: VIPLockedOverlayProps) {
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 flex items-center justify-center shadow-[0_0_40px_hsl(45_100%_50%_/_0.5)]">
               <Crown className="w-10 h-10 text-white" />
             </div>
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ repeat: Infinity, duration: 8, ease: 'linear' }}
-              className="absolute -inset-2"
-            >
+            <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 8, ease: 'linear' }} className="absolute -inset-2">
               <Sparkles className="absolute top-0 left-1/2 -translate-x-1/2 w-4 h-4 text-amber-400" />
               <Star className="absolute bottom-0 right-0 w-3 h-3 text-yellow-500" />
               <Sparkles className="absolute top-1/2 left-0 -translate-y-1/2 w-3 h-3 text-amber-500" />
             </motion.div>
           </motion.div>
 
-          {/* Content */}
           <h3 className="text-2xl font-display font-bold mb-2 bg-gradient-to-r from-amber-500 to-yellow-500 bg-clip-text text-transparent">
-            Looks Exclusivos VIP
+            {t('locked.title')}
           </h3>
           <p className="text-muted-foreground mb-6">
-            Desbloqueie looks de passarela personalizados com harmonias cromáticas avançadas, 
-            tendências atuais e dicas exclusivas de styling.
+            {t('locked.desc')}
           </p>
 
-          {/* Features */}
           <div className="flex flex-wrap justify-center gap-3 mb-6">
-            {['Tendências de Passarela', 'Harmonias Avançadas', 'Styling Premium'].map((feature) => (
-              <div
-                key={feature}
-                className="px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-medium"
-              >
+            {features.map((feature) => (
+              <div key={feature} className="px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-medium">
                 {feature}
               </div>
             ))}
           </div>
 
-          {/* CTA */}
           <Button
             size="lg"
             onClick={() => navigate('/subscription')}
             className="bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-white shadow-[0_0_20px_hsl(45_100%_50%_/_0.4)] hover:shadow-[0_0_30px_hsl(45_100%_50%_/_0.6)] transition-shadow rounded-xl"
           >
             <Crown className="w-5 h-5 mr-2" />
-            Upgrade para Muse
+            {t('locked.cta')}
           </Button>
 
           <p className="text-xs text-muted-foreground mt-3 flex items-center justify-center gap-1">
             <Lock className="w-3 h-3" />
-            Exclusivo para assinantes Muse
+            {t('locked.exclusive')}
           </p>
         </div>
       </motion.div>

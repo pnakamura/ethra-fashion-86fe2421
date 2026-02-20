@@ -5,6 +5,7 @@ import { LookCard } from './LookCard';
 import { AIDisclaimer } from '@/components/legal/AIDisclaimer';
 import { useLookRecommendations, RecommendedLook } from '@/hooks/useLookRecommendations';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 interface LookSuggestionsProps {
   autoLoad?: boolean;
@@ -19,6 +20,7 @@ export const LookSuggestions = memo(function LookSuggestions({
   showHeader = true,
   onOpenInCanvas
 }: LookSuggestionsProps) {
+  const { t } = useTranslation('recommendations');
   const { looks, isLoading, error, generateLooks, loadCachedLooks } = useLookRecommendations();
   const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false);
   const navigate = useNavigate();
@@ -39,22 +41,15 @@ export const LookSuggestions = memo(function LookSuggestions({
   };
 
   const handleOpenInCanvas = (look: RecommendedLook) => {
-    // Store look items in sessionStorage for Canvas to pick up
     sessionStorage.setItem('canvas_preload_items', JSON.stringify(look.items.map(i => i.id)));
     navigate('/canvas');
   };
 
-  // Memoize the displayed looks
   const displayedLooks = useMemo(() => looks.slice(0, maxLooks), [looks, maxLooks]);
 
-  // Memoize skeletons
   const skeletons = useMemo(() => (
     [...Array(maxLooks)].map((_, i) => (
-      <div
-        key={i}
-        className="aspect-[3/4] rounded-2xl bg-muted animate-pulse"
-        style={{ animationDelay: `${i * 100}ms` }}
-      />
+      <div key={i} className="aspect-[3/4] rounded-2xl bg-muted animate-pulse" style={{ animationDelay: `${i * 100}ms` }} />
     ))
   ), [maxLooks]);
 
@@ -63,7 +58,7 @@ export const LookSuggestions = memo(function LookSuggestions({
       <div className="text-center py-8">
         <p className="text-muted-foreground text-sm mb-4">{error}</p>
         <Button variant="outline" onClick={handleRefresh} className="rounded-xl">
-          Tentar novamente
+          {t('suggestions.tryAgain')}
         </Button>
       </div>
     );
@@ -76,26 +71,15 @@ export const LookSuggestions = memo(function LookSuggestions({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-display font-semibold">Looks Sugeridos</h3>
+            <h3 className="text-lg font-display font-semibold">{t('suggestions.title')}</h3>
           </div>
           <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleRefresh}
-              disabled={isLoading}
-              className="rounded-xl"
-            >
+            <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={isLoading} className="rounded-xl">
               <RefreshCw className={`w-4 h-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
-              {isLoading ? 'Gerando...' : 'Novo'}
+              {isLoading ? t('suggestions.generating') : t('suggestions.new')}
             </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => navigate('/recommendations')}
-              className="rounded-xl"
-            >
-              Ver todos
+            <Button variant="outline" size="sm" onClick={() => navigate('/recommendations')} className="rounded-xl">
+              {t('suggestions.viewAll')}
               <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           </div>
@@ -105,18 +89,11 @@ export const LookSuggestions = memo(function LookSuggestions({
       )}
 
       {isLoading && looks.length === 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {skeletons}
-        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">{skeletons}</div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {displayedLooks.map((look, index) => (
-            <LookCard
-              key={`${look.name}-${index}`}
-              look={look}
-              index={index}
-              onOpenInCanvas={onOpenInCanvas || handleOpenInCanvas}
-            />
+            <LookCard key={`${look.name}-${index}`} look={look} index={index} onOpenInCanvas={onOpenInCanvas || handleOpenInCanvas} />
           ))}
         </div>
       )}

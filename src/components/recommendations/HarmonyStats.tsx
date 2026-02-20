@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
 import { Palette, Check, Minus, AlertTriangle, HelpCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { calculateWardrobeStats, type CompatibilityStats } from '@/lib/chromatic-match';
+import { calculateWardrobeStats } from '@/lib/chromatic-match';
+import { useTranslation } from 'react-i18next';
 
 interface HarmonyStatsProps {
   items: Array<{ chromatic_compatibility?: string | null }>;
@@ -9,41 +10,14 @@ interface HarmonyStatsProps {
 }
 
 export function HarmonyStats({ items, colorSeason }: HarmonyStatsProps) {
+  const { t } = useTranslation('recommendations');
   const stats = calculateWardrobeStats(items);
 
   const statItems = [
-    { 
-      key: 'ideal', 
-      label: 'Ideais', 
-      value: stats.ideal, 
-      icon: Check,
-      color: 'text-emerald-600',
-      bg: 'bg-emerald-100 dark:bg-emerald-900/30'
-    },
-    { 
-      key: 'neutral', 
-      label: 'Neutras', 
-      value: stats.neutral, 
-      icon: Minus,
-      color: 'text-amber-600',
-      bg: 'bg-amber-100 dark:bg-amber-900/30'
-    },
-    { 
-      key: 'avoid', 
-      label: 'Evitar', 
-      value: stats.avoid, 
-      icon: AlertTriangle,
-      color: 'text-rose-600',
-      bg: 'bg-rose-100 dark:bg-rose-900/30'
-    },
-    { 
-      key: 'unknown', 
-      label: 'Não analisadas', 
-      value: stats.unknown, 
-      icon: HelpCircle,
-      color: 'text-muted-foreground',
-      bg: 'bg-muted'
-    },
+    { key: 'ideal', label: t('harmony.ideal'), value: stats.ideal, icon: Check, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
+    { key: 'neutral', label: t('harmony.neutral'), value: stats.neutral, icon: Minus, color: 'text-amber-600', bg: 'bg-amber-100 dark:bg-amber-900/30' },
+    { key: 'avoid', label: t('harmony.avoid'), value: stats.avoid, icon: AlertTriangle, color: 'text-rose-600', bg: 'bg-rose-100 dark:bg-rose-900/30' },
+    { key: 'unknown', label: t('harmony.notAnalyzed'), value: stats.unknown, icon: HelpCircle, color: 'text-muted-foreground', bg: 'bg-muted' },
   ];
 
   const idealPercentage = stats.total > 0 ? Math.round((stats.ideal / stats.total) * 100) : 0;
@@ -55,18 +29,17 @@ export function HarmonyStats({ items, colorSeason }: HarmonyStatsProps) {
           <Palette className="w-5 h-5 text-primary" />
         </div>
         <div>
-          <h3 className="font-display font-semibold">Minha Harmonia</h3>
+          <h3 className="font-display font-semibold">{t('harmony.title')}</h3>
           {colorSeason && (
             <p className="text-sm text-muted-foreground">{colorSeason}</p>
           )}
         </div>
       </div>
 
-      {/* Progress bar */}
       <div className="mb-4">
         <div className="flex justify-between text-sm mb-1">
-          <span className="text-muted-foreground">Compatibilidade do closet</span>
-          <span className="font-medium text-primary">{idealPercentage}% ideal</span>
+          <span className="text-muted-foreground">{t('harmony.closetCompat')}</span>
+          <span className="font-medium text-primary">{t('harmony.idealPercent', { percent: idealPercentage })}</span>
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden">
           <motion.div
@@ -78,7 +51,6 @@ export function HarmonyStats({ items, colorSeason }: HarmonyStatsProps) {
         </div>
       </div>
 
-      {/* Stats grid */}
       <div className="grid grid-cols-2 gap-3">
         {statItems.map((stat, index) => (
           <motion.div
@@ -99,7 +71,7 @@ export function HarmonyStats({ items, colorSeason }: HarmonyStatsProps) {
 
       {stats.unknown > 0 && (
         <p className="text-xs text-muted-foreground mt-3 text-center">
-          Adicione fotos às peças para análise de cores automática
+          {t('harmony.addPhotos')}
         </p>
       )}
     </Card>

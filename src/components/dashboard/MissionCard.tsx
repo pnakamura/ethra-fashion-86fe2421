@@ -7,12 +7,13 @@ import { useMissions } from '@/hooks/useMissions';
 import { CATEGORY_LABELS } from '@/data/missions';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslation } from 'react-i18next';
 
 export const MissionCard = memo(function MissionCard() {
+  const { t } = useTranslation('dashboard');
   const navigate = useNavigate();
   const { currentMission, progress, isLoading, completedMissions, allMissions } = useMissions();
 
-  // Memoize progress calculation
   const progressData = useMemo(() => {
     if (!currentMission) return null;
     const currentProgress = progress.get(currentMission.id);
@@ -37,7 +38,6 @@ export const MissionCard = memo(function MissionCard() {
     );
   }
 
-  // All missions complete
   if (!currentMission) {
     return (
       <Card className="p-5 border border-border dark:border-primary/12 bg-gradient-to-br from-gold-soft/30 via-card to-primary/10 dark:from-primary/15 dark:via-card dark:to-gold-soft/10">
@@ -47,10 +47,10 @@ export const MissionCard = memo(function MissionCard() {
           </div>
           <div className="flex-1">
             <h4 className="font-display text-lg font-semibold text-foreground mb-1">
-              🎉 Parabéns, Mestre do Estilo!
+              {t('missions.allComplete')}
             </h4>
             <p className="text-sm text-muted-foreground">
-              Você completou todas as {allMissions.length} missões. Continue explorando o Aura!
+              {t('missions.allCompleteDesc', { count: allMissions.length })}
             </p>
           </div>
         </div>
@@ -69,12 +69,7 @@ export const MissionCard = memo(function MissionCard() {
       )}
     >
       <div className="flex items-start gap-4">
-        <div 
-          className={cn(
-            "p-3 rounded-xl bg-primary/10 dark:bg-primary/20",
-            isNearComplete && "animate-pulse"
-          )}
-        >
+        <div className={cn("p-3 rounded-xl bg-primary/10 dark:bg-primary/20", isNearComplete && "animate-pulse")}>
           <Icon className="w-5 h-5 text-primary" />
         </div>
         <div className="flex-1">
@@ -83,7 +78,7 @@ export const MissionCard = memo(function MissionCard() {
               {CATEGORY_LABELS[currentMission.category]}
             </span>
             <span className="text-xs text-muted-foreground">
-              Missão {currentMission.order}/{allMissions.length}
+              {t('missions.mission')} {currentMission.order}/{allMissions.length}
             </span>
           </div>
           <h4 className="font-display text-lg font-semibold text-foreground mb-1">
@@ -93,12 +88,11 @@ export const MissionCard = memo(function MissionCard() {
             {currentMission.description}
           </p>
           
-          {/* Progress bar */}
           <div className="mb-4">
             <div className="flex justify-between text-xs text-muted-foreground mb-2">
               <span>
                 {currentProgress?.current ?? 0} de {currentProgress?.target ?? 0}
-                {currentMission.requirement.type === 'count' && ' itens'}
+                {currentMission.requirement.type === 'count' && ` ${t('missions.ofItems')}`}
               </span>
               <span className="flex items-center gap-1">
                 {Math.round(percentage)}%
@@ -109,9 +103,7 @@ export const MissionCard = memo(function MissionCard() {
               <div
                 className={cn(
                   "h-full rounded-full transition-all duration-700",
-                  isNearComplete 
-                    ? "bg-gradient-to-r from-primary via-gold-soft to-primary" 
-                    : "gradient-primary"
+                  isNearComplete ? "bg-gradient-to-r from-primary via-gold-soft to-primary" : "gradient-primary"
                 )}
                 style={{ width: `${percentage}%` }}
               />
@@ -120,7 +112,7 @@ export const MissionCard = memo(function MissionCard() {
 
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-primary flex items-center gap-1">
-              🏆 +{currentMission.reward.points} pontos
+              🏆 +{currentMission.reward.points} {t('missions.points')}
             </span>
             <Button
               onClick={() => navigate(currentMission.ctaRoute)}

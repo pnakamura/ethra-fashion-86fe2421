@@ -10,24 +10,23 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useProfile } from '@/hooks/useProfile';
 import { useWardrobeItems } from '@/hooks/useWardrobeItems';
+import { useTranslation } from 'react-i18next';
 
 export const LookOfTheDay = memo(function LookOfTheDay() {
+  const { t } = useTranslation('dashboard');
   const { user } = useAuth();
   const navigate = useNavigate();
   const { looks, isLoading, generateLooks, loadCachedLooks } = useLookRecommendations();
   const [hasLoaded, setHasLoaded] = useState(false);
 
-  // Use centralized hooks for profile and wardrobe
   const { profile, hasChromaticAnalysis } = useProfile();
   const { count: itemCount } = useWardrobeItems();
 
-  // Memoize derived state
   const { hasEnoughItems, canGenerateLooks } = useMemo(() => ({
     hasEnoughItems: itemCount >= 3,
     canGenerateLooks: hasChromaticAnalysis && itemCount >= 3,
   }), [itemCount, hasChromaticAnalysis]);
 
-  // Auto-load looks if conditions are met
   useEffect(() => {
     if (canGenerateLooks && !hasLoaded && looks.length === 0) {
       setHasLoaded(true);
@@ -45,7 +44,6 @@ export const LookOfTheDay = memo(function LookOfTheDay() {
     generateLooks(undefined, 1);
   };
 
-  // Not ready state
   if (!canGenerateLooks) {
     return (
       <Card className="overflow-hidden border border-border dark:border-primary/12">
@@ -54,15 +52,15 @@ export const LookOfTheDay = memo(function LookOfTheDay() {
           <div className="text-center z-10 px-6">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 dark:bg-primary/20 text-primary text-xs font-medium mb-4">
               <Sparkles className="w-3 h-3" />
-              Look do Dia
+              {t('lookOfTheDay.badge')}
             </div>
             <h3 className="text-2xl font-display font-semibold text-foreground mb-2">
-              {!hasChromaticAnalysis ? 'Descubra sua paleta' : 'Adicione mais peças'}
+              {!hasChromaticAnalysis ? t('lookOfTheDay.discoverPalette') : t('lookOfTheDay.addMoreItems')}
             </h3>
             <p className="text-sm text-muted-foreground">
               {!hasChromaticAnalysis 
-                ? 'Faça sua análise cromática para receber looks personalizados'
-                : `Você tem ${itemCount} peças. Adicione pelo menos 3 para receber sugestões.`}
+                ? t('lookOfTheDay.discoverPaletteDesc')
+                : t('lookOfTheDay.addMoreItemsDesc', { count: itemCount })}
             </p>
           </div>
         </div>
@@ -72,7 +70,7 @@ export const LookOfTheDay = memo(function LookOfTheDay() {
             className="w-full flex items-center justify-between py-3 px-4 rounded-xl bg-secondary dark:bg-secondary/50 hover:bg-accent dark:hover:bg-primary/10 transition-colors border border-transparent dark:border-primary/10"
           >
             <span className="text-sm font-medium text-secondary-foreground">
-              {!hasChromaticAnalysis ? 'Fazer análise cromática' : 'Adicionar peças'}
+              {!hasChromaticAnalysis ? t('lookOfTheDay.doAnalysis') : t('lookOfTheDay.addItems')}
             </span>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </button>
@@ -81,7 +79,6 @@ export const LookOfTheDay = memo(function LookOfTheDay() {
     );
   }
 
-  // Loading state
   if (isLoading && !todayLook) {
     return (
       <Card className="overflow-hidden border border-border dark:border-primary/12">
@@ -93,21 +90,14 @@ export const LookOfTheDay = memo(function LookOfTheDay() {
     );
   }
 
-  // Has look state
   if (todayLook) {
     return (
       <Card className="overflow-hidden border border-border dark:border-primary/12">
-        {/* Look preview */}
         <div className="relative h-64 bg-muted dark:bg-muted/30">
           <div className="absolute inset-0 grid grid-cols-2 gap-0.5">
             {todayLook.items.slice(0, 4).map((item, index) => (
               <div key={item.id} className="overflow-hidden">
-                <OptimizedImage
-                  src={item.image_url}
-                  alt={item.name || item.category}
-                  className="w-full h-full object-cover"
-                  priority={index < 2}
-                />
+                <OptimizedImage src={item.image_url} alt={item.name || item.category} className="w-full h-full object-cover" priority={index < 2} />
               </div>
             ))}
           </div>
@@ -115,14 +105,10 @@ export const LookOfTheDay = memo(function LookOfTheDay() {
           <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/20 dark:bg-primary/30 backdrop-blur-sm text-primary text-xs font-medium mb-2">
               <Sparkles className="w-3 h-3" />
-              Look do Dia
+              {t('lookOfTheDay.badge')}
             </div>
-            <h3 className="text-xl font-display font-semibold text-foreground">
-              {todayLook.name}
-            </h3>
-            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-              {todayLook.color_harmony}
-            </p>
+            <h3 className="text-xl font-display font-semibold text-foreground">{todayLook.name}</h3>
+            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{todayLook.color_harmony}</p>
             <AIDisclaimer variant="compact" className="mt-2" />
           </div>
         </div>
@@ -131,18 +117,10 @@ export const LookOfTheDay = memo(function LookOfTheDay() {
             onClick={() => navigate('/recommendations')}
             className="flex-1 flex items-center justify-between py-3 px-4 rounded-xl bg-secondary dark:bg-secondary/50 hover:bg-accent dark:hover:bg-primary/10 transition-colors border border-transparent dark:border-primary/10"
           >
-            <span className="text-sm font-medium text-secondary-foreground">
-              Ver mais looks
-            </span>
+            <span className="text-sm font-medium text-secondary-foreground">{t('lookOfTheDay.viewMore')}</span>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleRefresh}
-            disabled={isLoading}
-            className="rounded-xl dark:border-primary/20 dark:hover:bg-primary/10"
-          >
+          <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isLoading} className="rounded-xl dark:border-primary/20 dark:hover:bg-primary/10">
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
@@ -150,7 +128,6 @@ export const LookOfTheDay = memo(function LookOfTheDay() {
     );
   }
 
-  // Fallback - generate looks
   return (
     <Card className="overflow-hidden border border-border dark:border-primary/12">
       <div className="relative h-64 gradient-soft flex items-center justify-center">
@@ -158,25 +135,17 @@ export const LookOfTheDay = memo(function LookOfTheDay() {
         <div className="text-center z-10 px-6">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 dark:bg-primary/20 text-primary text-xs font-medium mb-4">
             <Sparkles className="w-3 h-3" />
-            Look do Dia
+            {t('lookOfTheDay.badge')}
           </div>
           <h3 className="text-2xl font-display font-semibold text-foreground mb-2">
-            Pronto para sugestões!
+            {t('lookOfTheDay.readyForSuggestions')}
           </h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Gere seu primeiro look personalizado
+            {t('lookOfTheDay.generateFirst')}
           </p>
-          <Button 
-            onClick={handleRefresh} 
-            className="rounded-xl gradient-primary dark:shadow-[0_0_15px_hsl(45_100%_55%_/_0.2)]"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Sparkles className="w-4 h-4 mr-2" />
-            )}
-            Gerar Look
+          <Button onClick={handleRefresh} className="rounded-xl gradient-primary dark:shadow-[0_0_15px_hsl(45_100%_55%_/_0.2)]" disabled={isLoading}>
+            {isLoading ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
+            {t('lookOfTheDay.generateLook')}
           </Button>
         </div>
       </div>

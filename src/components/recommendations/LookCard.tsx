@@ -7,6 +7,7 @@ import { CompatibilityBadge } from '@/components/wardrobe/CompatibilityBadge';
 import { LookHarmonyBadge } from './LookHarmonyBadge';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import type { RecommendedLook } from '@/hooks/useLookRecommendations';
+import { useTranslation } from 'react-i18next';
 
 interface LookCardProps {
   look: RecommendedLook;
@@ -15,7 +16,7 @@ interface LookCardProps {
 }
 
 export const LookCard = memo(function LookCard({ look, index, onOpenInCanvas }: LookCardProps) {
-  // Calculate chromatic stats
+  const { t } = useTranslation('recommendations');
   const chromaticItems = look.items.map(item => ({
     chromatic_compatibility: item.chromatic_compatibility,
   }));
@@ -27,7 +28,6 @@ export const LookCard = memo(function LookCard({ look, index, onOpenInCanvas }: 
       transition={{ delay: index * 0.1, duration: 0.4 }}
     >
       <Card className="overflow-hidden border-0 shadow-soft hover:shadow-elevated transition-shadow">
-        {/* Items preview */}
         <div className="relative aspect-[4/3] bg-muted">
           <div className="absolute inset-0 grid grid-cols-2 gap-0.5 p-0.5">
             {look.items.slice(0, 4).map((item) => (
@@ -47,7 +47,6 @@ export const LookCard = memo(function LookCard({ look, index, onOpenInCanvas }: 
             ))}
           </div>
           
-          {/* Harmony badge - TOP RIGHT */}
           <div className="absolute top-2 left-2 z-10">
             <LookHarmonyBadge 
               items={chromaticItems} 
@@ -57,7 +56,6 @@ export const LookCard = memo(function LookCard({ look, index, onOpenInCanvas }: 
             />
           </div>
           
-          {/* Look name overlay */}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-charcoal/80 to-transparent p-3">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-primary" />
@@ -66,14 +64,13 @@ export const LookCard = memo(function LookCard({ look, index, onOpenInCanvas }: 
           </div>
         </div>
 
-        {/* Details */}
         <div className="p-4 space-y-3">
           <div className="flex items-center gap-2">
             <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground capitalize">
               {look.occasion}
             </span>
             <span className="text-xs text-muted-foreground">
-              {look.items.length} peças
+              {look.items.length} {t('looks.pieces')}
             </span>
             {look.chromatic_score && (
               <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary flex items-center gap-1">
@@ -101,7 +98,7 @@ export const LookCard = memo(function LookCard({ look, index, onOpenInCanvas }: 
               onClick={() => onOpenInCanvas(look)}
             >
               <ExternalLink className="w-4 h-4 mr-2" />
-              Ver no Canvas
+              {t('looks.viewInCanvas')}
             </Button>
           )}
         </div>
