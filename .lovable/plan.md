@@ -1,97 +1,109 @@
 
 
-# AI Content Localization -- Edge Functions + Frontend Hooks
+# Localize the /welcome Landing Page (PT-BR + EN-US)
 
-## Overview
+## Problem
 
-All 7 AI-powered edge functions have hardcoded Portuguese prompts. When the user switches to English, UI labels change but AI-generated content (look names, color analysis, tips, etc.) remains in Portuguese. This plan adds `locale` passthrough from frontend to backend so AI responds in the correct language.
+The `/welcome` page has ~150 hardcoded Portuguese strings across 7 components. When accessed outside Brazil, the i18n system detects English but all landing page text remains in Portuguese because none of these components use `useTranslation()`.
 
-## Part 1: Frontend Hooks (pass `locale`)
+## Solution
 
-Each hook/component that calls an edge function will include `locale: i18n.language` in the request body.
+Create a new `landing` i18n namespace with all strings for both languages, register it in the i18n config, and update all 7 components to use `t()` calls.
 
-| File | Edge Function Called |
-|------|---------------------|
-| `src/hooks/useColorAnalysis.ts` | `analyze-colors` |
-| `src/hooks/useGarmentColorAnalysis.ts` | `analyze-garment-colors` |
-| `src/hooks/useLookRecommendations.ts` | `suggest-looks` |
-| `src/hooks/useVIPLooks.ts` | `suggest-vip-looks` |
-| `src/hooks/useTripWeather.ts` | `get-trip-weather` |
-| `src/components/events/EventPlanner.tsx` | `generate-event-look` |
-| `src/components/events/EventDetailSheet.tsx` | `generate-event-look` |
+## Step 1: Create Translation Files
 
-Pattern:
-```text
-import { useTranslation } from 'react-i18next';
-const { i18n } = useTranslation();
-const locale = i18n.language || 'pt-BR';
-body: { ...existingParams, locale }
-```
+Create `src/i18n/locales/pt-BR/landing.json` and `src/i18n/locales/en-US/landing.json` with keys organized by section:
 
-## Part 2: Edge Functions (bilingual prompts)
+| Section | Example Key | PT-BR | EN-US |
+|---------|------------|-------|-------|
+| hero | hero.badge | Programa Beta | Beta Program |
+| hero | hero.subtitle | Seu GPS de Estilo Pessoal | Your Personal Style GPS |
+| hero | hero.headline | Seja uma das primeiras a testar | Be one of the first to try it |
+| hero | hero.cta | Quero ser BETA tester | I want to be a BETA tester |
+| hero | hero.fewInvites | Poucos convites restantes | Few invites remaining |
+| hero | hero.featureColorimetry | Colorimetria por IA | AI Color Analysis |
+| demo | demo.badge | Simulacao interativa | Interactive Demo |
+| demo | demo.headline | Experimente agora | Try it now |
+| demo | demo.tabColorimetry | Colorimetria | Color Analysis |
+| demo | demo.tabTryOn | Provador Virtual | Virtual Try-On |
+| demo | demo.tabCloset | Closet Inteligente | Smart Closet |
+| chromatic | chromatic.selectProfile | Selecione um perfil para analise cromatica por IA | Select a profile for AI color analysis |
+| chromatic | chromatic.seasonSpringLight | Primavera Clara | Light Spring |
+| chromatic | chromatic.colorRosePetal | Rosa Petala | Rose Petal |
+| chromatic | chromatic.analyzingWithAI | Analisando com IA... | Analyzing with AI... |
+| chromatic | chromatic.colorsRecommended | 12 cores que te valorizam | 12 colors that enhance you |
+| chromatic | chromatic.colorsAvoid | Cores para evitar | Colors to avoid |
+| tryOn | tryOn.selectGarment | Escolha uma peca para experimentar virtualmente | Choose a garment to try on virtually |
+| tryOn | tryOn.garmentDress | Vestido Floral | Floral Dress |
+| tryOn | tryOn.processing | Processando prova virtual... | Processing virtual try-on... |
+| tryOn | tryOn.before | Antes | Before |
+| tryOn | tryOn.after | Depois | After |
+| tryOn | tryOn.processedIn | Processado em {{time}}s | Processed in {{time}}s |
+| tryOn | tryOn.paletteCompatible | {{score}}% compativel com sua paleta | {{score}}% compatible with your palette |
+| closet | closet.selectPieces | Selecione pecas para criar seu armario capsula | Select pieces to build your capsule wardrobe |
+| closet | closet.capsuleExplainer | Um armario capsula reune pecas versateis... | A capsule wardrobe brings together versatile pieces... |
+| closet | closet.generateCta | Gerar looks com IA | Generate looks with AI |
+| closet | closet.selectAtLeast3 | Selecione ao menos 3 pecas | Select at least 3 pieces |
+| closet | closet.harmonyScore | Score de Harmonia | Harmony Score |
+| signup | signup.badge | Programa BETA -- Testadores Exclusivos | BETA Program -- Exclusive Testers |
+| signup | signup.headline | Garanta sua vaga agora | Secure your spot now |
+| signup | signup.namePlaceholder | Seu nome | Your name |
+| signup | signup.emailPlaceholder | Seu melhor email | Your best email |
+| signup | signup.passwordPlaceholder | Crie uma senha | Create a password |
+| signup | signup.successTitle | Voce esta dentro! | You're in! |
+| footer | footer.terms | Termos de Uso | Terms of Use |
+| footer | footer.privacy | Privacidade | Privacy |
+| footer | footer.contact | Contato | Contact |
+| footer | footer.copyright | Todos os direitos reservados. | All rights reserved. |
 
-Each edge function reads `locale` from request body (default `'pt-BR'`), sets `isEN = locale.startsWith('en')`, and switches prompts accordingly.
+Plus all profile data (skin/eyes/hair descriptions, color names, season names, explanations), garment names, processing steps, closet item names, AI look names/occasions, harmony labels, and CTA texts.
 
-### 2A. analyze-colors
-- Switch system prompt and tool descriptions to English
-- Season display names: "Primavera Clara" becomes "Light Spring"
-- Color names in user's language
-- Season IDs unchanged (`spring-light`, etc.)
+## Step 2: Register the Namespace
 
-### 2B. analyze-garment-colors
-- Switch color analysis prompt to English
-- Color names in user's language
-- Enum values (`warm`, `cool`, etc.) unchanged
+Update `src/i18n/index.ts`:
+- Import `landingPtBR` and `landingEnUS`
+- Add `landing` to both `resources` objects and the `ns` array
 
-### 2C. suggest-looks
-- Switch full Aura stylist prompt to English
-- Look names, harmony explanations, styling tips in selected language
-- Error messages switch language
+## Step 3: Localize Each Component
 
-### 2D. suggest-vip-looks
-- Switch Aura Elite prompt to English
-- All descriptive fields in selected language
-- Celebrity names stay as-is (proper nouns)
+### 3A. BetaHero.tsx (~15 strings)
+- Add `useTranslation('landing')`
+- Move `features` array inside the component to access `t()`
+- Replace all hardcoded text: badge, subtitle, headline, description, feature titles/hints, social proof, CTA, reciprocity note
 
-### 2E. generate-event-look
-- Bilingual `dressCodeDescriptions` and `eventTypeContext`
-- Switch prompt to English
-- Response fields in selected language
+### 3B. DemoSection.tsx (~15 strings)
+- Add `useTranslation('landing')`
+- Move `TABS` and `CTA_TEXTS` arrays inside the component
+- Replace tab labels, titles, descriptions, progress counter, CTA texts
 
-### 2F. generate-daily-look
-- Switch weather labels, Aura prompt, notification title
-- "Look do Dia" becomes "Look of the Day"
+### 3C. ChromaticSim.tsx (~80 strings -- the largest)
+- Add `useTranslation('landing')`
+- Move `PROFILES` and `ANALYSIS_STEPS` inside the component
+- Replace all profile data: labels, season names, skin/eyes/hair descriptions, explanations, color names (both recommended and avoid), analysis step labels, UI labels
 
-### 2G. get-trip-weather
-- Switch `getTripTypeLabel()` to English
-- Bilingual system/user prompts
-- Fallback strings translated
-- Packing list category keys unchanged (code-level identifiers)
+### 3D. TryOnSim.tsx (~20 strings)
+- Add `useTranslation('landing')`
+- Move `GARMENTS` and `PROCESSING_STEPS` inside the component
+- Replace garment labels, processing step labels, Before/After labels, metrics text, CTA, placeholder text
 
-## What stays the SAME regardless of language
-- JSON structure keys (`chromatic_score`, `harmony_type`, `items`)
-- Enum values (`ideal`, `neutral`, `avoid`, `casual`, `formal`)
-- Season IDs (`spring-light`, `winter-deep`)
-- Packing list category keys (`roupas`, `calcados`, `acessorios`)
-- UUID references, numeric scores
+### 3E. ClosetSim.tsx (~40 strings)
+- Add `useTranslation('landing')`
+- Move `CAPSULE_ITEMS`, `CATEGORY_LABELS`, `AI_LOOKS`, `GENERATION_STEPS`, `HARMONY_LABELS` inside the component
+- Replace item names, category labels, look names/occasions, generation step labels, harmony labels, all UI text, CTAs
 
-## What CHANGES per language
-- Look names, descriptions, styling tips
-- Color names ("Azul Marinho" vs "Navy Blue")
-- Season display names ("Primavera Clara" vs "Light Spring")
-- Explanations, messages, notifications
-- Error messages returned to client
+### 3F. TesterSignupForm.tsx (~20 strings)
+- Add `useTranslation('landing')`
+- Move Zod schema inside component to use `t()` for error messages
+- Replace placeholders, button text, validation messages, success screen text, feature list
 
-## Risk Assessment
-- **Zero risk to PT-BR users**: Default locale is `pt-BR`; if no locale passed, prompts remain exactly as today
-- **No schema changes**: JSON keys and enum values unchanged
-- **Backward compatible**: Old cached content still displays correctly
+### 3G. Footer.tsx (~5 strings)
+- Add `useTranslation('landing')`
+- Replace link labels and copyright text
 
-## Implementation Order
-1. Update all 7 frontend files to pass `locale`
-2. Update `analyze-colors` and `analyze-garment-colors`
-3. Update `suggest-looks` and `suggest-vip-looks`
-4. Update `generate-event-look` and `generate-daily-look`
-5. Update `get-trip-weather`
-6. Deploy all edge functions
+## Technical Notes
+
+- Static data arrays that reference `t()` will be moved inside the component body or converted to functions
+- Image paths, hex color values, numeric scores, and IDs remain unchanged
+- The `ConsentCheckbox` component already uses `useTranslation('legal')` -- no changes needed
+- Total: ~200 translation keys across all sections
 
