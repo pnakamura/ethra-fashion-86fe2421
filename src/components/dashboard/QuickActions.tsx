@@ -1,15 +1,16 @@
 import { motion } from 'framer-motion';
 import { Plus, Sparkles, Palette, Plane, CalendarDays } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const BASE_ACTIONS = [
-  { id: 'wardrobe', icon: Plus, label: 'Nova Peça', path: '/wardrobe', color: 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary' },
-  { id: 'provador', icon: Sparkles, label: 'Provador', path: '/provador', color: 'bg-[hsl(238_45%_55%_/_0.15)] text-[hsl(240_50%_75%)] dark:bg-[hsl(238_45%_55%_/_0.2)] dark:text-[hsl(240_50%_75%)]' },
-  { id: 'chromatic', icon: Palette, label: 'Minha Paleta', path: '/chromatic', color: 'bg-season-summer/50 text-season-winter dark:bg-primary/15 dark:text-primary' },
-  { id: 'voyager', icon: Plane, label: 'Planejar', path: '/voyager', color: 'bg-season-autumn/30 text-season-autumn dark:bg-primary/15 dark:text-primary' },
+  { id: 'wardrobe', icon: Plus, labelKey: 'quickActions.newItem', path: '/wardrobe', color: 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary' },
+  { id: 'provador', icon: Sparkles, labelKey: 'quickActions.tryOn', path: '/provador', color: 'bg-[hsl(238_45%_55%_/_0.15)] text-[hsl(240_50%_75%)] dark:bg-[hsl(238_45%_55%_/_0.2)] dark:text-[hsl(240_50%_75%)]' },
+  { id: 'chromatic', icon: Palette, labelKey: 'quickActions.palette', path: '/chromatic', color: 'bg-season-summer/50 text-season-winter dark:bg-primary/15 dark:text-primary' },
+  { id: 'voyager', icon: Plane, labelKey: 'quickActions.plan', path: '/voyager', color: 'bg-season-autumn/30 text-season-autumn dark:bg-primary/15 dark:text-primary' },
 ];
 
-const AGENDA_ACTION = { id: 'events', icon: CalendarDays, label: 'Agenda', path: '/events', color: 'bg-season-autumn/30 text-season-autumn dark:bg-primary/15 dark:text-primary' };
+const AGENDA_ACTION = { id: 'events', icon: CalendarDays, labelKey: 'quickActions.agenda', path: '/events', color: 'bg-season-autumn/30 text-season-autumn dark:bg-primary/15 dark:text-primary' };
 
 function getOrderedActions(painPoint?: string | null) {
   if (!painPoint) return BASE_ACTIONS;
@@ -21,7 +22,6 @@ function getOrderedActions(painPoint?: string | null) {
     return reorder(['provador', 'wardrobe', 'chromatic', 'voyager']);
   }
   if (painPoint === 'evento') {
-    // Replace voyager with agenda, put agenda first
     const withAgenda = [AGENDA_ACTION, ...BASE_ACTIONS.filter(a => a.id !== 'voyager')];
     return withAgenda.slice(0, 4);
   }
@@ -37,6 +37,7 @@ interface QuickActionsProps {
 }
 
 export function QuickActions({ painPoint }: QuickActionsProps) {
+  const { t } = useTranslation('dashboard');
   const navigate = useNavigate();
   const actions = getOrderedActions(painPoint);
 
@@ -57,7 +58,7 @@ export function QuickActions({ painPoint }: QuickActionsProps) {
               <Icon className="w-5 h-5" />
             </div>
             <span className="text-xs font-medium text-muted-foreground">
-              {action.label}
+              {t(action.labelKey)}
             </span>
           </motion.button>
         );

@@ -22,10 +22,16 @@
   "nav": {
     "home": "Home",
     "wardrobe": "Closet",
-    "chromatic": "Color Analysis",
+    "looks": "Looks",
+    "chromatic": "Colors",
     "tryOn": "Try On",
     "canvas": "Canvas",
-    "settings": "Settings"
+    "settings": "Settings",
+    "events": "Events",
+    "voyager": "Voyager",
+    "more": "More",
+    "moreOptions": "More Options",
+    "palette": "My Palette"
   },
   "errors": {
     "sessionExpired": "Session expired. Please sign in again.",

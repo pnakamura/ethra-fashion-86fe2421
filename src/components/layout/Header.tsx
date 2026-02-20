@@ -9,22 +9,24 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfile } from '@/hooks/useProfile';
 import { getFirstName } from '@/lib/greeting';
+import { useTranslation } from 'react-i18next';
 
 interface HeaderProps {
   title?: string;
   showBack?: boolean;
 }
 
-const navLinks = [
-  { path: '/', label: 'Início', icon: Home },
-  { path: '/wardrobe', label: 'Closet', icon: Shirt },
-  { path: '/recommendations', label: 'Looks', icon: Sparkles },
-  { path: '/chromatic', label: 'Cores', icon: Palette },
-  { path: '/provador', label: 'Provador', icon: Camera },
-  { path: '/events', label: 'Agenda', icon: Calendar },
+const navLinkDefs = [
+  { path: '/', labelKey: 'nav.home', icon: Home },
+  { path: '/wardrobe', labelKey: 'nav.wardrobe', icon: Shirt },
+  { path: '/recommendations', labelKey: 'nav.looks', icon: Sparkles },
+  { path: '/chromatic', labelKey: 'nav.chromatic', icon: Palette },
+  { path: '/provador', labelKey: 'nav.tryOn', icon: Camera },
+  { path: '/events', labelKey: 'nav.events', icon: Calendar },
 ];
 
 export function Header({ title, showBack }: HeaderProps) {
+  const { t } = useTranslation();
   const { user, signOut } = useAuth();
   const { profile } = useProfile();
   const navigate = useNavigate();
@@ -112,7 +114,7 @@ export function Header({ title, showBack }: HeaderProps) {
         {/* Desktop Navigation */}
         {user && (
           <nav className="hidden lg:flex items-center gap-1">
-            {navLinks.map(link => {
+            {navLinkDefs.map(link => {
               const Icon = link.icon;
               const isActive = location.pathname === link.path;
               return (
@@ -128,7 +130,7 @@ export function Header({ title, showBack }: HeaderProps) {
                   )}
                 >
                   <Icon className="w-4 h-4" />
-                  {link.label}
+                  {t(link.labelKey)}
                 </Link>
               );
             })}

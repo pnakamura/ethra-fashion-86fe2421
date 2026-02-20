@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useTranslation } from 'react-i18next';
 import {
   Sheet,
   SheetContent,
@@ -13,28 +14,29 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 
-const mainNavItems = [
-  { path: '/', icon: Home, label: 'Início' },
-  { path: '/wardrobe', icon: Shirt, label: 'Closet' },
-  { path: '/recommendations', icon: Sparkles, label: 'Looks' },
-  { path: '/provador', icon: Camera, label: 'Provador' },
+const mainNavDefs = [
+  { path: '/', icon: Home, labelKey: 'nav.home' },
+  { path: '/wardrobe', icon: Shirt, labelKey: 'nav.wardrobe' },
+  { path: '/recommendations', icon: Sparkles, labelKey: 'nav.looks' },
+  { path: '/provador', icon: Camera, labelKey: 'nav.tryOn' },
 ];
 
-const moreMenuItems = [
-  { path: '/chromatic', icon: Palette, label: 'Minha Paleta', color: 'text-season-summer' },
-  { path: '/voyager', icon: Plane, label: 'Voyager', color: 'text-season-autumn' },
-  { path: '/events', icon: Calendar, label: 'Agenda', color: 'text-primary' },
-  { path: '/settings', icon: Settings, label: 'Configurações', color: 'text-muted-foreground' },
+const moreMenuDefs = [
+  { path: '/chromatic', icon: Palette, labelKey: 'nav.palette', color: 'text-season-summer' },
+  { path: '/voyager', icon: Plane, labelKey: 'nav.voyager', color: 'text-season-autumn' },
+  { path: '/events', icon: Calendar, labelKey: 'nav.events', color: 'text-primary' },
+  { path: '/settings', icon: Settings, labelKey: 'nav.settings', color: 'text-muted-foreground' },
 ];
 
 export function BottomNav() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
-  const isMoreActive = moreMenuItems.some(item => location.pathname === item.path);
+  const isMoreActive = moreMenuDefs.some(item => location.pathname === item.path);
 
   const handlePrefetch = useCallback((path: string) => {
     if (!user) return;
@@ -139,7 +141,7 @@ export function BottomNav() {
     <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
       <div className="bg-background/95 dark:bg-background/70 backdrop-blur-xl border-t border-border dark:border-t-[1.5px] dark:border-t-[hsl(42_85%_55%_/_0.3)] dark:shadow-[0_-1px_25px_hsl(42_85%_55%_/_0.12)]">
         <div className="flex items-center justify-around py-2 px-4 max-w-lg mx-auto md:max-w-2xl">
-          {mainNavItems.map((item) => {
+          {mainNavDefs.map((item) => {
             const isActive = location.pathname === item.path;
             const Icon = item.icon;
 
@@ -172,7 +174,7 @@ export function BottomNav() {
                       : 'text-muted-foreground'
                   }`}
                 >
-                  {item.label}
+                  {t(item.labelKey)}
                 </span>
               </Link>
             );
@@ -184,7 +186,7 @@ export function BottomNav() {
               <button
                 className="relative flex flex-col items-center py-2 px-3 rounded-xl transition-all"
                 onMouseEnter={() => {
-                  moreMenuItems.forEach(item => handlePrefetch(item.path));
+                  moreMenuDefs.forEach(item => handlePrefetch(item.path));
                 }}
               >
                 {isMoreActive && (
@@ -208,16 +210,16 @@ export function BottomNav() {
                       : 'text-muted-foreground'
                   }`}
                 >
-                  Mais
+                  {t('nav.more')}
                 </span>
               </button>
             </SheetTrigger>
             <SheetContent side="bottom" className="rounded-t-3xl pb-8">
               <SheetHeader className="pb-4">
-                <SheetTitle className="text-center font-display">Mais Opções</SheetTitle>
+                <SheetTitle className="text-center font-display">{t('nav.moreOptions')}</SheetTitle>
               </SheetHeader>
               <div className="grid grid-cols-2 gap-3">
-                {moreMenuItems.map((item) => {
+                {moreMenuDefs.map((item) => {
                   const Icon = item.icon;
                   const isActive = location.pathname === item.path;
                   
@@ -236,7 +238,7 @@ export function BottomNav() {
                         <Icon className="w-5 h-5" />
                       </div>
                       <span className={`font-medium ${isActive ? 'text-primary' : 'text-foreground'}`}>
-                        {item.label}
+                        {t(item.labelKey)}
                       </span>
                     </button>
                   );
