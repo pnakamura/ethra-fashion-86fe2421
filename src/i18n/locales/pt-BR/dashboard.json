@@ -22,5 +22,35 @@
     "eventAgenda": "Agenda de Eventos",
     "eventAgendaDesc": "Planeje o look perfeito"
   },
-  "loading": "Carregando..."
+  "loading": "Carregando...",
+  "lookOfTheDay": {
+    "badge": "Look do Dia",
+    "discoverPalette": "Descubra sua paleta",
+    "addMoreItems": "Adicione mais peças",
+    "discoverPaletteDesc": "Faça sua análise cromática para receber looks personalizados",
+    "addMoreItemsDesc": "Você tem {{count}} peças. Adicione pelo menos 3 para receber sugestões.",
+    "doAnalysis": "Fazer análise cromática",
+    "addItems": "Adicionar peças",
+    "readyForSuggestions": "Pronto para sugestões!",
+    "generateFirst": "Gere seu primeiro look personalizado",
+    "generateLook": "Gerar Look",
+    "viewMore": "Ver mais looks"
+  },
+  "missions": {
+    "allComplete": "🎉 Parabéns, Mestre do Estilo!",
+    "allCompleteDesc": "Você completou todas as {{count}} missões. Continue explorando o Aura!",
+    "mission": "Missão",
+    "points": "pontos",
+    "ofItems": "itens"
+  },
+  "achievements": {
+    "title": "Conquistas",
+    "missions": "missões",
+    "pts": "pts",
+    "badgesEarned": "Badges Conquistados",
+    "locked": "Bloqueado",
+    "nextMilestone": "Próximo Marco",
+    "styleMaster": "Mestre do Estilo!",
+    "allComplete": "Você completou todas as missões"
+  }
 }

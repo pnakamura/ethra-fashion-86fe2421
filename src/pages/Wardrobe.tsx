@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Plus, Filter, Check, Minus, AlertTriangle, Crown, Search, Shirt, Footprints, Gem, Glasses, Diamond } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -59,15 +60,8 @@ function getCategoryGroup(category: string): CategoryGroup {
   return CATEGORY_GROUPS[lower] || 'roupas';
 }
 
-const categoryChips: { value: CategoryGroup; label: string; icon: typeof Shirt }[] = [
-  { value: 'all', label: 'Todas', icon: Shirt },
-  { value: 'roupas', label: 'Roupas', icon: Shirt },
-  { value: 'calcados', label: 'Calçados', icon: Footprints },
-  { value: 'acessorios', label: 'Acessórios', icon: Glasses },
-  { value: 'joias', label: 'Joias', icon: Gem },
-];
-
 export default function Wardrobe() {
+  const { t } = useTranslation('wardrobe');
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<WardrobeItem | null>(null);
   const [compatibilityFilter, setCompatibilityFilter] = useState<CompatibilityFilter>('all');
@@ -85,11 +79,18 @@ export default function Wardrobe() {
   
   const firstName = getFirstName(profile?.username);
 
+  const categoryChips: { value: CategoryGroup; label: string; icon: typeof Shirt }[] = [
+    { value: 'all', label: t('categories.all'), icon: Shirt },
+    { value: 'roupas', label: t('categories.roupas'), icon: Shirt },
+    { value: 'calcados', label: t('categories.calcados'), icon: Footprints },
+    { value: 'acessorios', label: t('categories.acessorios'), icon: Glasses },
+    { value: 'joias', label: t('categories.joias'), icon: Gem },
+  ];
+
   // Auth guard
   useEffect(() => {
     if (!authLoading && !user) navigate('/welcome');
   }, [authLoading, user, navigate]);
-
 
   const filteredItems = useMemo(() => {
     let base = viewMode === 'capsule' ? items.filter(i => i.is_capsule) : items;
@@ -123,7 +124,7 @@ export default function Wardrobe() {
     onSuccess: () => {
       invalidate();
       queryClient.invalidateQueries({ queryKey: ['wardrobe-count'] });
-      toast({ title: 'Peça adicionada!', description: 'Sua peça foi salva no closet.' });
+      toast({ title: t('toasts.itemAdded'), description: t('toasts.itemAddedDesc') });
     },
   });
 
@@ -146,7 +147,7 @@ export default function Wardrobe() {
     },
     onSuccess: () => {
       invalidate();
-      toast({ title: 'Peça atualizada!', description: 'As alterações foram salvas.' });
+      toast({ title: t('toasts.itemUpdated'), description: t('toasts.itemUpdatedDesc') });
     },
   });
 
@@ -159,7 +160,7 @@ export default function Wardrobe() {
     onSuccess: () => {
       invalidate();
       queryClient.invalidateQueries({ queryKey: ['wardrobe-count'] });
-      toast({ title: 'Peça excluída', description: 'A peça foi removida do seu closet.' });
+      toast({ title: t('toasts.itemDeleted'), description: t('toasts.itemDeletedDesc') });
     },
   });
 
@@ -180,11 +181,9 @@ export default function Wardrobe() {
     },
     onSuccess: () => {
       invalidate();
-      toast({ title: 'Cápsula atualizada', description: 'Peça atualizada no armário cápsula.' });
+      toast({ title: t('toasts.capsuleUpdated'), description: t('toasts.capsuleUpdatedDesc') });
     },
   });
-
-
 
   const handleEdit = (item: WardrobeItem) => setEditingItem(item);
 
@@ -199,10 +198,10 @@ export default function Wardrobe() {
   const handleDelete = (id: string) => deleteMutation.mutate(id);
 
   const filterOptions = [
-    { value: 'all', label: 'Todas', icon: null, count: items.length },
-    { value: 'ideal', label: 'Ideais', icon: Check, color: 'text-emerald-600', count: idealItems.length },
-    { value: 'neutral', label: 'Neutras', icon: Minus, color: 'text-amber-600', count: neutralItems.length },
-    { value: 'avoid', label: 'Evitar', icon: AlertTriangle, color: 'text-rose-600', count: avoidItems.length },
+    { value: 'all', label: t('filters.all'), icon: null, count: items.length },
+    { value: 'ideal', label: t('filters.ideal'), icon: Check, color: 'text-emerald-600', count: idealItems.length },
+    { value: 'neutral', label: t('filters.neutral'), icon: Minus, color: 'text-amber-600', count: neutralItems.length },
+    { value: 'avoid', label: t('filters.avoid'), icon: AlertTriangle, color: 'text-rose-600', count: avoidItems.length },
   ];
 
   const activeFilter = filterOptions.find(f => f.value === compatibilityFilter);
@@ -210,17 +209,17 @@ export default function Wardrobe() {
 
   return (
     <>
-      <Header title="Meu Closet" />
+      <Header title={t('title')} />
       <PageContainer className="px-4 py-6">
         <div className="max-w-lg mx-auto space-y-4">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-display font-semibold">
-                {firstName ? `Closet de ${firstName}` : 'Seu Closet'}
+                {firstName ? t('closetOf', { name: firstName }) : t('yourCloset')}
               </h2>
               <p className="text-sm text-muted-foreground">
-                {filteredItems.length}{hasActiveFilters ? ` de ${items.length}` : ''} itens
+                {filteredItems.length}{hasActiveFilters ? ` ${t('itemsOf', { total: items.length })}` : ` ${t('items')}`}
               </p>
               {/* Compatibility summary */}
               {items.length > 0 && (
@@ -277,22 +276,22 @@ export default function Wardrobe() {
               </DropdownMenu>
               {wardrobePermission.hasAccess ? (
                 <Button onClick={() => setIsAddOpen(true)} className="rounded-xl gradient-primary text-primary-foreground">
-                  <Plus className="w-4 h-4 mr-1" /> Nova
+                  <Plus className="w-4 h-4 mr-1" /> {t('new')}
                 </Button>
               ) : (
                 <Button onClick={() => navigate('/subscription')} variant="outline" className="rounded-xl">
-                  <Crown className="w-4 h-4 mr-1" /> Upgrade
+                  <Crown className="w-4 h-4 mr-1" /> {t('upgrade')}
                 </Button>
               )}
             </div>
           </div>
 
-          {/* Search bar - visible when 6+ items */}
+          {/* Search bar */}
           {items.length >= 6 && (
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar peças..."
+                placeholder={t('search')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -303,7 +302,6 @@ export default function Wardrobe() {
           {/* View mode + Category chips */}
           {items.length > 0 && (
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-              {/* Capsule toggle chip */}
               <motion.button
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -315,7 +313,7 @@ export default function Wardrobe() {
                 }`}
               >
                 <Diamond className="w-3.5 h-3.5" />
-                Cápsula
+                {t('capsule')}
                 {capsuleCount > 0 && (
                   <span className="ml-0.5 text-[10px] opacity-80">({capsuleCount})</span>
                 )}

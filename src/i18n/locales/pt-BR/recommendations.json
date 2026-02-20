@@ -1,0 +1,91 @@
+{
+  "occasions": {
+    "all": "Todos",
+    "casual": "Casual",
+    "trabalho": "Trabalho",
+    "festa": "Festa",
+    "formal": "Formal"
+  },
+  "noAnalysis": {
+    "title": "Descubra sua paleta primeiro",
+    "desc": "Faça sua análise cromática para receber recomendações de looks personalizadas baseadas nas cores que mais valorizam você.",
+    "cta": "Fazer Análise Cromática"
+  },
+  "hero": {
+    "palette": "Sua paleta cromática"
+  },
+  "actions": {
+    "generateLook": "Gerar Look",
+    "myCloset": "Meu Closet",
+    "tryOn": "Provar",
+    "capsuleOnly": "Apenas Cápsula"
+  },
+  "tabs": {
+    "looks": "Looks",
+    "vip": "VIP",
+    "harmony": "Harmonia"
+  },
+  "looks": {
+    "noLooks": "Nenhum look gerado ainda",
+    "generateFirst": "Gerar primeiro look",
+    "suggested": "Looks sugeridos",
+    "looksCount": "{{count}} looks",
+    "details": "Detalhes",
+    "pieces": "peças",
+    "viewInCanvas": "Ver no Canvas"
+  },
+  "tryOnCard": {
+    "title": "Prova virtual",
+    "desc": "Experimente as peças no provador IA",
+    "cta": "Provar"
+  },
+  "vip": {
+    "title": "Looks Exclusivos",
+    "creating": "Criando...",
+    "generate": "Gerar VIP",
+    "noLooks": "Nenhum look VIP gerado",
+    "noLooksDesc": "Gere looks exclusivos com tendências de passarela e harmonias avançadas",
+    "generateVIP": "Gerar Looks VIP",
+    "inspiredBy": "Inspirado em",
+    "investmentPiece": "Peça de Investimento",
+    "styleTips": "Segredos de Styling",
+    "tryOnTooltip": "Experimentar no Provador Virtual"
+  },
+  "locked": {
+    "title": "Looks Exclusivos VIP",
+    "desc": "Desbloqueie looks de passarela personalizados com harmonias cromáticas avançadas, tendências atuais e dicas exclusivas de styling.",
+    "features": ["Tendências de Passarela", "Harmonias Avançadas", "Styling Premium"],
+    "cta": "Upgrade para Muse",
+    "exclusive": "Exclusivo para assinantes Muse"
+  },
+  "harmony": {
+    "title": "Minha Harmonia",
+    "closetCompat": "Compatibilidade do closet",
+    "idealPercent": "{{percent}}% ideal",
+    "ideal": "Ideais",
+    "neutral": "Neutras",
+    "avoid": "Evitar",
+    "notAnalyzed": "Não analisadas",
+    "addPhotos": "Adicione fotos às peças para análise de cores automática",
+    "yourIdealColors": "Suas cores ideais",
+    "colorsToAvoid": "Cores a evitar",
+    "redoAnalysis": "Refazer análise cromática"
+  },
+  "harmonyBadge": {
+    "excellent": "Excelente",
+    "good": "Boa",
+    "low": "Baixa",
+    "chromaticHarmony": "Harmonia Cromática",
+    "ideals": "ideais",
+    "neutrals": "neutras",
+    "avoids": "evitar",
+    "type": "Tipo"
+  },
+  "suggestions": {
+    "title": "Looks Sugeridos",
+    "generating": "Gerando...",
+    "new": "Novo",
+    "viewAll": "Ver todos",
+    "tryAgain": "Tentar novamente"
+  }
+}
