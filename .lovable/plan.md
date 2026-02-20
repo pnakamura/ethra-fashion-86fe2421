@@ -1,43 +1,59 @@
 
-# Add Language Selector to /welcome Page
 
-## What will be added
+# Responsive Fixes for /welcome Page
 
-A compact language toggle (PT / EN) positioned in the top-right corner of the landing page, next to the existing theme toggle (sun/moon switch). Clicking each option switches the entire page language instantly.
+## Issues Found
 
-## Design
+After inspecting the page at 375px (mobile), 768px (tablet), and 1920px (desktop), these responsive problems were identified:
 
-The selector will be two small pill buttons side by side showing the country flags (or text "PT" / "EN"), with the active language highlighted. It sits to the left of the theme toggle in the fixed top-right toolbar.
+1. **Language/theme toggle overlaps content on small screens** -- the fixed top-right bar with PT/EN + sun/moon controls is too wide for very small screens and sits too close to page content
+2. **Chromatic color grid uses `grid-cols-6` at all sizes** -- on a 375px screen, each swatch is tiny and color names are unreadable
+3. **Chromatic result metadata (skin/eyes/hair) wraps awkwardly on mobile** -- all metadata is on two long lines that break mid-word
+4. **Demo section container padding is large on mobile** -- `p-5 md:p-10 lg:p-12` but even `p-5` combined with the outer `px-6` leaves little room for content
+5. **Closet item text truncates on small screens** -- the item cards with thumbnail + name are tight at `grid-cols-2`
+6. **Hero heading sizes could be slightly smaller on the smallest screens** -- `text-3xl` for h2 is fine but the description paragraph could use tighter line-height on mobile
 
-```text
- [ PT | EN ]   [sun] [switch] [moon]
-```
+## Changes
 
-## Technical Details
+### 1. BetaHero.tsx -- Compact mobile toolbar
+- Reduce gap and padding on mobile for the fixed top-right controls
+- Use `top-4 right-4 gap-2 sm:top-6 sm:right-6 sm:gap-3` for better mobile fit
+- Make sun/moon icons slightly smaller on mobile
 
-### File: `src/components/landing/BetaHero.tsx`
+### 2. ChromaticSim.tsx -- Responsive color grid and metadata
+- Change color grid from `grid-cols-6` to `grid-cols-4 sm:grid-cols-6` so swatches are readable on mobile
+- Stack the skin/eyes/hair metadata vertically on mobile instead of two horizontal lines
+- Reduce photo sizes slightly for tight mobile layouts
 
-- Import `useTranslation` (already imported) and use `i18n.changeLanguage()`
-- Add a language toggle next to the theme switch in the fixed top-right bar
-- Active language gets `bg-primary text-primary-foreground` styling; inactive gets ghost styling
-- On click, calls `i18n.changeLanguage('pt-BR')` or `i18n.changeLanguage('en-US')` and persists via `localStorage.setItem('ethra-locale', lng)`
-- Current language detected from `i18n.language`
+### 3. DemoSection.tsx -- Tighter mobile padding
+- Reduce inner card padding from `p-5` to `p-4 md:p-8 lg:p-12` for breathing room
+- Reduce outer section padding from `py-24 px-6` to `py-16 px-4 md:py-24 md:px-6`
 
-### UI Component
+### 4. TryOnSim.tsx -- Tighter mobile spacing
+- Reduce before/after image sizes on very small screens: `w-32 h-44 sm:w-36 sm:h-48 md:w-44 md:h-56`
 
-```text
-<div className="fixed top-6 right-6 z-50 flex items-center gap-3">
-  {/* Language toggle */}
-  <div className="flex items-center rounded-full border ...">
-    <button onClick={() => switchLang('pt-BR')} className={active/inactive}>PT</button>
-    <button onClick={() => switchLang('en-US')} className={active/inactive}>EN</button>
-  </div>
+### 5. ClosetSim.tsx -- Better mobile item layout
+- Use `grid-cols-1 sm:grid-cols-2` for capsule item categories on small screens
+- Slightly reduce item thumbnail size on mobile
 
-  {/* Existing theme toggle */}
-  <Sun /> <Switch /> <Moon />
-</div>
-```
+### 6. TesterSignupForm.tsx -- Minor mobile polish
+- Reduce section padding from `py-24` to `py-16 md:py-24`
 
-### No new files needed
-- No new translation keys required (the toggle uses "PT" and "EN" labels which are language-agnostic)
-- No backend changes
+### 7. Footer.tsx -- Minor mobile polish
+- Reduce link gap from `gap-8` to `gap-4 sm:gap-8`
+- Reduce text size on mobile from `text-base` to `text-sm sm:text-base`
+
+## Summary of Files Changed
+
+| File | Change |
+|------|--------|
+| BetaHero.tsx | Compact mobile toolbar positioning |
+| ChromaticSim.tsx | Responsive color grid (4 cols mobile, 6 desktop), stacked metadata |
+| DemoSection.tsx | Tighter mobile padding |
+| TryOnSim.tsx | Smaller before/after images on mobile |
+| ClosetSim.tsx | Single-column categories on mobile |
+| TesterSignupForm.tsx | Reduced section padding on mobile |
+| Footer.tsx | Tighter mobile link spacing |
+
+All changes are Tailwind class adjustments only -- no structural or logic changes.
+
