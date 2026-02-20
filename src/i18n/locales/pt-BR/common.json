@@ -1,0 +1,38 @@
+{
+  "greeting": {
+    "morning": "Bom dia",
+    "afternoon": "Boa tarde",
+    "evening": "Boa noite"
+  },
+  "actions": {
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "back": "Voltar",
+    "next": "Próximo",
+    "close": "Fechar",
+    "send": "Enviar",
+    "export": "Exportar",
+    "loading": "Carregando...",
+    "saving": "Salvando...",
+    "agree": "Concordo"
+  },
+  "nav": {
+    "home": "Início",
+    "wardrobe": "Closet",
+    "chromatic": "Cromática",
+    "tryOn": "Provador",
+    "canvas": "Canvas",
+    "settings": "Configurações"
+  },
+  "errors": {
+    "sessionExpired": "Sessão expirada. Faça login novamente.",
+    "generic": "Ocorreu um erro. Tente novamente.",
+    "exportFailed": "Erro ao exportar dados. Tente novamente."
+  },
+  "user": {
+    "defaultName": "Usuário"
+  }
+}

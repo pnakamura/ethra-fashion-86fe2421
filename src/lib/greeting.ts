@@ -1,3 +1,5 @@
+import i18n from '@/i18n';
+
 /**
  * Get a personalized greeting based on time of day
  */
@@ -6,11 +8,11 @@ export function getGreeting(name?: string | null): string {
   
   let timeGreeting: string;
   if (hour < 12) {
-    timeGreeting = 'Bom dia';
+    timeGreeting = i18n.t('greeting.morning', { ns: 'common' });
   } else if (hour < 18) {
-    timeGreeting = 'Boa tarde';
+    timeGreeting = i18n.t('greeting.afternoon', { ns: 'common' });
   } else {
-    timeGreeting = 'Boa noite';
+    timeGreeting = i18n.t('greeting.evening', { ns: 'common' });
   }
   
   if (name) {

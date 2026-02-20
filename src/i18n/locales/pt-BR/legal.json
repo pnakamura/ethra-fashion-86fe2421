@@ -1,0 +1,44 @@
+{
+  "aiDisclaimer": {
+    "compact": "Gerado por IA",
+    "inline": "Resultado gerado por Inteligência Artificial para fins de entretenimento e autoconhecimento.",
+    "bannerTitle": "Análise gerada por Inteligência Artificial",
+    "bannerDescription": "Esta análise é gerada por IA para fins de entretenimento e autoconhecimento. Não substitui consultoria profissional de imagem ou dermatológica."
+  },
+  "celebrityDisclaimer": {
+    "inline": "Nomes de celebridades são usados apenas como referência ilustrativa de coloração pessoal, sem vínculo comercial ou endorsement.",
+    "subtle": "* Nomes de celebridades são usados apenas como referência ilustrativa de coloração pessoal."
+  },
+  "biometricConsent": {
+    "colorAnalysis": {
+      "title": "Análise Cromática",
+      "description": "Para realizar a análise cromática, precisamos processar sua foto usando Inteligência Artificial.",
+      "items": {
+        "skinAnalysis": "Análise do tom de pele, olhos e cabelo",
+        "aiProcessing": "Processamento por IA (Google Gemini)",
+        "photoDiscarded": "Foto descartada imediatamente após análise"
+      }
+    },
+    "tryOn": {
+      "title": "Provador Virtual",
+      "description": "Para simular a peça em você, precisamos processar sua foto usando Inteligência Artificial.",
+      "items": {
+        "bodyAnalysis": "Análise de proporções corporais",
+        "aiProcessing": "Processamento por IA (Vertex AI / Gemini)",
+        "faceAnonymize": "Opção de anonimizar rosto disponível",
+        "resultExpiry": "Resultados expiram em 30 dias"
+      }
+    },
+    "lgpdNotice": "Este é um consentimento específico para processamento de dados biométricos faciais. Você pode revogar a qualquer momento em",
+    "lgpdLaw": "LGPD Art. 11:",
+    "settingsPrivacy": "Configurações → Privacidade",
+    "consentDescription": "Consentimento para processamento de dados biométricos"
+  },
+  "consent": {
+    "termsLabel": "Li e aceito os",
+    "termsLink": "Termos de Uso",
+    "and": "e a",
+    "privacyLink": "Política de Privacidade",
+    "ageConfirmation": "Declaro ter 18 anos ou mais."
+  }
+}

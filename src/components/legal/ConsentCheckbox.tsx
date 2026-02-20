@@ -1,6 +1,7 @@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface ConsentCheckboxProps {
   id: string;
@@ -17,6 +18,8 @@ export function ConsentCheckbox({
   className,
   error 
 }: ConsentCheckboxProps) {
+  const { t } = useTranslation('legal');
+
   return (
     <div className={cn("flex items-start gap-3", className)}>
       <Checkbox
@@ -35,21 +38,21 @@ export function ConsentCheckbox({
           error && "text-destructive"
         )}
       >
-        Li e aceito os{' '}
+        {t('consent.termsLabel')}{' '}
         <Link 
           to="/terms" 
           className="text-primary hover:underline"
           target="_blank"
         >
-          Termos de Uso
+          {t('consent.termsLink')}
         </Link>
-        {' '}e a{' '}
+        {' '}{t('consent.and')}{' '}
         <Link 
           to="/privacy-policy" 
           className="text-primary hover:underline"
           target="_blank"
         >
-          Política de Privacidade
+          {t('consent.privacyLink')}
         </Link>
         .
       </label>
@@ -72,6 +75,8 @@ export function AgeConfirmationCheckbox({
   className,
   error 
 }: AgeConfirmationCheckboxProps) {
+  const { t } = useTranslation('legal');
+
   return (
     <div className={cn("flex items-start gap-3", className)}>
       <Checkbox
@@ -90,7 +95,7 @@ export function AgeConfirmationCheckbox({
           error && "text-destructive"
         )}
       >
-        Declaro ter 18 anos ou mais.
+        {t('consent.ageConfirmation')}
       </label>
     </div>
   );

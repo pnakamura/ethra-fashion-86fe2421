@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 
 interface BiometricConsentModalProps {
   isOpen: boolean;
@@ -25,9 +26,9 @@ export function BiometricConsentModal({
   processingType = 'color-analysis'
 }: BiometricConsentModalProps) {
   const { user } = useAuth();
+  const { t } = useTranslation('legal');
 
   const handleAccept = async () => {
-    // Log biometric consent timestamp
     if (user) {
       try {
         await supabase
@@ -43,22 +44,22 @@ export function BiometricConsentModal({
 
   const processingInfo = {
     'color-analysis': {
-      title: 'Análise Cromática',
-      description: 'Para realizar a análise cromática, precisamos processar sua foto usando Inteligência Artificial.',
+      title: t('biometricConsent.colorAnalysis.title'),
+      description: t('biometricConsent.colorAnalysis.description'),
       items: [
-        { icon: Check, text: 'Análise do tom de pele, olhos e cabelo', color: 'text-green-500' },
-        { icon: Check, text: 'Processamento por IA (Google Gemini)', color: 'text-green-500' },
-        { icon: Trash2, text: 'Foto descartada imediatamente após análise', color: 'text-amber-500' },
+        { icon: Check, text: t('biometricConsent.colorAnalysis.items.skinAnalysis'), color: 'text-green-500' },
+        { icon: Check, text: t('biometricConsent.colorAnalysis.items.aiProcessing'), color: 'text-green-500' },
+        { icon: Trash2, text: t('biometricConsent.colorAnalysis.items.photoDiscarded'), color: 'text-amber-500' },
       ]
     },
     'try-on': {
-      title: 'Provador Virtual',
-      description: 'Para simular a peça em você, precisamos processar sua foto usando Inteligência Artificial.',
+      title: t('biometricConsent.tryOn.title'),
+      description: t('biometricConsent.tryOn.description'),
       items: [
-        { icon: Check, text: 'Análise de proporções corporais', color: 'text-green-500' },
-        { icon: Check, text: 'Processamento por IA (Vertex AI / Gemini)', color: 'text-green-500' },
-        { icon: Shield, text: 'Opção de anonimizar rosto disponível', color: 'text-blue-500' },
-        { icon: Trash2, text: 'Resultados expiram em 30 dias', color: 'text-amber-500' },
+        { icon: Check, text: t('biometricConsent.tryOn.items.bodyAnalysis'), color: 'text-green-500' },
+        { icon: Check, text: t('biometricConsent.tryOn.items.aiProcessing'), color: 'text-green-500' },
+        { icon: Shield, text: t('biometricConsent.tryOn.items.faceAnonymize'), color: 'text-blue-500' },
+        { icon: Trash2, text: t('biometricConsent.tryOn.items.resultExpiry'), color: 'text-amber-500' },
       ]
     }
   };
@@ -74,7 +75,7 @@ export function BiometricConsentModal({
             {info.title}
           </DialogTitle>
           <DialogDescription className="sr-only">
-            Consentimento para processamento de dados biométricos
+            {t('biometricConsent.consentDescription')}
           </DialogDescription>
         </DialogHeader>
 
@@ -97,20 +98,19 @@ export function BiometricConsentModal({
 
           <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
             <p className="text-xs text-muted-foreground leading-relaxed">
-              <strong className="text-foreground">LGPD Art. 11:</strong> Este é um consentimento 
-              específico para processamento de dados biométricos faciais. Você pode revogar a qualquer 
-              momento em <span className="text-primary">Configurações → Privacidade</span>.
+              <strong className="text-foreground">{t('biometricConsent.lgpdLaw')}</strong> {t('biometricConsent.lgpdNotice')}{' '}
+              <span className="text-primary">{t('biometricConsent.settingsPrivacy')}</span>.
             </p>
           </div>
         </div>
 
         <DialogFooter className="flex-row gap-2">
           <Button variant="outline" onClick={onDecline} className="flex-1">
-            Cancelar
+            {t('actions.cancel', { ns: 'common' })}
           </Button>
           <Button onClick={handleAccept} className="flex-1 gradient-primary text-primary-foreground">
             <Check className="w-4 h-4 mr-2" />
-            Concordo
+            {t('actions.agree', { ns: 'common' })}
           </Button>
         </DialogFooter>
       </DialogContent>
