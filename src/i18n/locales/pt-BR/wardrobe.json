@@ -1,0 +1,131 @@
+{
+  "title": "Meu Closet",
+  "closetOf": "Closet de {{name}}",
+  "yourCloset": "Seu Closet",
+  "items": "itens",
+  "itemsOf": "de {{total}} itens",
+  "filters": {
+    "all": "Todas",
+    "ideal": "Ideais",
+    "neutral": "Neutras",
+    "avoid": "Evitar"
+  },
+  "categories": {
+    "all": "Todas",
+    "roupas": "Roupas",
+    "calcados": "Calçados",
+    "acessorios": "Acessórios",
+    "joias": "Joias"
+  },
+  "capsule": "Cápsula",
+  "new": "Nova",
+  "upgrade": "Upgrade",
+  "search": "Buscar peças...",
+  "toasts": {
+    "itemAdded": "Peça adicionada!",
+    "itemAddedDesc": "Sua peça foi salva no closet.",
+    "itemUpdated": "Peça atualizada!",
+    "itemUpdatedDesc": "As alterações foram salvas.",
+    "itemDeleted": "Peça excluída",
+    "itemDeletedDesc": "A peça foi removida do seu closet.",
+    "capsuleUpdated": "Cápsula atualizada",
+    "capsuleUpdatedDesc": "Peça atualizada no armário cápsula."
+  },
+  "addItem": {
+    "title": "Nova Peça",
+    "analyzingColors": "Analisando cores...",
+    "addPhoto": "Adicionar foto",
+    "orDragHere": "ou arraste aqui",
+    "detectedColors": "Cores detectadas:",
+    "camera": "Câmera",
+    "gallery": "Galeria",
+    "nameLabel": "Nome (opcional)",
+    "namePlaceholder": "Ex: Blusa de seda branca",
+    "categoryLabel": "Categoria *",
+    "selectPlaceholder": "Selecione",
+    "colorLabel": "Cor",
+    "seasonLabel": "Estação",
+    "occasionLabel": "Ocasião",
+    "analyzing": "Analisando...",
+    "submit": "Adicionar ao Closet"
+  },
+  "editItem": {
+    "title": "Editar Peça",
+    "capsulePiece": "Peça Cápsula",
+    "capsuleDesc": "Incluir no armário cápsula",
+    "save": "Salvar Alterações"
+  },
+  "categoryGroups": {
+    "Roupas": "Roupas",
+    "Calçados": "Calçados",
+    "Acessórios": "Acessórios",
+    "Joias": "Joias"
+  },
+  "seasons": {
+    "primavera": "Primavera",
+    "verao": "Verão",
+    "outono": "Outono",
+    "inverno": "Inverno",
+    "todas": "Todas"
+  },
+  "occasions": {
+    "casual": "Casual",
+    "trabalho": "Trabalho",
+    "festa": "Festa",
+    "esporte": "Esporte",
+    "formal": "Formal"
+  },
+  "emptyState": {
+    "noItemsFilter": "Nenhuma peça com compatibilidade \"{{filter}}\"",
+    "viewAll": "Ver todas as peças",
+    "closetWaiting": "Seu closet está esperando",
+    "addFavorites": "Adicione suas peças favoritas e descubra combinações perfeitas com IA",
+    "addFirst": "Adicionar primeira peça",
+    "photoAI": "Tire uma foto e a IA analisa as cores automaticamente"
+  },
+  "itemCard": {
+    "removeFavorite": "Remover dos favoritos",
+    "addFavorite": "Adicionar aos favoritos",
+    "moreOptions": "Mais opções",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "noName": "Sem nome"
+  },
+  "grid": {
+    "removeCapsule": "Remover da Cápsula",
+    "addCapsule": "Adicionar à Cápsula",
+    "deleteTitle": "Excluir peça?",
+    "deleteDesc": "Esta ação não pode ser desfeita. A peça será removida permanentemente do seu closet.",
+    "cancel": "Cancelar",
+    "confirmDelete": "Excluir"
+  },
+  "capsuleGuide": {
+    "title": "Armário Cápsula",
+    "piecesSelected": "{{count}} peças selecionadas",
+    "buildEssential": "Monte sua coleção essencial",
+    "whatIsIt": "O que é?",
+    "whatIsItDesc": "Um armário cápsula é uma coleção curada de 30–40 peças versáteis que se combinam entre si, reduzindo decisões diárias e maximizando looks com menos peças. Ideal para quem busca praticidade sem abrir mão do estilo.",
+    "howToBuild": "Como montar",
+    "steps": [
+      "Escolha 30–40 peças versáteis do seu closet",
+      "Priorize peças com compatibilidade \"Ideal\" (badge verde)",
+      "Inclua básicos neutros + peças-destaque",
+      "Garanta cobertura de categorias (roupas, calçados, acessórios)",
+      "A IA sugere peças que faltam para completar"
+    ],
+    "howToUse": "Como usar no app",
+    "howToUseDesc": "Marque peças como \"Cápsula\" usando o ícone de diamante no menu de cada peça. Depois, filtre por \"Cápsula\" para ver apenas sua coleção essencial. Em Looks, ative \"Apenas Cápsula\" para receber sugestões focadas."
+  },
+  "capsuleHealth": {
+    "title": "Saúde da Cápsula",
+    "pieces": "peças",
+    "complete": "completo",
+    "ideal": "ideais"
+  },
+  "compatibility": {
+    "ideal": "Ideal",
+    "neutral": "Neutro",
+    "avoid": "Evitar",
+    "unknown": "Não analisado"
+  }
+}

@@ -22,5 +22,35 @@
     "eventAgenda": "Event Agenda",
     "eventAgendaDesc": "Plan the perfect outfit"
   },
-  "loading": "Loading..."
+  "loading": "Loading...",
+  "lookOfTheDay": {
+    "badge": "Look of the Day",
+    "discoverPalette": "Discover your palette",
+    "addMoreItems": "Add more items",
+    "discoverPaletteDesc": "Do your chromatic analysis to receive personalized looks",
+    "addMoreItemsDesc": "You have {{count}} items. Add at least 3 to receive suggestions.",
+    "doAnalysis": "Do chromatic analysis",
+    "addItems": "Add items",
+    "readyForSuggestions": "Ready for suggestions!",
+    "generateFirst": "Generate your first personalized look",
+    "generateLook": "Generate Look",
+    "viewMore": "View more looks"
+  },
+  "missions": {
+    "allComplete": "🎉 Congratulations, Style Master!",
+    "allCompleteDesc": "You completed all {{count}} missions. Keep exploring Aura!",
+    "mission": "Mission",
+    "points": "points",
+    "ofItems": "items"
+  },
+  "achievements": {
+    "title": "Achievements",
+    "missions": "missions",
+    "pts": "pts",
+    "badgesEarned": "Badges Earned",
+    "locked": "Locked",
+    "nextMilestone": "Next Milestone",
+    "styleMaster": "Style Master!",
+    "allComplete": "You completed all missions"
+  }
 }

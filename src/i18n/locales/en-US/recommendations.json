@@ -1,0 +1,91 @@
+{
+  "occasions": {
+    "all": "All",
+    "casual": "Casual",
+    "trabalho": "Work",
+    "festa": "Party",
+    "formal": "Formal"
+  },
+  "noAnalysis": {
+    "title": "Discover your palette first",
+    "desc": "Do your chromatic analysis to receive personalized look recommendations based on the colors that flatter you most.",
+    "cta": "Do Chromatic Analysis"
+  },
+  "hero": {
+    "palette": "Your chromatic palette"
+  },
+  "actions": {
+    "generateLook": "Generate Look",
+    "myCloset": "My Closet",
+    "tryOn": "Try On",
+    "capsuleOnly": "Capsule Only"
+  },
+  "tabs": {
+    "looks": "Looks",
+    "vip": "VIP",
+    "harmony": "Harmony"
+  },
+  "looks": {
+    "noLooks": "No looks generated yet",
+    "generateFirst": "Generate first look",
+    "suggested": "Suggested Looks",
+    "looksCount": "{{count}} looks",
+    "details": "Details",
+    "pieces": "pieces",
+    "viewInCanvas": "View in Canvas"
+  },
+  "tryOnCard": {
+    "title": "Virtual try-on",
+    "desc": "Try on pieces in the AI fitting room",
+    "cta": "Try On"
+  },
+  "vip": {
+    "title": "Exclusive Looks",
+    "creating": "Creating...",
+    "generate": "Generate VIP",
+    "noLooks": "No VIP looks generated",
+    "noLooksDesc": "Generate exclusive looks with runway trends and advanced harmonies",
+    "generateVIP": "Generate VIP Looks",
+    "inspiredBy": "Inspired by",
+    "investmentPiece": "Investment Piece",
+    "styleTips": "Styling Secrets",
+    "tryOnTooltip": "Try in Virtual Fitting Room"
+  },
+  "locked": {
+    "title": "Exclusive VIP Looks",
+    "desc": "Unlock personalized runway looks with advanced chromatic harmonies, current trends and exclusive styling tips.",
+    "features": ["Runway Trends", "Advanced Harmonies", "Premium Styling"],
+    "cta": "Upgrade to Muse",
+    "exclusive": "Exclusive for Muse subscribers"
+  },
+  "harmony": {
+    "title": "My Harmony",
+    "closetCompat": "Closet compatibility",
+    "idealPercent": "{{percent}}% ideal",
+    "ideal": "Ideal",
+    "neutral": "Neutral",
+    "avoid": "Avoid",
+    "notAnalyzed": "Not analyzed",
+    "addPhotos": "Add photos to items for automatic color analysis",
+    "yourIdealColors": "Your ideal colors",
+    "colorsToAvoid": "Colors to avoid",
+    "redoAnalysis": "Redo chromatic analysis"
+  },
+  "harmonyBadge": {
+    "excellent": "Excellent",
+    "good": "Good",
+    "low": "Low",
+    "chromaticHarmony": "Chromatic Harmony",
+    "ideals": "ideal",
+    "neutrals": "neutral",
+    "avoids": "avoid",
+    "type": "Type"
+  },
+  "suggestions": {
+    "title": "Suggested Looks",
+    "generating": "Generating...",
+    "new": "New",
+    "viewAll": "View all",
+    "tryAgain": "Try again"
+  }
+}

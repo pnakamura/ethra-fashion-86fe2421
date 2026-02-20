@@ -1,0 +1,131 @@
+{
+  "title": "My Closet",
+  "closetOf": "{{name}}'s Closet",
+  "yourCloset": "Your Closet",
+  "items": "items",
+  "itemsOf": "of {{total}} items",
+  "filters": {
+    "all": "All",
+    "ideal": "Ideal",
+    "neutral": "Neutral",
+    "avoid": "Avoid"
+  },
+  "categories": {
+    "all": "All",
+    "roupas": "Clothing",
+    "calcados": "Footwear",
+    "acessorios": "Accessories",
+    "joias": "Jewelry"
+  },
+  "capsule": "Capsule",
+  "new": "New",
+  "upgrade": "Upgrade",
+  "search": "Search items...",
+  "toasts": {
+    "itemAdded": "Item added!",
+    "itemAddedDesc": "Your item was saved to the closet.",
+    "itemUpdated": "Item updated!",
+    "itemUpdatedDesc": "Changes have been saved.",
+    "itemDeleted": "Item deleted",
+    "itemDeletedDesc": "The item was removed from your closet.",
+    "capsuleUpdated": "Capsule updated",
+    "capsuleUpdatedDesc": "Item updated in the capsule wardrobe."
+  },
+  "addItem": {
+    "title": "New Item",
+    "analyzingColors": "Analyzing colors...",
+    "addPhoto": "Add photo",
+    "orDragHere": "or drag here",
+    "detectedColors": "Detected colors:",
+    "camera": "Camera",
+    "gallery": "Gallery",
+    "nameLabel": "Name (optional)",
+    "namePlaceholder": "E.g.: White silk blouse",
+    "categoryLabel": "Category *",
+    "selectPlaceholder": "Select",
+    "colorLabel": "Color",
+    "seasonLabel": "Season",
+    "occasionLabel": "Occasion",
+    "analyzing": "Analyzing...",
+    "submit": "Add to Closet"
+  },
+  "editItem": {
+    "title": "Edit Item",
+    "capsulePiece": "Capsule Piece",
+    "capsuleDesc": "Include in capsule wardrobe",
+    "save": "Save Changes"
+  },
+  "categoryGroups": {
+    "Roupas": "Clothing",
+    "Calçados": "Footwear",
+    "Acessórios": "Accessories",
+    "Joias": "Jewelry"
+  },
+  "seasons": {
+    "primavera": "Spring",
+    "verao": "Summer",
+    "outono": "Autumn",
+    "inverno": "Winter",
+    "todas": "All Seasons"
+  },
+  "occasions": {
+    "casual": "Casual",
+    "trabalho": "Work",
+    "festa": "Party",
+    "esporte": "Sport",
+    "formal": "Formal"
+  },
+  "emptyState": {
+    "noItemsFilter": "No items with \"{{filter}}\" compatibility",
+    "viewAll": "View all items",
+    "closetWaiting": "Your closet is waiting",
+    "addFavorites": "Add your favorite pieces and discover perfect combinations with AI",
+    "addFirst": "Add first item",
+    "photoAI": "Take a photo and AI analyzes colors automatically"
+  },
+  "itemCard": {
+    "removeFavorite": "Remove from favorites",
+    "addFavorite": "Add to favorites",
+    "moreOptions": "More options",
+    "edit": "Edit",
+    "delete": "Delete",
+    "noName": "No name"
+  },
+  "grid": {
+    "removeCapsule": "Remove from Capsule",
+    "addCapsule": "Add to Capsule",
+    "deleteTitle": "Delete item?",
+    "deleteDesc": "This action cannot be undone. The item will be permanently removed from your closet.",
+    "cancel": "Cancel",
+    "confirmDelete": "Delete"
+  },
+  "capsuleGuide": {
+    "title": "Capsule Wardrobe",
+    "piecesSelected": "{{count}} pieces selected",
+    "buildEssential": "Build your essential collection",
+    "whatIsIt": "What is it?",
+    "whatIsItDesc": "A capsule wardrobe is a curated collection of 30–40 versatile pieces that mix and match, reducing daily decisions and maximizing looks with fewer items. Ideal for those seeking practicality without sacrificing style.",
+    "howToBuild": "How to build",
+    "steps": [
+      "Choose 30–40 versatile pieces from your closet",
+      "Prioritize pieces with \"Ideal\" compatibility (green badge)",
+      "Include neutral basics + statement pieces",
+      "Ensure category coverage (clothing, footwear, accessories)",
+      "AI suggests missing pieces to complete"
+    ],
+    "howToUse": "How to use in the app",
+    "howToUseDesc": "Mark pieces as \"Capsule\" using the diamond icon in each item's menu. Then, filter by \"Capsule\" to see only your essential collection. In Looks, enable \"Capsule Only\" to receive focused suggestions."
+  },
+  "capsuleHealth": {
+    "title": "Capsule Health",
+    "pieces": "pieces",
+    "complete": "complete",
+    "ideal": "ideal"
+  },
+  "compatibility": {
+    "ideal": "Ideal",
+    "neutral": "Neutral",
+    "avoid": "Avoid",
+    "unknown": "Not analyzed"
+  }
+}

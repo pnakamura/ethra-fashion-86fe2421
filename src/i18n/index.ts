@@ -8,6 +8,8 @@ import legalPtBR from './locales/pt-BR/legal.json';
 import settingsPtBR from './locales/pt-BR/settings.json';
 import dashboardPtBR from './locales/pt-BR/dashboard.json';
 import authPtBR from './locales/pt-BR/auth.json';
+import wardrobePtBR from './locales/pt-BR/wardrobe.json';
+import recommendationsPtBR from './locales/pt-BR/recommendations.json';
 
 // EN-US translations
 import commonEnUS from './locales/en-US/common.json';
@@ -15,6 +17,8 @@ import legalEnUS from './locales/en-US/legal.json';
 import settingsEnUS from './locales/en-US/settings.json';
 import dashboardEnUS from './locales/en-US/dashboard.json';
 import authEnUS from './locales/en-US/auth.json';
+import wardrobeEnUS from './locales/en-US/wardrobe.json';
+import recommendationsEnUS from './locales/en-US/recommendations.json';
 
 i18n
   .use(LanguageDetector)
@@ -27,6 +31,8 @@ i18n
         settings: settingsPtBR,
         dashboard: dashboardPtBR,
         auth: authPtBR,
+        wardrobe: wardrobePtBR,
+        recommendations: recommendationsPtBR,
       },
       'en-US': {
         common: commonEnUS,
@@ -34,12 +40,14 @@ i18n
         settings: settingsEnUS,
         dashboard: dashboardEnUS,
         auth: authEnUS,
+        wardrobe: wardrobeEnUS,
+        recommendations: recommendationsEnUS,
       },
     },
     fallbackLng: 'pt-BR',
     supportedLngs: ['pt-BR', 'en-US'],
     defaultNS: 'common',
-    ns: ['common', 'legal', 'settings', 'dashboard', 'auth'],
+    ns: ['common', 'legal', 'settings', 'dashboard', 'auth', 'wardrobe', 'recommendations'],
     interpolation: {
       escapeValue: false,
     },
