@@ -11,6 +11,7 @@ import type { SeasonData } from '@/data/chromatic-seasons';
 import { useTemporarySeason } from '@/contexts/TemporarySeasonContext';
 import { MakeupSwatchGrid } from '@/components/makeup/MakeupSwatchGrid';
 import { getMakeupForSeason } from '@/hooks/useMakeupPalettes';
+import { useTranslation } from 'react-i18next';
 
 interface SeasonDetailModalProps {
   season: SeasonData | null;
@@ -29,6 +30,7 @@ export function SeasonDetailModal({
   isUserSeason,
   onTryPalette 
 }: SeasonDetailModalProps) {
+  const { t } = useTranslation('chromatic');
   const [copiedColor, setCopiedColor] = useState<string | null>(null);
   const { setTemporarySeason } = useTemporarySeason();
 
@@ -36,8 +38,8 @@ export function SeasonDetailModal({
 
   const handleTryPalette = () => {
     setTemporarySeason(season);
-    toast.success(`Experimentando ${season.name} ${season.subtype}`, {
-      description: 'Veja o preview na aba "Minha Paleta"',
+    toast.success(t('tryPaletteToast', { name: season.name, subtype: season.subtype }), {
+      description: t('tryPaletteToastDesc'),
       icon: <Wand2 className="w-4 h-4 text-amber-500" />,
       duration: 4000,
     });
@@ -48,7 +50,7 @@ export function SeasonDetailModal({
   const handleCopyColor = (hex: string) => {
     navigator.clipboard.writeText(hex);
     setCopiedColor(hex);
-    toast.success(`Cor ${hex} copiada!`);
+    toast.success(t('seasonDetail.colorCopied', { hex }));
     setTimeout(() => setCopiedColor(null), 2000);
   };
 
@@ -65,19 +67,10 @@ export function SeasonDetailModal({
         <DialogHeader className="p-4 pb-0">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <div
-                className="w-12 h-12 rounded-full shadow-soft"
-                style={{
-                  background: `conic-gradient(from 0deg, ${season.colors.primary.slice(0, 4).map(c => c.hex).join(', ')})`,
-                }}
-              />
+              <div className="w-12 h-12 rounded-full shadow-soft" style={{ background: `conic-gradient(from 0deg, ${season.colors.primary.slice(0, 4).map(c => c.hex).join(', ')})` }} />
               <div>
-                <DialogTitle className="font-display text-xl">
-                  {season.name} {season.subtype}
-                </DialogTitle>
-                <DialogDescription className="sr-only">
-                  Detalhes completos da paleta de cores {season.name} {season.subtype}
-                </DialogDescription>
+                <DialogTitle className="font-display text-xl">{season.name} {season.subtype}</DialogTitle>
+                <DialogDescription className="sr-only">{t('seasonDetail.aboutPalette')} {season.name} {season.subtype}</DialogDescription>
                 <span className="text-2xl">{season.seasonIcon}</span>
               </div>
             </div>
@@ -86,153 +79,67 @@ export function SeasonDetailModal({
 
         <ScrollArea className="max-h-[calc(90vh-120px)]">
           <div className="p-4 space-y-6">
-            {/* User season badge */}
             {isUserSeason && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-2 p-3 rounded-xl bg-primary/10 border border-primary/20"
-              >
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 p-3 rounded-xl bg-primary/10 border border-primary/20">
                 <Star className="w-5 h-5 text-primary" />
-                <span className="text-sm font-medium text-primary">Esta é a sua paleta!</span>
+                <span className="text-sm font-medium text-primary">{t('seasonDetail.yourPalette')}</span>
               </motion.div>
             )}
 
-            {/* Characteristics */}
             <div className="grid grid-cols-4 gap-2">
-              <CharacteristicBadge 
-                label="Temperatura" 
-                value={season.characteristics.temperature.replace('-', ' ')} 
-              />
-              <CharacteristicBadge 
-                label="Profundidade" 
-                value={season.characteristics.depth} 
-              />
-              <CharacteristicBadge 
-                label="Croma" 
-                value={season.characteristics.chroma} 
-              />
-              <CharacteristicBadge 
-                label="Contraste" 
-                value={season.characteristics.contrast} 
-              />
+              <CharacteristicBadge label={t('seasonDetail.temperature')} value={season.characteristics.temperature.replace('-', ' ')} />
+              <CharacteristicBadge label={t('seasonDetail.depth')} value={season.characteristics.depth} />
+              <CharacteristicBadge label={t('seasonDetail.chroma')} value={season.characteristics.chroma} />
+              <CharacteristicBadge label={t('seasonDetail.contrast')} value={season.characteristics.contrast} />
             </div>
 
-            {/* Description */}
             <div>
-              <h4 className="font-display text-lg font-medium mb-2">Sobre esta paleta</h4>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {season.description}
-              </p>
+              <h4 className="font-display text-lg font-medium mb-2">{t('seasonDetail.aboutPalette')}</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">{season.description}</p>
             </div>
 
             <Tabs defaultValue="colors" className="w-full">
               <TabsList className="grid w-full grid-cols-4 h-10 rounded-xl bg-muted p-1">
-                <TabsTrigger value="colors" className="rounded-lg text-xs">
-                  <Palette className="w-3 h-3 mr-1" />
-                  Cores
-                </TabsTrigger>
-                <TabsTrigger value="style" className="rounded-lg text-xs">
-                  <Shirt className="w-3 h-3 mr-1" />
-                  Estilo
-                </TabsTrigger>
-                <TabsTrigger value="beauty" className="rounded-lg text-xs">
-                  <Heart className="w-3 h-3 mr-1" />
-                  Beauty
-                </TabsTrigger>
-                <TabsTrigger value="celebs" className="rounded-lg text-xs">
-                  <Users className="w-3 h-3 mr-1" />
-                  Famosas
-                </TabsTrigger>
+                <TabsTrigger value="colors" className="rounded-lg text-xs"><Palette className="w-3 h-3 mr-1" />{t('seasonDetail.colors')}</TabsTrigger>
+                <TabsTrigger value="style" className="rounded-lg text-xs"><Shirt className="w-3 h-3 mr-1" />{t('seasonDetail.style')}</TabsTrigger>
+                <TabsTrigger value="beauty" className="rounded-lg text-xs"><Heart className="w-3 h-3 mr-1" />{t('seasonDetail.beauty')}</TabsTrigger>
+                <TabsTrigger value="celebs" className="rounded-lg text-xs"><Users className="w-3 h-3 mr-1" />{t('seasonDetail.celebs')}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="colors" className="mt-4 space-y-4">
-                {/* Primary colors */}
                 <div>
-                  <h5 className="text-sm font-medium mb-2 flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-500" />
-                    Cores que valorizam
-                  </h5>
+                  <h5 className="text-sm font-medium mb-2 flex items-center gap-2"><Check className="w-4 h-4 text-emerald-500" />{t('seasonDetail.colorsForYou')}</h5>
                   <div className="grid grid-cols-6 gap-2">
-                    {season.colors.primary.map((color) => (
-                      <ColorSwatch 
-                        key={color.hex} 
-                        color={color} 
-                        onCopy={handleCopyColor}
-                        copied={copiedColor === color.hex}
-                      />
-                    ))}
+                    {season.colors.primary.map((color) => <ColorSwatch key={color.hex} color={color} onCopy={handleCopyColor} copied={copiedColor === color.hex} />)}
                   </div>
                 </div>
-
-                {/* Neutrals */}
                 <div>
-                  <h5 className="text-sm font-medium mb-2">Neutros ideais</h5>
+                  <h5 className="text-sm font-medium mb-2">{t('seasonDetail.idealNeutrals')}</h5>
                   <div className="grid grid-cols-4 gap-2">
-                    {season.colors.neutrals.map((color) => (
-                      <ColorSwatch 
-                        key={color.hex} 
-                        color={color} 
-                        onCopy={handleCopyColor}
-                        copied={copiedColor === color.hex}
-                      />
-                    ))}
+                    {season.colors.neutrals.map((color) => <ColorSwatch key={color.hex} color={color} onCopy={handleCopyColor} copied={copiedColor === color.hex} />)}
                   </div>
                 </div>
-
-                {/* Accents */}
                 <div>
-                  <h5 className="text-sm font-medium mb-2 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-gold" />
-                    Cores de destaque
-                  </h5>
+                  <h5 className="text-sm font-medium mb-2 flex items-center gap-2"><Sparkles className="w-4 h-4 text-gold" />{t('seasonDetail.accentColors')}</h5>
                   <div className="grid grid-cols-4 gap-2">
-                    {season.colors.accents.map((color) => (
-                      <ColorSwatch 
-                        key={color.hex} 
-                        color={color} 
-                        onCopy={handleCopyColor}
-                        copied={copiedColor === color.hex}
-                      />
-                    ))}
+                    {season.colors.accents.map((color) => <ColorSwatch key={color.hex} color={color} onCopy={handleCopyColor} copied={copiedColor === color.hex} />)}
                   </div>
                 </div>
-
-                {/* Avoid */}
                 <div>
-                  <h5 className="text-sm font-medium mb-2 flex items-center gap-2">
-                    <X className="w-4 h-4 text-destructive" />
-                    Cores para evitar
-                  </h5>
+                  <h5 className="text-sm font-medium mb-2 flex items-center gap-2"><X className="w-4 h-4 text-destructive" />{t('seasonDetail.avoidColors')}</h5>
                   <div className="grid grid-cols-4 gap-2">
-                    {season.colors.avoid.map((color) => (
-                      <ColorSwatch 
-                        key={color.hex} 
-                        color={color} 
-                        onCopy={handleCopyColor}
-                        copied={copiedColor === color.hex}
-                        isAvoid
-                      />
-                    ))}
+                    {season.colors.avoid.map((color) => <ColorSwatch key={color.hex} color={color} onCopy={handleCopyColor} copied={copiedColor === color.hex} isAvoid />)}
                   </div>
                 </div>
-
-                {/* Combinations */}
                 <div>
-                  <h5 className="text-sm font-medium mb-3">Combinações harmônicas</h5>
+                  <h5 className="text-sm font-medium mb-3">{t('seasonDetail.harmonicCombinations')}</h5>
                   <div className="space-y-3">
                     {season.bestCombinations.map((combo) => (
                       <div key={combo.name} className="p-3 rounded-xl bg-secondary/50">
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-sm font-medium">{combo.name}</span>
                           <div className="flex -space-x-1">
-                            {combo.colors.map((hex) => (
-                              <div
-                                key={hex}
-                                className="w-6 h-6 rounded-full border-2 border-card"
-                                style={{ backgroundColor: hex }}
-                              />
-                            ))}
+                            {combo.colors.map((hex) => <div key={hex} className="w-6 h-6 rounded-full border-2 border-card" style={{ backgroundColor: hex }} />)}
                           </div>
                         </div>
                         <p className="text-xs text-muted-foreground">{combo.description}</p>
@@ -243,73 +150,38 @@ export function SeasonDetailModal({
               </TabsContent>
 
               <TabsContent value="style" className="mt-4 space-y-4">
-                {/* Metals */}
                 <div>
-                  <h5 className="text-sm font-medium mb-2 flex items-center gap-2">
-                    <Gem className="w-4 h-4" />
-                    Metais ideais
-                  </h5>
+                  <h5 className="text-sm font-medium mb-2 flex items-center gap-2"><Gem className="w-4 h-4" />{t('seasonDetail.idealMetals')}</h5>
                   <div className="flex flex-wrap gap-2">
                     {season.metals.map((metal) => (
                       <span key={metal} className="px-3 py-1.5 rounded-full bg-secondary text-sm capitalize">
-                        {metal === 'gold' ? '🥇 Ouro' : 
-                         metal === 'silver' ? '🥈 Prata' : 
-                         metal === 'rose-gold' ? '💗 Rose Gold' : 
-                         metal === 'copper' ? '🧡 Cobre' : '🥉 Bronze'}
+                        {metal === 'gold' ? t('seasonDetail.metalGold') : metal === 'silver' ? t('seasonDetail.metalSilver') : metal === 'rose-gold' ? t('seasonDetail.metalRoseGold') : metal === 'copper' ? t('seasonDetail.metalCopper') : t('seasonDetail.metalBronze')}
                       </span>
                     ))}
                   </div>
                 </div>
-
-                {/* Jewelry */}
                 <div>
-                  <h5 className="text-sm font-medium mb-2">Joias & Pedras</h5>
+                  <h5 className="text-sm font-medium mb-2">{t('seasonDetail.jewelryStones')}</h5>
                   <div className="flex flex-wrap gap-2">
-                    {season.jewelry.map((item) => (
-                      <span key={item} className="px-3 py-1.5 rounded-full bg-secondary/50 text-xs">
-                        {item}
-                      </span>
-                    ))}
+                    {season.jewelry.map((item) => <span key={item} className="px-3 py-1.5 rounded-full bg-secondary/50 text-xs">{item}</span>)}
                   </div>
                 </div>
-
-                {/* Fabrics */}
                 <div>
-                  <h5 className="text-sm font-medium mb-2 flex items-center gap-2">
-                    <Scissors className="w-4 h-4" />
-                    Tecidos ideais
-                  </h5>
+                  <h5 className="text-sm font-medium mb-2 flex items-center gap-2"><Scissors className="w-4 h-4" />{t('seasonDetail.idealFabrics')}</h5>
                   <div className="flex flex-wrap gap-2">
-                    {season.fabrics.map((fabric) => (
-                      <span key={fabric} className="px-3 py-1.5 rounded-full bg-secondary/50 text-xs">
-                        {fabric}
-                      </span>
-                    ))}
+                    {season.fabrics.map((fabric) => <span key={fabric} className="px-3 py-1.5 rounded-full bg-secondary/50 text-xs">{fabric}</span>)}
                   </div>
                 </div>
-
-                {/* Patterns */}
                 <div>
-                  <h5 className="text-sm font-medium mb-2">Estampas</h5>
+                  <h5 className="text-sm font-medium mb-2">{t('seasonDetail.prints')}</h5>
                   <div className="flex flex-wrap gap-2">
-                    {season.patterns.map((pattern) => (
-                      <span key={pattern} className="px-3 py-1.5 rounded-full bg-secondary/50 text-xs">
-                        {pattern}
-                      </span>
-                    ))}
+                    {season.patterns.map((pattern) => <span key={pattern} className="px-3 py-1.5 rounded-full bg-secondary/50 text-xs">{pattern}</span>)}
                   </div>
                 </div>
-
-                {/* Styling tips */}
                 <div>
-                  <h5 className="text-sm font-medium mb-2">Dicas de estilo</h5>
+                  <h5 className="text-sm font-medium mb-2">{t('seasonDetail.stylingTips')}</h5>
                   <ul className="space-y-2">
-                    {season.stylingTips.map((tip, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                        <Check className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                        {tip}
-                      </li>
-                    ))}
+                    {season.stylingTips.map((tip, i) => <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />{tip}</li>)}
                   </ul>
                 </div>
               </TabsContent>
@@ -317,53 +189,27 @@ export function SeasonDetailModal({
               <TabsContent value="beauty" className="mt-4 space-y-4">
                 {(() => {
                   const makeup = getMakeupForSeason(season.id);
-                  if (!makeup) return (
-                    <p className="text-sm text-muted-foreground">Dados de maquiagem não disponíveis.</p>
-                  );
+                  if (!makeup) return <p className="text-sm text-muted-foreground">{t('seasonDetail.makeupNotAvailable')}</p>;
                   return (
                     <>
-                      {/* Lips */}
                       <div>
-                        <h5 className="text-sm font-medium mb-2 flex items-center gap-2">
-                          <Heart className="w-4 h-4 text-rose-500" />
-                          Lábios
-                        </h5>
+                        <h5 className="text-sm font-medium mb-2 flex items-center gap-2"><Heart className="w-4 h-4 text-rose-500" />{t('seasonDetail.lips')}</h5>
                         <MakeupSwatchGrid products={makeup.recommended.lips} columns={6} />
                       </div>
-
-                      {/* Eyes */}
                       <div>
-                        <h5 className="text-sm font-medium mb-2 flex items-center gap-2">
-                          <Sparkles className="w-4 h-4 text-purple-500" />
-                          Olhos
-                        </h5>
+                        <h5 className="text-sm font-medium mb-2 flex items-center gap-2"><Sparkles className="w-4 h-4 text-purple-500" />{t('seasonDetail.eyesMakeup')}</h5>
                         <MakeupSwatchGrid products={makeup.recommended.eyeshadow} columns={6} />
                       </div>
-
-                      {/* Blush & Face */}
                       <div>
-                        <h5 className="text-sm font-medium mb-2 flex items-center gap-2">
-                          <Palette className="w-4 h-4 text-pink-500" />
-                          Face
-                        </h5>
+                        <h5 className="text-sm font-medium mb-2 flex items-center gap-2"><Palette className="w-4 h-4 text-pink-500" />{t('seasonDetail.face')}</h5>
                         <MakeupSwatchGrid products={[...makeup.recommended.blush, ...makeup.recommended.highlighter]} columns={6} />
                       </div>
-
-                      {/* Nails */}
                       <div>
-                        <h5 className="text-sm font-medium mb-2 flex items-center gap-2">
-                          <Gem className="w-4 h-4 text-amber-500" />
-                          Unhas
-                        </h5>
+                        <h5 className="text-sm font-medium mb-2 flex items-center gap-2"><Gem className="w-4 h-4 text-amber-500" />{t('seasonDetail.nails')}</h5>
                         <MakeupSwatchGrid products={makeup.recommended.nails} columns={5} />
                       </div>
-
-                      {/* Avoid */}
                       <div>
-                        <h5 className="text-sm font-medium mb-2 flex items-center gap-2">
-                          <X className="w-4 h-4 text-destructive" />
-                          Evitar em lábios
-                        </h5>
+                        <h5 className="text-sm font-medium mb-2 flex items-center gap-2"><X className="w-4 h-4 text-destructive" />{t('seasonDetail.avoidLips')}</h5>
                         <MakeupSwatchGrid products={makeup.avoid.lips} isAvoid columns={4} />
                       </div>
                     </>
@@ -373,13 +219,10 @@ export function SeasonDetailModal({
 
               <TabsContent value="celebs" className="mt-4">
                 <div>
-                  <h5 className="text-sm font-medium mb-3">Celebridades com esta paleta</h5>
+                  <h5 className="text-sm font-medium mb-3">{t('seasonDetail.celebsWithPalette')}</h5>
                   <div className="grid grid-cols-2 gap-3">
                     {season.celebrities.map((celeb) => (
-                      <div 
-                        key={celeb} 
-                        className="p-3 rounded-xl bg-secondary/50 flex items-center gap-3"
-                      >
+                      <div key={celeb} className="p-3 rounded-xl bg-secondary/50 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-gold/20 flex items-center justify-center">
                           <Users className="w-5 h-5 text-primary" />
                         </div>
@@ -392,33 +235,17 @@ export function SeasonDetailModal({
               </TabsContent>
             </Tabs>
 
-            {/* Action buttons */}
             {!isUserSeason && (
               <div className="pt-4 border-t border-border space-y-2">
-                {/* Try temporarily button */}
-                <Button
-                  onClick={handleTryPalette}
-                  variant="outline"
-                  className="w-full"
-                >
+                <Button onClick={handleTryPalette} variant="outline" className="w-full">
                   <Wand2 className="w-4 h-4 mr-2" />
-                  Experimentar esta paleta
+                  {t('seasonDetail.tryThisPalette')}
                 </Button>
-                <p className="text-xs text-muted-foreground text-center">
-                  Veja como ficariam suas recomendações com esta paleta
-                </p>
-
-                {/* Permanent selection */}
+                <p className="text-xs text-muted-foreground text-center">{t('seasonDetail.seeRecommendations')}</p>
                 {onSelect && (
-                  <Button
-                    onClick={() => {
-                      onSelect(season);
-                      onClose();
-                    }}
-                    className="w-full gradient-primary"
-                  >
+                  <Button onClick={() => { onSelect(season); onClose(); }} className="w-full gradient-primary">
                     <Sparkles className="w-4 h-4 mr-2" />
-                    Usar permanentemente
+                    {t('seasonDetail.usePermanently')}
                   </Button>
                 )}
               </div>
@@ -439,25 +266,10 @@ interface ColorSwatchProps {
 
 function ColorSwatch({ color, onCopy, copied, isAvoid }: ColorSwatchProps) {
   return (
-    <motion.button
-      whileHover={{ scale: 1.1 }}
-      whileTap={{ scale: 0.95 }}
-      onClick={() => onCopy(color.hex)}
-      className="group relative"
-      title={`${color.name} - ${color.hex}`}
-    >
-      <div
-        className={`w-full aspect-square rounded-xl shadow-soft transition-all ${
-          isAvoid ? 'opacity-60' : ''
-        }`}
-        style={{ backgroundColor: color.hex }}
-      >
+    <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} onClick={() => onCopy(color.hex)} className="group relative" title={`${color.name} - ${color.hex}`}>
+      <div className={`w-full aspect-square rounded-xl shadow-soft transition-all ${isAvoid ? 'opacity-60' : ''}`} style={{ backgroundColor: color.hex }}>
         {copied && (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-xl"
-          >
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-xl">
             <Check className="w-4 h-4 text-white" />
           </motion.div>
         )}
@@ -467,11 +279,7 @@ function ColorSwatch({ color, onCopy, copied, isAvoid }: ColorSwatchProps) {
           </div>
         )}
       </div>
-      <p className="text-xs text-muted-foreground mt-1 truncate text-center">
-        {color.name}
-      </p>
-      
-      {/* Tooltip on hover */}
+      <p className="text-xs text-muted-foreground mt-1 truncate text-center">{color.name}</p>
       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
         {color.hex}
         {color.description && <span className="block text-muted-foreground">{color.description}</span>}
