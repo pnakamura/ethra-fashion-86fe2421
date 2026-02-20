@@ -1,221 +1,246 @@
 
+# Traducao Completa: Fases 3 e 4
 
-# Auditoria Completa de Traducao EN-US
+## Diagnostico
 
-## Situacao Atual
+A infraestrutura i18n funciona corretamente. Os componentes ja traduzidos (Header, BottomNav, QuickActions, Index, Auth, Settings) alternam entre PT-BR e EN-US sem problemas. Porem, **todas as outras paginas e componentes permanecem 100% em portugues hardcoded**, independente da selecao de idioma.
 
-A Fase 1 da internacionalizacao criou a infraestrutura (i18n, JSON de traducoes, seletor de idioma), mas apenas **5 componentes** usam `useTranslation()`:
-- `Settings.tsx` (parcialmente -- muitas strings ainda hardcoded)
-- `AIDisclaimer.tsx`
-- `CelebrityDisclaimer.tsx`
-- `BiometricConsentModal.tsx`
-- `ConsentCheckbox.tsx`
-
-**Todo o resto do aplicativo permanece 100% em portugues**, mesmo quando o usuario seleciona English (US).
+**Impacto na versao PT-BR:** Nenhum. Os arquivos JSON de PT-BR contem exatamente os mesmos textos que hoje estao hardcoded. A substituicao de `"Texto"` por `t('chave')` carrega o mesmo texto do JSON quando o idioma e portugues. A unica diferenca e que o texto vem de um arquivo externo ao inves de estar embutido no codigo.
 
 ---
 
-## Lista Completa de Arquivos que Precisam de Traducao
+## Paginas e Componentes a Traduzir
 
-### Grupo 1 -- Navegacao e Layout (impacto imediato em todas as paginas)
-
-| Arquivo | Strings hardcoded encontradas |
-|---------|-------------------------------|
-| `src/components/layout/Header.tsx` | "Inicio", "Closet", "Looks", "Cores", "Provador", "Agenda", "Ethra" |
-| `src/components/layout/BottomNav.tsx` | "Inicio", "Closet", "Looks", "Provador", "Mais", "Mais Opcoes", "Minha Paleta", "Voyager", "Agenda", "Configuracoes" |
-| `src/components/dashboard/QuickActions.tsx` | "Nova Peca", "Provador", "Minha Paleta", "Planejar", "Agenda" |
-
-### Grupo 2 -- Dashboard / Index
+### Fase 3A -- Wardrobe (8 arquivos)
 
 | Arquivo | Strings hardcoded |
 |---------|-------------------|
-| `src/pages/Index.tsx` | "Vamos organizar seu closet hoje?", "Que tal um look novo hoje?", "Preparada para arrasar...", "O que vamos vestir hoje?", "Looks Exclusivos", "Combinacoes personalizadas com IA", "Espelho Neural", "Experimente roupas virtualmente", "Closet Virtual", "Organize e descubra combinacoes", "Agenda de Eventos", "Planeje o look perfeito", "Carregando..." |
-| `src/components/dashboard/LookOfTheDay.tsx` | (precisa verificar) |
-| `src/components/dashboard/MissionCard.tsx` | (precisa verificar) |
-| `src/components/dashboard/AchievementsPanel.tsx` | (precisa verificar) |
+| `Wardrobe.tsx` | "Meu Closet", "Closet de X", "itens", "Todas", "Roupas", "Calcados", "Acessorios", "Joias", "Ideais", "Neutras", "Evitar", "Nova", "Upgrade", "Buscar pecas...", "Capsula", toasts |
+| `AddItemSheet.tsx` | Labels de formulario, categorias |
+| `EditItemSheet.tsx` | Labels de formulario |
+| `WardrobeEmptyState.tsx` | Textos de estado vazio |
+| `WardrobeItemCard.tsx` | Labels de acoes |
+| `WardrobeGrid.tsx` | (se houver) |
+| `CapsuleGuide.tsx` | Textos guia |
+| `CapsuleHealthCard.tsx` | Textos de saude da capsula |
+| `CompatibilityBadge.tsx` | Labels de compatibilidade |
 
-### Grupo 3 -- Autenticacao
+Criar: `wardrobe.json` (PT-BR e EN-US)
 
-| Arquivo | Strings hardcoded |
-|---------|-------------------|
-| `src/pages/Auth.tsx` | "Email invalido", "A senha deve ter pelo menos 6 caracteres", "Erro de validacao", "Consentimento necessario", "Este email ja esta cadastrado", "Email ou senha incorretos", "Conta criada!", "Seu GPS de Estilo Pessoal", "Entrar na sua conta", "Criar nova conta", "Seu email", "Sua senha", "Minimo de 6 caracteres", "Carregando...", "Entrar", "Criar Conta", "Nao tem conta?", "Criar agora", "Ja tem conta?", "Fazer login", "Voltar" |
-
-### Grupo 4 -- Settings (strings ainda hardcoded)
-
-| Secao | Strings PT-BR hardcoded |
-|-------|-------------------------|
-| Header | "Configuracoes" (linha 271) |
-| Aparencia | "Aparencia", "Tema", "Tamanho do Texto", "Fundo Artistico", "Modo Escuro", "Modo Claro" (linhas 283-370) |
-| Background | "Trocar", "Sua imagem personalizada...", "Clique para enviar imagem", "PNG, JPG ate 5MB", "Intensidade", dicas (linhas 438-516) |
-| Notificacoes | "Notificacoes", "Look do Dia", "Sugestao diaria", "Alertas de Clima", "Lembretes de Eventos", "1h antes", "2h antes", "Sua Cidade", "Salvar Preferencias" (linhas 579-688) |
-| Perfil | "Meu Perfil", "Usuario", "Plano Atual" (linhas 700-741) |
-| Privacidade | "Privacidade e Dados", "Exportar meus dados", "Formulario de Solicitacao de Direitos", "Exerca seus direitos previstos na LGPD...", todos os tipos de solicitacao, "Cancelar", "Confirmar solicitacao" (linhas 752-924) |
-| Conta | "Conta", "Assinatura", "Gerenciar seu plano", "Privacidade e Permissoes", "Exportar meus dados", "Baixar em formato JSON (LGPD)", "Sair da Conta", "Excluir minha conta", "Remover todos os dados (LGPD)", dialogo de exclusao completo (linhas 928-1107) |
-| Toasts | "Sessao expirada", "Dados exportados com sucesso!", "Erro ao exportar", "Preferencias salvas!", "Imagem muito grande", etc. |
-
-### Grupo 5 -- Guarda-roupa (Wardrobe)
+### Fase 3B -- Chromatic (16 arquivos)
 
 | Arquivo | Strings hardcoded |
 |---------|-------------------|
-| `src/pages/Wardrobe.tsx` | "Meu Closet", "Closet de X", "Seu Closet", "itens", "Todas", "Roupas", "Calcados", "Acessorios", "Joias", "Ideais", "Neutras", "Evitar", "Nova", "Upgrade", "Buscar pecas...", "Capsula", toasts de CRUD |
-| `src/components/wardrobe/AddItemSheet.tsx` | (precisa verificar) |
-| `src/components/wardrobe/EditItemSheet.tsx` | (precisa verificar) |
-| `src/components/wardrobe/WardrobeEmptyState.tsx` | (precisa verificar) |
-| `src/components/wardrobe/WardrobeItemCard.tsx` | (precisa verificar) |
-| `src/components/wardrobe/CapsuleGuide.tsx` | (precisa verificar) |
-| `src/components/wardrobe/CapsuleHealthCard.tsx` | (precisa verificar) |
+| `Chromatic.tsx` | "Cores", "Descobrir", "Paleta", "Beauty", "Explorar", "Faca login..." |
+| `ChromaticHero.tsx` | Textos do hero |
+| `ChromaticOnboarding.tsx` | Textos de onboarding |
+| `ColorAnalysis.tsx` | Labels da analise |
+| `ColorAnalysisResult.tsx` | Resultados |
+| `ColorPalette.tsx` | Labels |
+| `ColorJourney.tsx` | Jornada |
+| `SeasonExplorer.tsx` | Explorador |
+| `SeasonDetailModal.tsx` | Detalhes |
+| `SeasonSelector.tsx` | Seletor |
+| `MakeupHub.tsx` | Hub de makeup |
+| `QuickActionsGrid.tsx` | Acoes rapidas |
+| `TemporarySeasonBanner.tsx` | Banner temporario |
+| `TemporaryPalettePreview.tsx` | Preview |
+| `EnhancedSeasonCard.tsx` | Card de estacao |
+| `ChromaticCameraCapture.tsx` | Camera |
 
-### Grupo 6 -- Analise Cromatica
+Criar: `chromatic.json` (PT-BR e EN-US)
 
-| Arquivo | Strings hardcoded |
-|---------|-------------------|
-| `src/pages/Chromatic.tsx` | "Cores", "Descobrir", "Paleta", "Beauty", "Explorar", "Faca login para salvar sua paleta" |
-| `src/components/chromatic/*.tsx` | ~15 componentes com texto PT-BR |
-
-### Grupo 7 -- Provador Virtual (Try-On)
-
-| Arquivo | Strings hardcoded |
-|---------|-------------------|
-| `src/pages/VirtualTryOn.tsx` | "Flash (Rapido)", "Pro (Balanceado)", "Premium (Qualidade)" + muitas outras |
-| `src/components/try-on/*.tsx` | ~15 componentes |
-
-### Grupo 8 -- Recomendacoes
+### Fase 3C -- Virtual Try-On (15 arquivos)
 
 | Arquivo | Strings hardcoded |
 |---------|-------------------|
-| `src/pages/Recommendations.tsx` | "Todos", "Casual", "Trabalho", "Festa", "Formal" + muitas outras |
-| `src/components/recommendations/*.tsx` | ~6 componentes |
+| `VirtualTryOn.tsx` | "Provador Virtual", "Flash (Rapido)", "Pro (Balanceado)", "Premium (Qualidade)", "Provar", "Benchmark", "experimente!", "Peca selecionada", "Do seu closet", etc. |
+| `AvatarManager.tsx` | Labels de avatar |
+| `TryOnCanvas.tsx` | Labels do canvas |
+| `TryOnOptions.tsx` | Opcoes |
+| `GarmentCapture.tsx` | Captura |
+| `WardrobeSelector.tsx` | Seletor |
+| `LookSelector.tsx` | Seletor de look |
+| `TryOnGallery.tsx` | Galeria |
+| `TryOnDetailModal.tsx` | Modal |
+| `BatchTryOnProgress.tsx` | Progresso |
+| `ModelBenchmark.tsx` | Benchmark |
+| `SmartCameraCapture.tsx` | Camera |
+| `PrivacySettings.tsx` | Privacidade |
+| `ComposeLookWarning.tsx` | Aviso |
 
-### Grupo 9 -- Eventos
+Criar: `tryOn.json` (PT-BR e EN-US)
 
-| Arquivo | Strings hardcoded |
-|---------|-------------------|
-| `src/pages/Events.tsx` | "Reuniao", "Festa", "Encontro", "Entrevista", "Casamento", "Viagem", "Trabalho", "Especial" + uso de `ptBR` hardcoded no date-fns |
-| `src/components/events/*.tsx` | ~5 componentes |
-
-### Grupo 10 -- Voyager
-
-| Arquivo | Strings hardcoded |
-|---------|-------------------|
-| `src/pages/Voyager.tsx` | Categorias de packing list ("roupas", "calcados", "acessorios", "chapeus") |
-| `src/components/voyager/*.tsx` | ~10 componentes |
-
-### Grupo 11 -- Quiz de Estilo
-
-| Arquivo | Strings hardcoded |
-|---------|-------------------|
-| `src/pages/Quiz.tsx` / `src/pages/StyleQuiz.tsx` | (precisa verificar) |
-| `src/components/quiz/*.tsx` | ~10 componentes |
-
-### Grupo 12 -- Onboarding
+### Fase 3D -- Recommendations (7 arquivos)
 
 | Arquivo | Strings hardcoded |
 |---------|-------------------|
-| `src/pages/Onboarding.tsx` | "Carregando..." |
-| `src/components/onboarding/WelcomeScreen.tsx` | "Bem-vindo(a) ao" + descricoes |
-| `src/components/onboarding/*.tsx` | ~6 componentes |
+| `Recommendations.tsx` | "Todos", "Casual", "Trabalho", "Festa", "Formal", "Gerar Look", "Meu Closet", "Provar", "Apenas Capsula", "Looks sugeridos", "Nenhum look gerado ainda", "Descubra sua paleta primeiro", "Harmonia", "Looks Exclusivos", "Sua paleta cromatica", etc. |
+| `LookCard.tsx` | Labels |
+| `LookCardCompact.tsx` | Labels |
+| `HarmonyStats.tsx` | Estatisticas |
+| `VIPLookCard.tsx` | Labels VIP |
+| `VIPLockedOverlay.tsx` | Overlay |
+| `LookHarmonyBadge.tsx` | Badge |
 
-### Grupo 13 -- Landing Page
+Criar: `recommendations.json` (PT-BR e EN-US)
 
-| Arquivo | Strings hardcoded |
-|---------|-------------------|
-| `src/pages/Landing.tsx` | "Carregando..." |
-| `src/components/landing/BetaHero.tsx` | "Colorimetria por IA", "Provador Virtual", "Closet Inteligente" + descricoes |
-| `src/components/landing/*.tsx` | ~10 componentes |
-
-### Grupo 14 -- Assinatura (Subscription)
+### Fase 3E -- Events (6 arquivos)
 
 | Arquivo | Strings hardcoded |
 |---------|-------------------|
-| `src/pages/Subscription.tsx` | Nomes de planos, descricoes, FAQs inteiras em PT-BR, nomes de features |
-| `src/components/subscription/*.tsx` | ~4 componentes |
+| `Events.tsx` | "Agenda", "Reuniao", "Festa", "Encontro", "Entrevista", "Casamento", "Viagem", "Trabalho", "Especial", "Evento excluido", "Nenhum evento neste dia", "Proximos eventos", "Nenhum evento agendado", "Adicionar Evento", dias da semana `['D','S','T','Q','Q','S','S']`, `ptBR` hardcoded no date-fns |
+| `AddEventSheet.tsx` | Labels de formulario |
+| `EditEventSheet.tsx` | Labels |
+| `EventDetailSheet.tsx` | Detalhes |
+| `EventLookSuggestion.tsx` | Sugestoes |
+| `EventPlanner.tsx` | Planejador |
 
-### Grupo 15 -- Paginas Juridicas (conteudo completo)
+Criar: `events.json` (PT-BR e EN-US)
+Importante: substituir `{ locale: ptBR }` por `{ locale: dateFnsLocale }` do `useLocale()`
 
-| Arquivo | Status |
-|---------|--------|
-| `src/pages/Terms.tsx` | Termos inteiros hardcoded em PT-BR (212 linhas) |
-| `src/pages/PrivacyPolicy.tsx` | Politica inteira hardcoded em PT-BR (324 linhas) |
-| `src/pages/Privacy.tsx` | (precisa verificar) |
-
-### Grupo 16 -- Admin
+### Fase 3F -- Voyager (11 arquivos)
 
 | Arquivo | Strings hardcoded |
 |---------|-------------------|
-| `src/pages/Admin.tsx` | (precisa verificar) |
-| `src/components/admin/*.tsx` | ~4 componentes |
+| `Voyager.tsx` | "Voyager", "Viagem criada!", "Erro ao criar viagem", "Viagem excluida!", "PDF gerado!", "Abrindo Google Calendar...", categorias de packing list |
+| `TripPlanner.tsx` | Formulario de planejamento |
+| `TripList.tsx` | Lista de viagens |
+| `TripCard.tsx` | Card |
+| `TripDetailSheet.tsx` | Detalhes |
+| `TripBrief.tsx` | Resumo |
+| `TripReport.tsx` | Relatorio |
+| `PackingChecklist.tsx` | Checklist ("roupas", "calcados", "acessorios", "chapeus") |
+| `WeatherPreview.tsx` | Previsao |
+| `SuggestedLooks.tsx` | Looks sugeridos |
+| `MissingItemsSuggestion.tsx` | Sugestoes |
+| `LocationPicker.tsx` | Seletor |
 
-### Grupo 17 -- Utilitarios e Dados
+Criar: `voyager.json` (PT-BR e EN-US)
 
-| Arquivo | Problema |
-|---------|----------|
-| `src/lib/normalize-color.ts` | Dicionario de cores apenas em PT-BR |
-| `src/lib/greeting.ts` | Ja traduzido na Fase 1 |
-| `src/data/missions.ts` | (precisa verificar) |
-| `src/data/chromatic-seasons.ts` | (precisa verificar) |
-| `src/data/quiz-aesthetics.ts` | (precisa verificar) |
-| `src/components/ui/PageLoader.tsx` | "Carregando..." |
-| `src/components/ui/EmptyState.tsx` | (precisa verificar) |
+### Fase 3G -- Quiz + Onboarding (16 arquivos)
+
+| Arquivo | Strings hardcoded |
+|---------|-------------------|
+| `Onboarding.tsx` | "Carregando..." |
+| `WelcomeScreen.tsx` | "Bem-vindo(a) ao", descricoes |
+| `NameInput.tsx` | Labels |
+| `StyleSelector.tsx` | Estilos |
+| `PainPointSelector.tsx` | Pontos de dor |
+| `ColorTeaser.tsx` | Teaser |
+| `WelcomeComplete.tsx` | Conclusao |
+| `Quiz.tsx` / `StyleQuiz.tsx` | Paginas de quiz |
+| `QuizStep.tsx` | Step |
+| `QuizAesthetics.tsx` | Esteticas |
+| `QuizSilhouette.tsx` | Silhuetas |
+| `QuizSkinTone.tsx` | Tons de pele |
+| `QuizPainPoints.tsx` | Pontos de dor |
+| `QuizResult.tsx` | Resultado |
+| `DNAReveal.tsx` | Revelacao DNA |
+| `AestheticPicker.tsx` / `SilhouettePicker.tsx` / `PainPointPicker.tsx` | Pickers |
+
+Criar: `quiz.json` e `onboarding.json` (PT-BR e EN-US)
+
+### Fase 3H -- Landing Page (10 arquivos)
+
+| Arquivo | Strings hardcoded |
+|---------|-------------------|
+| `Landing.tsx` | "Carregando..." |
+| `BetaHero.tsx` | "Colorimetria por IA", "Provador Virtual", "Closet Inteligente" + descricoes, CTA |
+| `DemoSection.tsx` | Secao demo |
+| `TesterSignupForm.tsx` | Formulario |
+| `Footer.tsx` | Rodape |
+| `ChromaticSim.tsx` | Simulador |
+| `ClosetSim.tsx` | Simulador |
+| `TryOnSim.tsx` | Simulador |
+
+Criar: `landing.json` (PT-BR e EN-US)
+
+### Fase 3I -- Subscription (5 arquivos)
+
+| Arquivo | Strings hardcoded |
+|---------|-------------------|
+| `Subscription.tsx` | Nomes de planos fallback, FAQs inteiras, "Escolha seu plano", "Desbloqueie recursos premium", "Voltar", "Inicio", "Seu uso atual", "Comparativo de recursos", "Perguntas frequentes", trust signals |
+| `PricingCard.tsx` | Labels de preco |
+| `UsageIndicator.tsx` | Indicador |
+| `FeatureGate.tsx` | Gate |
+| `LockedFeaturePage.tsx` | Pagina bloqueada |
+
+Criar: `subscription.json` (PT-BR e EN-US)
+
+### Fase 3J -- Admin (5 arquivos)
+
+| Arquivo | Strings hardcoded |
+|---------|-------------------|
+| `Admin.tsx` | Labels de admin |
+| `UserManagement.tsx` | Gestao |
+| `UserDetailSheet.tsx` | Detalhes |
+| `FeatureFlagsSettings.tsx` | Flags |
+| `SubscriptionManagement.tsx` | Gestao de assinatura |
+
+Criar: `admin.json` (PT-BR e EN-US)
+
+### Fase 3K -- Dashboard sub-components (3 arquivos)
+
+| Arquivo | Strings hardcoded |
+|---------|-------------------|
+| `LookOfTheDay.tsx` | "Look do Dia", "Gerar look", "Ver mais", etc. |
+| `MissionCard.tsx` | "Parabens, Mestre do Estilo!", categorias de missao |
+| `AchievementsPanel.tsx` | Labels de conquistas |
+
+Atualizar: `dashboard.json` com chaves adicionais
+
+### Fase 4A -- Paginas Juridicas (3 arquivos)
+
+| Arquivo | Acao |
+|---------|------|
+| `Terms.tsx` | Refatorar para carregar conteudo de `legal.json` (PT-BR: LGPD/CDC, EN-US: CCPA/general) |
+| `PrivacyPolicy.tsx` | Idem |
+| `Privacy.tsx` | Verificar e traduzir |
+
+### Fase 4B -- Dados e Utilitarios (5 arquivos)
+
+| Arquivo | Acao |
+|---------|------|
+| `normalize-color.ts` | Adicionar dicionario EN-US de nomes de cores |
+| `missions.ts` | Traduzir titulos e descricoes de missoes |
+| `chromatic-seasons.ts` | Traduzir nomes de estacoes e descricoes |
+| `quiz-aesthetics.ts` | Traduzir esteticas |
+| `PageLoader.tsx` / `EmptyState.tsx` | Usar `t()` |
 
 ---
 
-## Plano de Implementacao por Fases
+## Garantia de Seguranca para PT-BR
 
-### Fase 2A -- Navegacao Global (prioridade maxima)
-Refatorar Header, BottomNav e QuickActions para usar `t()`. Estes afetam TODAS as paginas.
-- Criar namespace `dashboard.json` para PT-BR e EN-US
-- Atualizar `common.json` com labels de navegacao faltantes
+A abordagem e segura porque:
 
-### Fase 2B -- Dashboard e Auth
-Refatorar Index.tsx, Auth.tsx, PageLoader, e cards promocionais.
-- Criar namespace `auth.json` para PT-BR e EN-US
-
-### Fase 2C -- Settings (completar traducao)
-A pagina de Settings ja importa `useTranslation` mas ainda usa ~80% de strings hardcoded. Refatorar todas as secoes restantes para usar as chaves ja existentes em `settings.json`.
-
-### Fase 3A -- Wardrobe
-Refatorar pagina + 6 componentes. Criar namespace `wardrobe.json`.
-
-### Fase 3B -- Chromatic
-Refatorar pagina + ~15 componentes. Criar namespace `chromatic.json`.
-
-### Fase 3C -- Try-On / Provador
-Refatorar pagina + ~15 componentes. Criar namespace `tryOn.json`.
-
-### Fase 3D -- Recommendations
-Refatorar pagina + ~6 componentes. Criar namespace `recommendations.json`.
-
-### Fase 3E -- Events + Voyager
-Refatorar 2 paginas + ~15 componentes. Criar namespaces `events.json` e `voyager.json`.
-Remover import hardcoded de `ptBR` do date-fns e usar `useLocale()`.
-
-### Fase 3F -- Quiz + Onboarding
-Refatorar ~16 componentes. Criar namespaces `quiz.json` e `onboarding.json`.
-
-### Fase 3G -- Landing Page
-Refatorar ~10 componentes. Criar namespace `landing.json`.
-
-### Fase 3H -- Subscription + Admin
-Refatorar ~8 componentes. Criar namespaces `subscription.json` e `admin.json`.
-
-### Fase 4A -- Paginas Juridicas
-Reescrever Terms.tsx e PrivacyPolicy.tsx para carregar conteudo dos JSONs de traducao. A versao EN-US tera conteudo juridico adaptado (sem LGPD, com CCPA).
-
-### Fase 4B -- Dados e Utilitarios
-- Adicionar dicionario EN-US em `normalize-color.ts`
-- Traduzir dados em `missions.ts`, `chromatic-seasons.ts`, `quiz-aesthetics.ts`
-- Corrigir `PageLoader.tsx` e `EmptyState.tsx`
+1. Cada string hardcoded em portugues sera movida para o JSON `pt-BR` **com o mesmo texto exato**
+2. A chave `t('wardrobe.title')` retorna `"Meu Closet"` em PT-BR e `"My Closet"` em EN-US
+3. O fallback e `pt-BR`, entao qualquer chave nao traduzida mostra o portugues original
+4. Os componentes ja traduzidos (Header, BottomNav, etc.) comprovam que a abordagem funciona sem quebrar nada
 
 ---
 
-## Estimativa de Escopo
+## Ordem de Implementacao Sugerida
 
-- **~60+ componentes** precisam de refatoracao
-- **~15 novos arquivos JSON** de traducao (por idioma)
-- **~5 arquivos de dados** com conteudo em PT-BR
-- **2 paginas juridicas** com conteudo completo a reescrever
+Devido ao volume (~80 arquivos), sugiro implementar em blocos de 2-3 fases por prompt:
 
-## Recomendacao
+**Bloco 1 (impacto visual maximo):**
+- Fase 3A (Wardrobe) + Fase 3D (Recommendations) + Fase 3K (Dashboard sub-components)
 
-Devido ao volume, sugiro implementar em blocos de 2-3 fases por prompt, comecando pela **Fase 2A (navegacao)** que tem impacto visual imediato em todas as telas quando o usuario troca o idioma.
+**Bloco 2:**
+- Fase 3B (Chromatic) + Fase 3C (Try-On)
 
+**Bloco 3:**
+- Fase 3E (Events) + Fase 3F (Voyager)
+
+**Bloco 4:**
+- Fase 3G (Quiz/Onboarding) + Fase 3H (Landing)
+
+**Bloco 5:**
+- Fase 3I (Subscription) + Fase 3J (Admin)
+
+**Bloco 6:**
+- Fase 4A (Juridicas) + Fase 4B (Utilitarios)
+
+Cada bloco cria os JSONs de traducao necessarios e refatora os componentes para usar `t()`.
