@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Heart, Shirt, Palette, RefreshCw, Compass, Sparkles, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 interface QuickAction {
   id: string;
@@ -26,12 +27,13 @@ export function QuickActionsGrid({
   onStyleClick,
 }: QuickActionsGridProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation('chromatic');
 
   const actions: QuickAction[] = [
     {
       id: 'makeup',
-      label: 'Maquiagem',
-      description: 'Cores ideais',
+      label: t('quickActions.makeup'),
+      description: t('quickActions.makeupDesc'),
       icon: Heart,
       color: 'text-rose-500',
       bgColor: 'bg-rose-500/10 hover:bg-rose-500/20',
@@ -39,8 +41,8 @@ export function QuickActionsGrid({
     },
     {
       id: 'looks',
-      label: 'Looks',
-      description: 'Combinações',
+      label: t('quickActions.looks'),
+      description: t('quickActions.looksDesc'),
       icon: Shirt,
       color: 'text-purple-500',
       bgColor: 'bg-purple-500/10 hover:bg-purple-500/20',
@@ -48,8 +50,8 @@ export function QuickActionsGrid({
     },
     {
       id: 'explore',
-      label: 'Explorar',
-      description: '12 paletas',
+      label: t('quickActions.explore'),
+      description: t('quickActions.exploreDesc'),
       icon: Compass,
       color: 'text-blue-500',
       bgColor: 'bg-blue-500/10 hover:bg-blue-500/20',
@@ -57,8 +59,8 @@ export function QuickActionsGrid({
     },
     {
       id: 'redo',
-      label: 'Refazer',
-      description: 'Nova análise',
+      label: t('quickActions.redo'),
+      description: t('quickActions.redoDesc'),
       icon: RefreshCw,
       color: 'text-amber-500',
       bgColor: 'bg-amber-500/10 hover:bg-amber-500/20',

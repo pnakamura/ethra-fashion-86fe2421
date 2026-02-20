@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -27,6 +28,7 @@ import { calculateWardrobeStats } from '@/lib/chromatic-match';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function Chromatic() {
+  const { t } = useTranslation('chromatic');
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { loadFromProfile, saveToProfile, result, reset } = useColorAnalysis();
@@ -38,13 +40,9 @@ export default function Chromatic() {
   const [showAnalysisFlow, setShowAnalysisFlow] = useState(false);
   const [referenceAvatarUrl, setReferenceAvatarUrl] = useState<string | null>(null);
 
-  // Preload chromatic seasons data (lazy loaded)
   const { isLoading: seasonsLoading } = useChromaticSeasons();
-
-  // Use centralized hook - only fetch needed fields for stats
   const { items: wardrobeItems } = useWardrobeItems();
   
-  // Calculate stats from cached items
   const wardrobeStats = calculateWardrobeStats(
     wardrobeItems.map(item => ({ id: item.id, chromatic_compatibility: item.chromatic_compatibility }))
   );
@@ -55,13 +53,9 @@ export default function Chromatic() {
         const analysis = await loadFromProfile();
         if (analysis) {
           setSavedAnalysis(analysis);
-          // If user has analysis, default to palette tab
           setActiveTab('palette');
         }
 
-        // Fetch reference selfie for face matching:
-        // 1st priority: profiles.avatar_url (reference selfie from chromatic camera)
-        // 2nd priority: primary avatar from user_avatars (try-on avatar)
         try {
           const { data: profile } = await supabase
             .from('profiles')
@@ -92,7 +86,6 @@ export default function Chromatic() {
     loadProfile();
   }, [user]);
 
-  // Auto-switch to palette tab when experimenting
   useEffect(() => {
     if (isUsingTemporary && temporarySeason) {
       setActiveTab('palette');
@@ -116,7 +109,6 @@ export default function Chromatic() {
   const currentSeason = savedAnalysis ? getSeasonById(savedAnalysis.season_id) : null;
   const hasAnalysis = !!savedAnalysis || isUsingTemporary;
 
-  // Auth guard
   useEffect(() => {
     if (!authLoading && !user) navigate('/welcome');
   }, [authLoading, user, navigate]);
@@ -124,7 +116,7 @@ export default function Chromatic() {
   if (!user || loading || seasonsLoading) {
     return (
       <>
-        <Header title="Cores" />
+        <Header title={t('title')} />
         <PageContainer className="px-4 py-6">
           <div className="flex items-center justify-center min-h-[400px]">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -137,16 +129,12 @@ export default function Chromatic() {
 
   return (
     <>
-      <Header title="Cores" />
+      <Header title={t('title')} />
       <PageContainer className="px-4 py-6">
         <div className="max-w-lg mx-auto space-y-6">
-          {/* Temporary Season Banner */}
           <TemporarySeasonBanner />
-
-          {/* Biometric consent alert */}
           <BiometricAlertBanner consentOnly />
 
-          {/* Hero section - only show when user has analysis */}
           {hasAnalysis && (
             <ChromaticHero
               analysis={savedAnalysis}
@@ -158,7 +146,6 @@ export default function Chromatic() {
             />
           )}
 
-          {/* Quick Actions - only show when user has analysis */}
           {hasAnalysis && !isUsingTemporary && (
             <QuickActionsGrid
               onMakeupClick={() => setActiveTab('makeup')}
@@ -167,49 +154,37 @@ export default function Chromatic() {
             />
           )}
 
-          {/* Main navigation tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-4 rounded-xl bg-muted p-1">
               <TabsTrigger value="discover" className="rounded-lg text-xs sm:text-sm">
                 <Sparkles className="w-3.5 h-3.5 mr-1.5 hidden sm:block" />
-                Descobrir
+                {t('tabs.discover')}
               </TabsTrigger>
               <TabsTrigger value="palette" className="rounded-lg text-xs sm:text-sm">
                 <Palette className="w-3.5 h-3.5 mr-1.5 hidden sm:block" />
-                Paleta
+                {t('tabs.palette')}
               </TabsTrigger>
               <TabsTrigger value="makeup" className="rounded-lg text-xs sm:text-sm">
                 <Heart className="w-3.5 h-3.5 mr-1.5 hidden sm:block" />
-                Beauty
+                {t('tabs.beauty')}
               </TabsTrigger>
               <TabsTrigger value="explore" className="rounded-lg text-xs sm:text-sm">
                 <Compass className="w-3.5 h-3.5 mr-1.5 hidden sm:block" />
-                Explorar
+                {t('tabs.explore')}
               </TabsTrigger>
             </TabsList>
 
-            {/* Discover Tab */}
             <TabsContent value="discover" className="mt-4">
               <AnimatePresence mode="wait">
                 {!hasAnalysis && !showAnalysisFlow ? (
-                  <motion.div
-                    key="onboarding"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                  >
+                  <motion.div key="onboarding" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                     <ChromaticOnboarding
                       onStartAnalysis={() => setShowAnalysisFlow(true)}
                       onExplore={() => setActiveTab('explore')}
                     />
                   </motion.div>
                 ) : (
-                  <motion.div
-                    key="analysis"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                  >
+                  <motion.div key="analysis" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                     <ColorAnalysis
                       onComplete={() => {}}
                       onSave={handleSaveAnalysis}
@@ -217,10 +192,9 @@ export default function Chromatic() {
                       referenceAvatarUrl={referenceAvatarUrl}
                       onReferenceSaved={(url) => setReferenceAvatarUrl(url)}
                     />
-
                     {!user && (
                       <p className="text-center text-sm text-muted-foreground mt-4">
-                        Faça login para salvar sua paleta
+                        {t('loginToSave')}
                       </p>
                     )}
                   </motion.div>
@@ -228,71 +202,37 @@ export default function Chromatic() {
               </AnimatePresence>
             </TabsContent>
 
-            {/* Palette Tab */}
             <TabsContent value="palette" className="mt-4">
               <AnimatePresence mode="wait">
                 {isUsingTemporary && temporarySeason ? (
-                  <motion.div
-                    key="temporary"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                  >
-                    <TemporaryPalettePreview 
-                      temporarySeason={temporarySeason}
-                      savedAnalysis={savedAnalysis}
-                    />
+                  <motion.div key="temporary" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                    <TemporaryPalettePreview temporarySeason={temporarySeason} savedAnalysis={savedAnalysis} />
                   </motion.div>
                 ) : savedAnalysis ? (
-                  <motion.div
-                    key="saved"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="space-y-6"
-                  >
-                    {/* Journey tracker */}
+                  <motion.div key="saved" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
                     <ColorJourney hasAnalysis={true} hasExplored={true} />
-                    
-                    <ColorResultDisplay
-                      result={savedAnalysis}
-                      onRetry={handleNewAnalysis}
-                    />
+                    <ColorResultDisplay result={savedAnalysis} onRetry={handleNewAnalysis} />
                   </motion.div>
                 ) : (
-                  <motion.div
-                    key="empty"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="py-8"
-                  >
-                    <ChromaticOnboarding
-                      onStartAnalysis={() => setActiveTab('discover')}
-                      onExplore={() => setActiveTab('explore')}
-                    />
+                  <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-8">
+                    <ChromaticOnboarding onStartAnalysis={() => setActiveTab('discover')} onExplore={() => setActiveTab('explore')} />
                   </motion.div>
                 )}
               </AnimatePresence>
             </TabsContent>
 
-            {/* Makeup Tab */}
             <TabsContent value="makeup" className="mt-4">
               <MakeupHub />
             </TabsContent>
 
-            {/* Explore Tab */}
             <TabsContent value="explore" className="mt-4">
-              <SeasonExplorer 
-                userSeasonId={savedAnalysis?.season_id}
-                onTryPalette={() => setActiveTab('palette')}
-              />
+              <SeasonExplorer userSeasonId={savedAnalysis?.season_id} onTryPalette={() => setActiveTab('palette')} />
             </TabsContent>
           </Tabs>
         </div>
       </PageContainer>
       <BottomNav />
 
-      {/* Season detail modal */}
       <SeasonDetailModal
         season={currentSeason || null}
         isOpen={showSeasonDetail}
