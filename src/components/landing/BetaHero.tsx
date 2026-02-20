@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTranslation } from 'react-i18next';
 
 export function BetaHero() {
-  const { t } = useTranslation('landing');
+  const { t, i18n } = useTranslation('landing');
   const { theme, setTheme } = useTheme();
   const [testerCount, setTesterCount] = useState<number | null>(null);
 
@@ -47,14 +47,30 @@ export function BetaHero() {
 
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-16 overflow-hidden">
-      {/* Theme toggle */}
-      <div className="fixed top-6 right-6 z-50 flex items-center gap-2">
-        <Sun className="w-4 h-4 text-muted-foreground" />
-        <Switch
-          checked={theme === 'dark'}
-          onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
-        />
-        <Moon className="w-4 h-4 text-muted-foreground" />
+      {/* Language + Theme toggle */}
+      <div className="fixed top-6 right-6 z-50 flex items-center gap-3">
+        <div className="flex items-center rounded-full border border-border bg-card/80 backdrop-blur-sm overflow-hidden">
+          <button
+            onClick={() => { i18n.changeLanguage('pt-BR'); localStorage.setItem('ethra-locale', 'pt-BR'); }}
+            className={`px-3 py-1.5 text-xs font-semibold transition-colors ${i18n.language?.startsWith('pt') ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            PT
+          </button>
+          <button
+            onClick={() => { i18n.changeLanguage('en-US'); localStorage.setItem('ethra-locale', 'en-US'); }}
+            className={`px-3 py-1.5 text-xs font-semibold transition-colors ${!i18n.language?.startsWith('pt') ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            EN
+          </button>
+        </div>
+        <div className="flex items-center gap-2">
+          <Sun className="w-4 h-4 text-muted-foreground" />
+          <Switch
+            checked={theme === 'dark'}
+            onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+          />
+          <Moon className="w-4 h-4 text-muted-foreground" />
+        </div>
       </div>
 
       {/* Background glow */}
