@@ -92,7 +92,7 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
   };
 
   return (
-    <section ref={ref} id="tester-signup" className="py-24 px-6">
+    <section ref={ref} id="tester-signup" className="py-16 md:py-24 px-6">
       <div className="max-w-lg mx-auto">
         <AnimatePresence mode="wait">
           {success ? (

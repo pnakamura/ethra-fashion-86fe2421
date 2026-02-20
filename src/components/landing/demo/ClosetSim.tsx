@@ -232,7 +232,7 @@ export function ClosetSim({ onInteract }: ClosetSimProps) {
               </p>
             </div>
 
-            <div className="w-full grid grid-cols-2 gap-5">
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-5">
               {Object.entries(CAPSULE_ITEMS).map(([category, items]) => (
                 <div key={category} className="space-y-2">
                   <h4 className="text-sm md:text-base font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">

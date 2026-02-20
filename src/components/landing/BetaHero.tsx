@@ -48,7 +48,7 @@ export function BetaHero() {
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center px-6 py-16 overflow-hidden">
       {/* Language + Theme toggle */}
-      <div className="fixed top-6 right-6 z-50 flex items-center gap-3">
+      <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 flex items-center gap-2 sm:gap-3">
         <div className="flex items-center rounded-full border border-border bg-card/80 backdrop-blur-sm overflow-hidden">
           <button
             onClick={() => { i18n.changeLanguage('pt-BR'); localStorage.setItem('ethra-locale', 'pt-BR'); }}
@@ -64,12 +64,12 @@ export function BetaHero() {
           </button>
         </div>
         <div className="flex items-center gap-2">
-          <Sun className="w-4 h-4 text-muted-foreground" />
+          <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground" />
           <Switch
             checked={theme === 'dark'}
             onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
           />
-          <Moon className="w-4 h-4 text-muted-foreground" />
+          <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground" />
         </div>
       </div>
 

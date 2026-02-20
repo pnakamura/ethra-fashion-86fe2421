@@ -183,7 +183,7 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
                 transition={{ delay: 0.1 }}
               >
                 <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t('tryOn.before')}</span>
-                <div className="w-36 h-48 md:w-44 md:h-56 rounded-2xl overflow-hidden shadow-lg border border-border">
+                <div className="w-32 h-44 sm:w-36 sm:h-48 md:w-44 md:h-56 rounded-2xl overflow-hidden shadow-lg border border-border">
                   <img src={modelBefore} alt={t('tryOn.before')} className="w-full h-full object-cover" />
                 </div>
               </motion.div>
@@ -203,7 +203,7 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
                 transition={{ delay: 0.2 }}
               >
                 <span className="text-sm font-semibold text-primary uppercase tracking-wider">{t('tryOn.after')}</span>
-                <div className="relative w-36 h-48 md:w-44 md:h-56 rounded-2xl overflow-hidden shadow-lg border-2 border-primary/30">
+                <div className="relative w-32 h-44 sm:w-36 sm:h-48 md:w-44 md:h-56 rounded-2xl overflow-hidden shadow-lg border-2 border-primary/30">
                   <img src={garment.result} alt={t('tryOn.after')} className="w-full h-full object-cover" />
                   <motion.div
                     className="absolute inset-0 pointer-events-none"
@@ -270,7 +270,7 @@ export function TryOnSim({ onInteract, hasSkinTone }: TryOnSimProps) {
       {/* Placeholder */}
       {!selected && !processing && !showResult && (
         <div className="flex flex-col items-center gap-4">
-          <div className="w-36 h-48 md:w-44 md:h-56 rounded-2xl overflow-hidden shadow-md border border-border">
+          <div className="w-32 h-44 sm:w-36 sm:h-48 md:w-44 md:h-56 rounded-2xl overflow-hidden shadow-md border border-border">
             <img src={modelBefore} alt={t('tryOn.modelAlt')} className="w-full h-full object-cover" />
           </div>
           <motion.p
