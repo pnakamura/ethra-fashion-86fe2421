@@ -279,14 +279,14 @@ export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps
                     {profile.season}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-sm text-muted-foreground">
                   <span>{t('chromatic.confidence', { value: profile.confidence })}</span>
-                  <span>•</span>
+                  <span className="hidden sm:inline">•</span>
                   <span>{t('chromatic.skin', { value: profile.skin })}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-sm text-muted-foreground">
                   <span>{t('chromatic.eyes', { value: profile.eyes })}</span>
-                  <span>•</span>
+                  <span className="hidden sm:inline">•</span>
                   <span>{t('chromatic.hair', { value: profile.hair })}</span>
                 </div>
               </div>
@@ -308,7 +308,7 @@ export function ChromaticSim({ onInteract, onSkinToneSelect }: ChromaticSimProps
                 <Check className="w-4 h-4 text-primary" />
                 {t('chromatic.colorsRecommended')}
               </h4>
-              <div className="grid grid-cols-6 gap-2">
+              <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                 {profile.colors.map((color, i) => (
                   <motion.div
                     key={color.name}

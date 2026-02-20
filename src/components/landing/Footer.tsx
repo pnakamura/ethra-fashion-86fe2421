@@ -23,7 +23,7 @@ export function Footer() {
           </motion.div>
 
           {/* Links */}
-          <div className="flex items-center gap-8 text-base text-muted-foreground">
+          <div className="flex items-center gap-4 sm:gap-8 text-sm sm:text-base text-muted-foreground">
             <a href="/terms" className="hover:text-foreground transition-colors">
               {t('footer.terms')}
             </a>
@@ -36,13 +36,13 @@ export function Footer() {
           </div>
 
           {/* Badge */}
-          <div className="flex items-center gap-2 text-base text-muted-foreground">
+          <div className="flex items-center gap-2 text-sm sm:text-base text-muted-foreground">
             <span>{t('footer.poweredBy')}</span>
             <span className="text-primary font-medium">AI</span>
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-border/30 text-center text-base text-muted-foreground">
+        <div className="mt-8 pt-8 border-t border-border/30 text-center text-sm sm:text-base text-muted-foreground">
           {t('footer.copyright', { year: new Date().getFullYear() })}
         </div>
       </div>

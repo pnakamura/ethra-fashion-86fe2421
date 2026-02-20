@@ -46,7 +46,7 @@ export function DemoSection() {
   };
 
   return (
-    <section className="py-24 px-6">
+    <section className="py-16 px-4 md:py-24 md:px-6">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <motion.div
@@ -106,7 +106,7 @@ export function DemoSection() {
 
             {TABS.map((tab) => (
               <TabsContent key={tab.value} value={tab.value}>
-                <div className="bg-card/50 backdrop-blur-sm rounded-3xl border border-border p-5 md:p-10 lg:p-12 shadow-soft">
+                <div className="bg-card/50 backdrop-blur-sm rounded-3xl border border-border p-4 md:p-8 lg:p-12 shadow-soft">
                   <div className="text-center mb-8">
                     <h3 className="font-display text-2xl md:text-3xl font-semibold mb-2">
                       {tab.title}
