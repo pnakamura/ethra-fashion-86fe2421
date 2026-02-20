@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -48,6 +49,7 @@ function parseTripAnalysis(json: Json | null): TripAnalysis | null {
 }
 
 export default function Voyager() {
+  const { t } = useTranslation('voyager');
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -123,14 +125,14 @@ export default function Voyager() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trips'] });
-      toast({ title: 'Viagem criada!', description: 'Sua mala foi planejada com sucesso.' });
+      toast({ title: t('toasts.tripCreated'), description: t('toasts.tripCreatedDesc') });
       setView('list');
     },
     onError: (error) => {
       console.error('Error creating trip:', error);
       toast({ 
-        title: 'Erro ao criar viagem', 
-        description: 'Tente novamente.',
+        title: t('toasts.tripCreateError'), 
+        description: t('toasts.tryAgain'),
         variant: 'destructive'
       });
     },
@@ -156,13 +158,13 @@ export default function Voyager() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trips'] });
-      toast({ title: 'Viagem atualizada!' });
+      toast({ title: t('toasts.tripUpdated') });
     },
     onError: (error) => {
       console.error('Error updating trip:', error);
       toast({ 
-        title: 'Erro ao atualizar', 
-        description: 'Tente novamente.',
+        title: t('toasts.tripUpdateError'), 
+        description: t('toasts.tryAgain'),
         variant: 'destructive'
       });
     },
@@ -181,13 +183,13 @@ export default function Voyager() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trips'] });
-      toast({ title: 'Viagem excluída!' });
+      toast({ title: t('toasts.tripDeleted') });
     },
     onError: (error) => {
       console.error('Error deleting trip:', error);
       toast({ 
-        title: 'Erro ao excluir', 
-        description: 'Tente novamente.',
+        title: t('toasts.tripDeleteError'), 
+        description: t('toasts.tryAgain'),
         variant: 'destructive'
       });
     },
@@ -197,12 +199,12 @@ export default function Voyager() {
     setIsExporting(true);
     try {
       await downloadPackingListPDF(trip);
-      toast({ title: 'PDF gerado!', description: 'Use Ctrl+P para salvar como PDF.' });
+      toast({ title: t('toasts.pdfGenerated'), description: t('toasts.pdfGeneratedDesc') });
     } catch (error) {
       console.error('Error exporting PDF:', error);
       toast({ 
-        title: 'Erro ao exportar', 
-        description: error instanceof Error ? error.message : 'Tente novamente.',
+        title: t('toasts.pdfExportError'), 
+        description: error instanceof Error ? error.message : t('toasts.tryAgain'),
         variant: 'destructive'
       });
     } finally {
@@ -213,12 +215,12 @@ export default function Voyager() {
   const handleAddToCalendar = (trip: Trip) => {
     try {
       openGoogleCalendar(trip);
-      toast({ title: 'Abrindo Google Calendar...', description: 'Confirme o evento na nova aba.' });
+      toast({ title: t('toasts.calendarOpening'), description: t('toasts.calendarOpeningDesc') });
     } catch (error) {
       console.error('Error opening calendar:', error);
       toast({ 
-        title: 'Erro ao abrir calendário', 
-        description: 'Tente novamente.',
+        title: t('toasts.calendarError'), 
+        description: t('toasts.tryAgain'),
         variant: 'destructive'
       });
     }
@@ -239,7 +241,7 @@ export default function Voyager() {
 
   return (
     <>
-      <Header title="Voyager" />
+      <Header title={t('title')} />
       <PageContainer className="px-4 py-6">
         <div className="max-w-lg mx-auto">
           {view === 'list' ? (

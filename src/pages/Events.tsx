@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, isToday } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, isToday } from 'date-fns';
 import { ChevronLeft, ChevronRight, Plus, Calendar, MapPin, Clock, Briefcase, PartyPopper, Heart, Users, Shirt, Gem, Plane, Star, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Header } from '@/components/layout/Header';
@@ -11,6 +11,7 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { AddEventSheet } from '@/components/events/AddEventSheet';
 import { EventDetailSheet } from '@/components/events/EventDetailSheet';
 import { useUserEvents, type UserEvent } from '@/hooks/useUserEvents';
+import { useLocale } from '@/i18n/useLocale';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -26,19 +27,9 @@ const eventTypeIcons: Record<string, React.ComponentType<any>> = {
   special: Star,
 };
 
-const eventTypeLabels: Record<string, string> = {
-  meeting: 'Reunião',
-  party: 'Festa',
-  date: 'Encontro',
-  interview: 'Entrevista',
-  casual: 'Casual',
-  wedding: 'Casamento',
-  travel: 'Viagem',
-  work: 'Trabalho',
-  special: 'Especial',
-};
-
 export default function Events() {
+  const { t } = useTranslation('events');
+  const { dateFnsLocale } = useLocale();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -55,13 +46,14 @@ export default function Events() {
   const monthEnd = endOfMonth(currentMonth);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-  // Add padding for week alignment
   const startPadding = monthStart.getDay();
   const paddedDays = [...Array(startPadding).fill(null), ...days];
 
+  const weekdays = t('weekdays', { returnObjects: true }) as string[];
+
   const handleDeleteEvent = (eventId: string) => {
     deleteEvent(eventId);
-    toast.success('Evento excluído');
+    toast.success(t('eventDeleted'));
   };
 
   const handleEventClick = (event: UserEvent) => {
@@ -77,48 +69,35 @@ export default function Events() {
 
   return (
     <>
-      <Header title="Agenda" />
+      <Header title={t('title')} />
       <PageContainer className="px-4 py-6">
         <div className="max-w-lg mx-auto space-y-6">
           {/* Month Navigation */}
           <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-            >
+            <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
               <ChevronLeft className="w-5 h-5" />
             </Button>
             <h2 className="font-display text-lg font-medium capitalize">
-              {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
+              {format(currentMonth, 'MMMM yyyy', { locale: dateFnsLocale })}
             </h2>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-            >
+            <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
               <ChevronRight className="w-5 h-5" />
             </Button>
           </div>
 
           {/* Calendar Grid */}
           <div className="bg-card rounded-2xl border border-border dark:border-primary/12 p-4 shadow-soft">
-            {/* Weekday headers */}
             <div className="grid grid-cols-7 gap-1 mb-2">
-              {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((day, i) => (
+              {weekdays.map((day, i) => (
                 <div key={i} className="text-center text-xs text-muted-foreground font-medium py-2">
                   {day}
                 </div>
               ))}
             </div>
 
-            {/* Days */}
             <div className="grid grid-cols-7 gap-1">
               {paddedDays.map((day, i) => {
-                if (!day) {
-                  return <div key={`empty-${i}`} className="aspect-square" />;
-                }
-
+                if (!day) return <div key={`empty-${i}`} className="aspect-square" />;
                 const dayEvents = getEventsForDate(day);
                 const hasEvents = dayEvents.length > 0;
                 const isSelected = selectedDate && isSameDay(day, selectedDate);
@@ -131,25 +110,16 @@ export default function Events() {
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setSelectedDate(day)}
                     className={`aspect-square rounded-xl flex flex-col items-center justify-center relative transition-all ${
-                      isSelected
-                        ? 'bg-primary text-primary-foreground'
-                        : isCurrentDay
-                        ? 'bg-primary/10 text-primary'
+                      isSelected ? 'bg-primary text-primary-foreground'
+                        : isCurrentDay ? 'bg-primary/10 text-primary'
                         : 'hover:bg-secondary'
                     }`}
                   >
-                    <span className={`text-sm ${isSelected ? 'font-semibold' : ''}`}>
-                      {format(day, 'd')}
-                    </span>
+                    <span className={`text-sm ${isSelected ? 'font-semibold' : ''}`}>{format(day, 'd')}</span>
                     {hasEvents && (
                       <div className="flex gap-0.5 mt-0.5">
                         {dayEvents.slice(0, 3).map((_, idx) => (
-                          <span
-                            key={idx}
-                            className={`w-1 h-1 rounded-full ${
-                              isSelected ? 'bg-primary-foreground' : 'bg-primary'
-                            }`}
-                          />
+                          <span key={idx} className={`w-1 h-1 rounded-full ${isSelected ? 'bg-primary-foreground' : 'bg-primary'}`} />
                         ))}
                       </div>
                     )}
@@ -161,21 +131,17 @@ export default function Events() {
 
           {/* Selected Date Events */}
           {selectedDate && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-3"
-            >
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="font-medium text-sm">
-                  {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
+                  {format(selectedDate, 'PPPP', { locale: dateFnsLocale })}
                 </h3>
                 <AddEventSheet
                   defaultDate={selectedDate}
                   trigger={
                     <Button size="sm" variant="outline" className="rounded-full">
                       <Plus className="w-4 h-4 mr-1" />
-                      Evento
+                      {t('event')}
                     </Button>
                   }
                 />
@@ -183,7 +149,7 @@ export default function Events() {
 
               {selectedDateEvents.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground text-sm">
-                  Nenhum evento neste dia
+                  {t('noEventsDay')}
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -205,7 +171,7 @@ export default function Events() {
                             <p className="font-medium text-sm">{event.title}</p>
                             <div className="flex flex-wrap gap-2 mt-1 text-xs text-muted-foreground">
                               <span className="flex items-center gap-1">
-                                {eventTypeLabels[event.event_type] || event.event_type}
+                                {t(`eventTypes.${event.event_type}`, { defaultValue: event.event_type })}
                               </span>
                               {event.event_time && (
                                 <span className="flex items-center gap-1">
@@ -237,7 +203,7 @@ export default function Events() {
           {/* Upcoming Events */}
           {upcomingEvents.length > 0 && !selectedDate && (
             <div className="space-y-3">
-              <h3 className="font-medium text-sm">Próximos eventos</h3>
+              <h3 className="font-medium text-sm">{t('upcomingEvents')}</h3>
               <div className="space-y-2">
                 {upcomingEvents.slice(0, 5).map((event) => {
                   const Icon = eventTypeIcons[event.event_type] || Calendar;
@@ -254,13 +220,11 @@ export default function Events() {
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm truncate">{event.title}</p>
                         <p className="text-xs text-muted-foreground">
-                          {format(new Date(event.event_date), "EEE, d MMM", { locale: ptBR })}
-                          {event.event_time && ` às ${event.event_time.slice(0, 5)}`}
+                          {format(new Date(event.event_date), 'EEE, d MMM', { locale: dateFnsLocale })}
+                          {event.event_time && ` ${t('atTime', { time: event.event_time.slice(0, 5) })}`}
                         </p>
                       </div>
-                      {hasSuggestions && (
-                        <Sparkles className="w-4 h-4 text-primary flex-shrink-0" />
-                      )}
+                      {hasSuggestions && <Sparkles className="w-4 h-4 text-primary flex-shrink-0" />}
                       <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                     </button>
                   );
@@ -273,15 +237,13 @@ export default function Events() {
           {events.length === 0 && !isLoading && (
             <div className="text-center py-12">
               <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="font-medium mb-2">Nenhum evento agendado</p>
-              <p className="text-sm text-muted-foreground mb-4">
-                Adicione seus compromissos para receber sugestões de looks personalizadas
-              </p>
+              <p className="font-medium mb-2">{t('noEventsScheduled')}</p>
+              <p className="text-sm text-muted-foreground mb-4">{t('noEventsDescription')}</p>
               <AddEventSheet
                 trigger={
                   <Button className="gradient-primary rounded-xl">
                     <Plus className="w-4 h-4 mr-2" />
-                    Adicionar Evento
+                    {t('addEvent')}
                   </Button>
                 }
               />
@@ -290,7 +252,6 @@ export default function Events() {
         </div>
       </PageContainer>
       
-      {/* Event Detail Sheet */}
       <EventDetailSheet
         event={selectedEvent}
         isOpen={Boolean(selectedEvent)}
