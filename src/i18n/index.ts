@@ -12,6 +12,8 @@ import wardrobePtBR from './locales/pt-BR/wardrobe.json';
 import recommendationsPtBR from './locales/pt-BR/recommendations.json';
 import chromaticPtBR from './locales/pt-BR/chromatic.json';
 import tryOnPtBR from './locales/pt-BR/tryOn.json';
+import eventsPtBR from './locales/pt-BR/events.json';
+import voyagerPtBR from './locales/pt-BR/voyager.json';
 
 // EN-US translations
 import commonEnUS from './locales/en-US/common.json';
@@ -23,6 +25,8 @@ import wardrobeEnUS from './locales/en-US/wardrobe.json';
 import recommendationsEnUS from './locales/en-US/recommendations.json';
 import chromaticEnUS from './locales/en-US/chromatic.json';
 import tryOnEnUS from './locales/en-US/tryOn.json';
+import eventsEnUS from './locales/en-US/events.json';
+import voyagerEnUS from './locales/en-US/voyager.json';
 
 i18n
   .use(LanguageDetector)
@@ -39,6 +43,8 @@ i18n
         recommendations: recommendationsPtBR,
         chromatic: chromaticPtBR,
         tryOn: tryOnPtBR,
+        events: eventsPtBR,
+        voyager: voyagerPtBR,
       },
       'en-US': {
         common: commonEnUS,
@@ -50,12 +56,14 @@ i18n
         recommendations: recommendationsEnUS,
         chromatic: chromaticEnUS,
         tryOn: tryOnEnUS,
+        events: eventsEnUS,
+        voyager: voyagerEnUS,
       },
     },
     fallbackLng: 'pt-BR',
     supportedLngs: ['pt-BR', 'en-US'],
     defaultNS: 'common',
-    ns: ['common', 'legal', 'settings', 'dashboard', 'auth', 'wardrobe', 'recommendations', 'chromatic', 'tryOn'],
+    ns: ['common', 'legal', 'settings', 'dashboard', 'auth', 'wardrobe', 'recommendations', 'chromatic', 'tryOn', 'events', 'voyager'],
     interpolation: {
       escapeValue: false,
     },

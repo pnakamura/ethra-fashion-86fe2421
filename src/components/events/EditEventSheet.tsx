@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Calendar, Clock, MapPin, MessageSquare, Briefcase, PartyPopper, Heart, Users, Shirt, Gem, Plane, Star, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,28 +9,25 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useUserEvents, type UserEvent } from '@/hooks/useUserEvents';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
 
-const eventTypes = [
-  { value: 'meeting', label: 'Reunião', icon: Briefcase, color: 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400' },
-  { value: 'party', label: 'Festa', icon: PartyPopper, color: 'bg-pink-500/10 text-pink-600 dark:bg-pink-500/20 dark:text-pink-400' },
-  { value: 'date', label: 'Encontro', icon: Heart, color: 'bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400' },
-  { value: 'interview', label: 'Entrevista', icon: Users, color: 'bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400' },
-  { value: 'casual', label: 'Casual', icon: Shirt, color: 'bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400' },
-  { value: 'wedding', label: 'Casamento', icon: Gem, color: 'bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400' },
-  { value: 'travel', label: 'Viagem', icon: Plane, color: 'bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400' },
-  { value: 'special', label: 'Especial', icon: Star, color: 'bg-yellow-500/10 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-400' },
-] as const;
+const eventTypeIcons = {
+  meeting: Briefcase, party: PartyPopper, date: Heart, interview: Users,
+  casual: Shirt, wedding: Gem, travel: Plane, special: Star,
+} as const;
 
-const dressCodes = [
-  { value: 'casual', label: 'Casual' },
-  { value: 'smart_casual', label: 'Smart Casual' },
-  { value: 'casual_chic', label: 'Casual Chic' },
-  { value: 'formal', label: 'Formal' },
-  { value: 'cocktail', label: 'Cocktail' },
-  { value: 'black_tie', label: 'Black Tie' },
-  { value: 'theme', label: 'Temático' },
-];
+const eventTypeColors: Record<string, string> = {
+  meeting: 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400',
+  party: 'bg-pink-500/10 text-pink-600 dark:bg-pink-500/20 dark:text-pink-400',
+  date: 'bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400',
+  interview: 'bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400',
+  casual: 'bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400',
+  wedding: 'bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400',
+  travel: 'bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400',
+  special: 'bg-yellow-500/10 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-400',
+};
+
+const eventTypeKeys = ['meeting', 'party', 'date', 'interview', 'casual', 'wedding', 'travel', 'special'] as const;
+const dressCodeKeys = ['casual', 'smart_casual', 'casual_chic', 'formal', 'cocktail', 'black_tie', 'theme'] as const;
 
 interface EditEventSheetProps {
   event: UserEvent;
@@ -38,6 +36,7 @@ interface EditEventSheetProps {
 }
 
 export function EditEventSheet({ event, trigger, onEventUpdated }: EditEventSheetProps) {
+  const { t } = useTranslation('events');
   const [isOpen, setIsOpen] = useState(false);
   const { updateEvent } = useUserEvents();
 
@@ -50,7 +49,6 @@ export function EditEventSheet({ event, trigger, onEventUpdated }: EditEventShee
   const [notes, setNotes] = useState(event.notes || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Reset form when event changes
   useEffect(() => {
     setTitle(event.title);
     setEventDate(event.event_date);
@@ -63,30 +61,22 @@ export function EditEventSheet({ event, trigger, onEventUpdated }: EditEventShee
 
   const handleSubmit = async () => {
     if (!title.trim() || !eventDate) {
-      toast.error('Preencha o título e a data');
+      toast.error(t('editSheet.fillRequired'));
       return;
     }
-
     setIsSubmitting(true);
-
     try {
       updateEvent({
-        id: event.id,
-        title: title.trim(),
-        event_date: eventDate,
-        event_time: eventTime || null,
-        event_type: eventType,
-        dress_code: dressCode,
-        location: location.trim() || null,
-        notes: notes.trim() || null,
+        id: event.id, title: title.trim(), event_date: eventDate,
+        event_time: eventTime || null, event_type: eventType,
+        dress_code: dressCode, location: location.trim() || null, notes: notes.trim() || null,
       });
-
-      toast.success('Evento atualizado!');
+      toast.success(t('editSheet.success'));
       onEventUpdated?.();
       setIsOpen(false);
     } catch (error) {
       console.error('Error updating event:', error);
-      toast.error('Erro ao atualizar evento');
+      toast.error(t('editSheet.error'));
     } finally {
       setIsSubmitting(false);
     }
@@ -97,132 +87,90 @@ export function EditEventSheet({ event, trigger, onEventUpdated }: EditEventShee
       <SheetTrigger asChild>{trigger}</SheetTrigger>
       <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl dark:border-primary/15">
         <SheetHeader className="pb-4">
-          <SheetTitle className="font-display">Editar Evento</SheetTitle>
+          <SheetTitle className="font-display">{t('editSheet.title')}</SheetTitle>
         </SheetHeader>
 
         <div className="space-y-5 overflow-y-auto pb-32 max-h-[calc(85vh-140px)]">
-          {/* Title */}
           <div>
-            <label className="text-sm font-medium mb-2 block">Título</label>
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ex: Reunião com cliente"
-              className="rounded-xl"
-            />
+            <label className="text-sm font-medium mb-2 block">{t('addSheet.titleLabel')}</label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t('addSheet.titlePlaceholder')} className="rounded-xl" />
           </div>
 
-          {/* Date and Time */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium mb-2 block flex items-center gap-1">
-                <Calendar className="w-4 h-4" />
-                Data
+                <Calendar className="w-4 h-4" /> {t('addSheet.dateLabel')}
               </label>
-              <Input
-                type="date"
-                value={eventDate}
-                onChange={(e) => setEventDate(e.target.value)}
-                className="rounded-xl"
-              />
+              <Input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} className="rounded-xl" />
             </div>
             <div>
               <label className="text-sm font-medium mb-2 block flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                Hora (opcional)
+                <Clock className="w-4 h-4" /> {t('addSheet.timeLabel')}
               </label>
-              <Input
-                type="time"
-                value={eventTime}
-                onChange={(e) => setEventTime(e.target.value)}
-                className="rounded-xl"
-              />
+              <Input type="time" value={eventTime} onChange={(e) => setEventTime(e.target.value)} className="rounded-xl" />
             </div>
           </div>
 
-          {/* Event Type */}
           <div>
-            <label className="text-sm font-medium mb-3 block">Tipo de evento</label>
+            <label className="text-sm font-medium mb-3 block">{t('addSheet.eventTypeLabel')}</label>
             <div className="grid grid-cols-4 gap-2">
-              {eventTypes.map((type) => {
-                const Icon = type.icon;
-                const isSelected = eventType === type.value;
+              {eventTypeKeys.map((type) => {
+                const Icon = eventTypeIcons[type];
+                const isSelected = eventType === type;
                 return (
                   <motion.button
-                    key={type.value}
+                    key={type}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => setEventType(type.value as UserEvent['event_type'])}
+                    onClick={() => setEventType(type as UserEvent['event_type'])}
                     className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all ${
                       isSelected
                         ? 'border-primary bg-primary/5 dark:bg-primary/10 dark:border-primary/50 dark:shadow-[0_0_10px_hsl(45_100%_55%_/_0.1)]'
                         : 'border-border dark:border-primary/10 hover:border-primary/30 dark:hover:border-primary/30'
                     }`}
                   >
-                    <div className={`p-2 rounded-full ${type.color}`}>
+                    <div className={`p-2 rounded-full ${eventTypeColors[type]}`}>
                       <Icon className="w-4 h-4" />
                     </div>
-                    <span className="text-xs font-medium">{type.label}</span>
+                    <span className="text-xs font-medium">{t(`eventTypes.${type}`)}</span>
                   </motion.button>
                 );
               })}
             </div>
           </div>
 
-          {/* Dress Code */}
           <div>
-            <label className="text-sm font-medium mb-2 block">Dress Code</label>
+            <label className="text-sm font-medium mb-2 block">{t('editSheet.dressCodeLabel')}</label>
             <Select value={dressCode} onValueChange={setDressCode}>
               <SelectTrigger className="rounded-xl">
-                <SelectValue placeholder="Selecione o dress code" />
+                <SelectValue placeholder={t('editSheet.dressCodePlaceholder')} />
               </SelectTrigger>
               <SelectContent>
-                {dressCodes.map((code) => (
-                  <SelectItem key={code.value} value={code.value}>
-                    {code.label}
-                  </SelectItem>
+                {dressCodeKeys.map((code) => (
+                  <SelectItem key={code} value={code}>{t(`planner.dressCodes.${code}`)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          {/* Location */}
           <div>
             <label className="text-sm font-medium mb-2 block flex items-center gap-1">
-              <MapPin className="w-4 h-4" />
-              Local (opcional)
+              <MapPin className="w-4 h-4" /> {t('addSheet.locationLabel')}
             </label>
-            <Input
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="Ex: Escritório, Restaurante..."
-              className="rounded-xl"
-            />
+            <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder={t('addSheet.locationPlaceholder')} className="rounded-xl" />
           </div>
 
-          {/* Notes */}
           <div>
             <label className="text-sm font-medium mb-2 block flex items-center gap-1">
-              <MessageSquare className="w-4 h-4" />
-              Notas (opcional)
+              <MessageSquare className="w-4 h-4" /> {t('addSheet.notesLabel')}
             </label>
-            <Textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Detalhes adicionais sobre o evento..."
-              className="rounded-xl resize-none"
-              rows={3}
-            />
+            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t('addSheet.notesPlaceholder')} className="rounded-xl resize-none" rows={3} />
           </div>
         </div>
 
         <SheetFooter className="absolute bottom-0 left-0 right-0 p-4 pb-8 z-10 bg-gradient-to-t from-background via-background/98 to-transparent backdrop-blur-sm">
-          <Button
-            onClick={handleSubmit}
-            disabled={isSubmitting || !title.trim() || !eventDate}
-            className="w-full rounded-xl gradient-primary"
-          >
-            {isSubmitting ? 'Salvando...' : 'Salvar Alterações'}
+          <Button onClick={handleSubmit} disabled={isSubmitting || !title.trim() || !eventDate} className="w-full rounded-xl gradient-primary">
+            {isSubmitting ? t('editSheet.submit') + '...' : t('editSheet.submit')}
           </Button>
         </SheetFooter>
       </SheetContent>

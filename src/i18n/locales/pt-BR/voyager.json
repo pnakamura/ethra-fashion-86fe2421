@@ -1,0 +1,152 @@
+{
+  "title": "Voyager",
+  "tripList": {
+    "noTrips": "Nenhuma viagem ainda",
+    "noTripsDesc": "Planeje sua primeira viagem com a Aura ✨",
+    "newTrip": "Nova Viagem",
+    "yourTrips": "Suas Viagens",
+    "new": "Nova",
+    "upcoming": "Próxima",
+    "days": "dias",
+    "items": "itens"
+  },
+  "tripTypes": {
+    "leisure": "Lazer",
+    "business": "Negócios",
+    "adventure": "Aventura",
+    "romantic": "Romântica",
+    "beach": "Praia"
+  },
+  "planner": {
+    "title": "Nova Viagem",
+    "subtitle": "Deixe a Aura planejar sua mala ✨",
+    "destination": "Destino",
+    "destinationPlaceholder": "Ex: Paris, França",
+    "departure": "Ida",
+    "return": "Volta",
+    "tripType": "Tipo de Viagem",
+    "analyzeWeather": "Analisar Clima & Continuar",
+    "searchingLocation": "Buscando local...",
+    "consultingAura": "Consultando Aura...",
+    "analyzingFor": "Analisando clima e preparando looks para {{destination}}",
+    "creatingSuggestions": "Criando sugestões personalizadas ✨",
+    "searchingLocations": "Buscando localizações...",
+    "packYourBag": "Monte sua Mala",
+    "daysIn": "{{days}} dias em {{destination}}",
+    "allPieces": "Todas as Peças",
+    "selected": "{{count}} selecionadas",
+    "addToCloset": "Adicione peças ao seu closet para montar sua mala",
+    "closetPieces": "{{count}} peças do closet",
+    "suggestions": "{{count}} sugestões",
+    "selectedItems": "{{count}} selecionadas",
+    "back": "Voltar",
+    "createTrip": "Criar Viagem"
+  },
+  "detail": {
+    "exportPDF": "Exportar PDF",
+    "calendar": "Calendário",
+    "inCloset": "no closet",
+    "suggestions": "sugestões",
+    "total": "total",
+    "packingList": "Lista da Mala",
+    "save": "Salvar",
+    "noItems": "Nenhum item na lista",
+    "addItemsBelow": "Adicione itens abaixo",
+    "addItem": "Adicionar item",
+    "fromClosetOrType": "Do closet ou digite...",
+    "typeManually": "Digitar manualmente",
+    "itemName": "Nome do item",
+    "closet": "Closet",
+    "suggestion": "Sugestão",
+    "deleteTrip": "Excluir Viagem",
+    "deleteConfirm": "Excluir esta viagem?",
+    "deleteWarning": "Esta ação não pode ser desfeita.",
+    "addedManually": "Adicionado manualmente",
+    "categories": {
+      "roupas": "Roupas",
+      "calcados": "Calçados",
+      "acessorios": "Acessórios",
+      "chapeus": "Chapéus"
+    }
+  },
+  "packing": {
+    "auraChecklist": "Checklist Aura",
+    "inCloset": "no closet",
+    "suggestions": "sugestões",
+    "inBag": "{{count}} peças na mala",
+    "selectAll": "Selecionar todas",
+    "clear": "Limpar",
+    "inBagBadge": "Na mala",
+    "inClosetBadge": "No closet",
+    "suggestionBadge": "Sugestão",
+    "noItemsCategory": "Nenhum item sugerido nesta categoria"
+  },
+  "weather": {
+    "rainChance": "{{percent}}% chance de chuva",
+    "essentials": "Essenciais",
+    "localCulture": "Cultura Local",
+    "avoid": "Evite",
+    "proTips": "Dicas Pro"
+  },
+  "suggestedLooks": {
+    "title": "Looks Sugeridos pela Aura",
+    "allLooks": "Todos os Looks Sugeridos",
+    "styleTip": "Dica de estilo",
+    "added": "Adicionado ✓",
+    "addToBag": "Adicionar à Mala",
+    "add": "Adicionar"
+  },
+  "missingSuggestion": {
+    "title": "Sugestões para Completar",
+    "countOne": "{{count}} peça sugerida pela Aura ✨",
+    "countOther": "{{count}} peças sugeridas pela Aura ✨",
+    "tip": "Dica: Adicione essas peças ao seu closet depois de adquiri-las para ter looks completos!",
+    "others": "Outros"
+  },
+  "locationPicker": {
+    "which": "Qual \"{{term}}\"?",
+    "description": "Encontramos múltiplas localizações. Escolha a correta para uma análise precisa.",
+    "cancel": "Cancelar"
+  },
+  "tripBrief": {
+    "vibes": {
+      "tropical_beach": "Clima Tropical",
+      "winter_wonderland": "Inverno Mágico",
+      "warm_vibes": "Dias Quentes",
+      "mild_comfort": "Temperatura Amena",
+      "cozy_layers": "Camadas Aconchegantes",
+      "rainy_adventure": "Aventura Chuvosa",
+      "versatile_weather": "Clima Versátil",
+      "default": "Clima Variado"
+    }
+  },
+  "report": {
+    "forecastWeather": "Clima Previsto",
+    "temperature": "Temperatura",
+    "rainChance": "Chance de Chuva",
+    "conditions": "Condições",
+    "aboutDestination": "Sobre seu Destino",
+    "travelTips": "Dicas de Viagem",
+    "tipsCount": "{{count}} dicas",
+    "essentials": "Essenciais",
+    "localCulture": "Cultura Local",
+    "avoid": "Evitar",
+    "proTips": "Dicas Pro"
+  },
+  "toasts": {
+    "tripCreated": "Viagem criada!",
+    "tripCreatedDesc": "Sua mala foi planejada com sucesso.",
+    "tripUpdated": "Viagem atualizada!",
+    "tripDeleted": "Viagem excluída!",
+    "tripCreateError": "Erro ao criar viagem",
+    "tripUpdateError": "Erro ao atualizar",
+    "tripDeleteError": "Erro ao excluir",
+    "tryAgain": "Tente novamente.",
+    "pdfGenerated": "PDF gerado!",
+    "pdfGeneratedDesc": "Use Ctrl+P para salvar como PDF.",
+    "pdfExportError": "Erro ao exportar",
+    "calendarOpening": "Abrindo Google Calendar...",
+    "calendarOpeningDesc": "Confirme o evento na nova aba.",
+    "calendarError": "Erro ao abrir calendário"
+  }
+}
