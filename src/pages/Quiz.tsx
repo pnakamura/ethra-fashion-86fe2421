@@ -9,6 +9,7 @@ import { QuizPainPoints } from '@/components/quiz/QuizPainPoints';
 import { QuizSkinTone } from '@/components/quiz/QuizSkinTone';
 import { QuizSilhouette } from '@/components/quiz/QuizSilhouette';
 import { QuizResult } from '@/components/quiz/QuizResult';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 const stepVariants = {
   initial: { opacity: 0, y: 20 },
@@ -48,6 +49,7 @@ export default function Quiz() {
 
   return (
     <div className="min-h-screen bg-transparent flex flex-col">
+      <SEOHead title="DNA de Estilo — Ethra Fashion" />
       {/* Progress Bar */}
       {!isResult && (
         <motion.div

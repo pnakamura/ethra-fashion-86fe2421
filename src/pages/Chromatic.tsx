@@ -26,6 +26,7 @@ import { Loader2, Palette, Sparkles, Compass, Heart } from 'lucide-react';
 import { useChromaticSeasons, getSeasonById } from '@/hooks/useChromaticSeasons';
 import { calculateWardrobeStats } from '@/lib/chromatic-match';
 import { supabase } from '@/integrations/supabase/client';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 export default function Chromatic() {
   const { t } = useTranslation('chromatic');
@@ -129,6 +130,7 @@ export default function Chromatic() {
 
   return (
     <>
+      <SEOHead title="Paleta Cromática — Ethra Fashion" />
       <Header title={t('title')} />
       <PageContainer className="px-4 py-6">
         <div className="max-w-lg mx-auto space-y-6">

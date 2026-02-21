@@ -14,6 +14,7 @@ import { useUserEvents, type UserEvent } from '@/hooks/useUserEvents';
 import { useLocale } from '@/i18n/useLocale';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 const eventTypeIcons: Record<string, React.ComponentType<any>> = {
   meeting: Briefcase,
@@ -69,6 +70,7 @@ export default function Events() {
 
   return (
     <>
+      <SEOHead title="Agenda — Ethra Fashion" />
       <Header title={t('title')} />
       <PageContainer className="px-4 py-6">
         <div className="max-w-lg mx-auto space-y-6">

@@ -23,6 +23,7 @@ import { useNavigate } from 'react-router-dom';
 import { useWardrobeItems, WardrobeItem } from '@/hooks/useWardrobeItems';
 import { useProfile } from '@/hooks/useProfile';
 import { getFirstName } from '@/lib/greeting';
+import { SEOHead } from '@/components/seo/SEOHead';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -209,6 +210,7 @@ export default function Wardrobe() {
 
   return (
     <>
+      <SEOHead title="Closet — Ethra Fashion" />
       <Header title={t('title')} />
       <PageContainer className="px-4 py-6">
         <div className="max-w-lg mx-auto space-y-4">

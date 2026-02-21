@@ -27,6 +27,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getFirstName } from '@/lib/greeting';
 import { useTranslation } from 'react-i18next';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 interface SelectedGarment {
   id?: string;
@@ -299,10 +300,11 @@ export default function VirtualTryOn() {
   const currentResult = generatedResults[selectedResultIndex] || null;
 
   if (!user) {
-    return (
-      <div className="min-h-screen bg-transparent flex flex-col">
-        <Header />
-        <PageContainer className="flex-1 flex items-center justify-center">
+  return (
+    <div className="min-h-screen bg-transparent flex flex-col">
+      <SEOHead title="Provador Virtual — Ethra Fashion" />
+      <Header />
+      <PageContainer className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <Sparkles className="w-12 h-12 text-primary mx-auto mb-4" />
             <h2 className="font-display text-2xl mb-2">{t('title')}</h2>
@@ -321,6 +323,7 @@ export default function VirtualTryOn() {
 
   return (
     <div className="min-h-screen bg-transparent flex flex-col">
+      <SEOHead title="Provador Virtual — Ethra Fashion" />
       <Header />
 
       <PageContainer className="flex-1 pb-24">

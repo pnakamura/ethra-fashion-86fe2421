@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import { getGreeting, getFirstName } from '@/lib/greeting';
 import { useTranslation } from 'react-i18next';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 function getPainPoint(profile: any): string | null {
   try {
@@ -220,7 +221,8 @@ export default function Index() {
     : 'subtitle.default';
 
   return (
-    <div className="min-h-screen dark:bg-transparent">
+    <>
+      <SEOHead title="Início — Ethra Fashion" />
       <Header />
       <PageContainer className="px-4 py-6">
         <div className="max-w-lg mx-auto space-y-6">
@@ -241,6 +243,6 @@ export default function Index() {
         </div>
       </PageContainer>
       <BottomNav />
-    </div>
+    </>
   );
 }

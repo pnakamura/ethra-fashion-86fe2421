@@ -16,6 +16,7 @@ import { openGoogleCalendar } from '@/lib/google-calendar';
 import type { PackingList } from '@/components/voyager/PackingChecklist';
 import type { Trip, TripAnalysis, CreateTripParams } from '@/types/trip';
 import type { Json } from '@/integrations/supabase/types';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 // Helper to safely parse packing list from JSON
 function parsePackingList(json: Json | null): PackingList | null {
@@ -241,6 +242,7 @@ export default function Voyager() {
 
   return (
     <>
+      <SEOHead title="Voyager — Ethra Fashion" />
       <Header title={t('title')} />
       <PageContainer className="px-4 py-6">
         <div className="max-w-lg mx-auto">

@@ -13,6 +13,7 @@ import { useSubscription, PlanLimit } from '@/contexts/SubscriptionContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 // Static fallback data for when Supabase returns empty (RLS or connectivity)
 const FALLBACK_PLANS = [
@@ -132,6 +133,7 @@ export default function Subscription() {
 
   return (
     <>
+      <SEOHead title="Assinatura — Ethra Fashion" />
       <Header title="Assinatura" />
       <PageContainer className="px-4 py-6">
         <div className="max-w-4xl mx-auto space-y-8">
