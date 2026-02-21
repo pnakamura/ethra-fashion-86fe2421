@@ -1,154 +1,148 @@
 
-# Melhorias de HTML Semantico e SEO -- Plano Consolidado
+# Analise de Producao -- Ethra Fashion
 
-Este plano unifica todas as correcoes de HTML semantico e SEO identificadas nas analises anteriores em uma unica implementacao.
-
----
-
-## Parte 1: Metadados e `index.html`
-
-**Arquivo: `index.html`**
-
-- Alterar `lang="en"` para `lang="pt-BR"` (idioma padrao do publico-alvo)
-- Converter imagens OG/Twitter de caminhos relativos para URLs absolutas (`https://ethra-fashion.lovable.app/images/backgrounds/art-background-1.jpeg`)
-- Adicionar metas faltantes:
-  - `<meta property="og:url" content="https://ethra-fashion.lovable.app/" />`
-  - `<meta name="twitter:title">` e `<meta name="twitter:description">`
-  - `<link rel="canonical" href="https://ethra-fashion.lovable.app/" />`
-  - `<link rel="apple-touch-icon" href="/favicon.ico" />`
-  - `<meta name="theme-color" content="#6366f1" />`
-- Adicionar bloco JSON-LD com schema `WebApplication` + `Organization` para dados estruturados
+Apos inspecao completa de todas as paginas, rotas, navegacao, backend e seguranca, este e o diagnostico do estado atual e as correcoes necessarias para producao.
 
 ---
 
-## Parte 2: Idioma Dinamico
+## Estado Atual: Muito Bom
 
-**Arquivo: `src/App.tsx`**
-
-- Adicionar `useEffect` dentro de `AppRoutes` que sincroniza `document.documentElement.lang` com `i18n.language`, reagindo a trocas de idioma em tempo real
-
----
-
-## Parte 3: Titulos Dinamicos por Rota (SEOHead)
-
-**Novo arquivo: `src/components/seo/SEOHead.tsx`**
-
-Componente que atualiza `document.title` via `useEffect`. Recebe `title` como prop.
-
-**Integrar nas paginas publicas:**
-
-| Pagina | Titulo |
-|--------|--------|
-| Landing.tsx (`/welcome`) | Ethra Fashion -- Consultoria de Imagem com IA |
-| Auth.tsx (`/auth`) | Entrar -- Ethra Fashion |
-| Terms.tsx (`/terms`) | Termos de Uso -- Ethra Fashion |
-| PrivacyPolicy.tsx (`/privacy-policy`) | Politica de Privacidade -- Ethra Fashion |
-| StyleQuiz.tsx (`/quiz`) | Quiz de Estilo -- Ethra Fashion |
-| NotFound.tsx (`*`) | Pagina nao encontrada -- Ethra Fashion |
+A aplicacao esta bem estruturada, com:
+- Zero erros de console em todas as rotas testadas
+- Navegacao SPA funcional entre todas as paginas
+- Auth guards implementados em todas as paginas protegidas
+- SEO basico ja implementado (SEOHead, sitemap, robots.txt, JSON-LD)
+- HTML semantico corrigido (landmarks, aria-labels, nav)
+- i18n bilingue (PT-BR/EN) funcional
+- RLS policies em todas as tabelas
+- Code splitting com lazy loading para performance
 
 ---
 
-## Parte 4: Landmarks Semanticos
+## Problemas Identificados para Correcao
 
-### Index.tsx
-- Trocar o `<div className="min-h-screen">` raiz por `<>` (React Fragment), pois `PageContainer` ja renderiza `<main>`. Atualmente ha `<div> > <main>` redundante.
+### 1. SEOHead Ausente em Paginas Autenticadas
 
-### Auth.tsx
-- Trocar `<div className="min-h-screen ...">` raiz por `<main>`.
+As seguintes paginas nao possuem o componente `SEOHead` para titulo dinamico:
 
-### Terms.tsx
-- Trocar `<div className="min-h-screen ...">` raiz por `<main>`.
+| Pagina | Titulo Sugerido |
+|--------|----------------|
+| Index.tsx (/) | Inicio -- Ethra Fashion |
+| Wardrobe.tsx | Closet -- Ethra Fashion |
+| Chromatic.tsx | Paleta Cromatica -- Ethra Fashion |
+| VirtualTryOn.tsx | Provador Virtual -- Ethra Fashion |
+| Recommendations.tsx | Looks -- Ethra Fashion |
+| Events.tsx | Agenda -- Ethra Fashion |
+| Settings.tsx | Configuracoes -- Ethra Fashion |
+| Canvas.tsx | Look Canvas -- Ethra Fashion |
+| Voyager.tsx | Voyager -- Ethra Fashion |
+| Subscription.tsx | Assinatura -- Ethra Fashion |
+| Privacy.tsx | Privacidade -- Ethra Fashion |
+| Onboarding.tsx | Boas-vindas -- Ethra Fashion |
+| Quiz.tsx (/style-dna) | DNA de Estilo -- Ethra Fashion |
+| StyleQuiz.tsx (/quiz) | Quiz de Estilo -- Ethra Fashion |
 
-### PrivacyPolicy.tsx
-- Trocar `<div className="min-h-screen ...">` raiz por `<main>`.
+### 2. Rota Duplicada: `/provador` e `/try-on`
 
-### NotFound.tsx
-- Trocar `<div>` raiz por `<main>`.
+Ambas as rotas apontam para o mesmo componente `VirtualTryOn`. Isso causa conteudo duplicado para crawlers e fragmenta links internos. Solucao: manter `/provador` como rota principal e redirecionar `/try-on` para ela.
 
----
+### 3. Index.tsx -- Wrapper `<div>` Redundante
 
-## Parte 5: Acessibilidade em Formularios e Botoes
+O `Index.tsx` envolve `PageContainer` (que ja renderiza `<main>`) em um `<div className="min-h-screen">`. Deveria ser `<>` (Fragment) para evitar `<div> > <main>` redundante, conforme ja identificado no plano anterior mas nao corrigido.
 
-### Auth.tsx
-- Adicionar `aria-label` nos inputs de email e senha
-- Adicionar `aria-label` no botao de mostrar/ocultar senha (`"Mostrar senha"` / `"Ocultar senha"`)
+### 4. Paginas sem SEOHead para Quiz
 
-### TesterSignupForm.tsx
-- Adicionar `aria-label` nos 3 inputs (nome, email, senha)
-- Adicionar `aria-label` no botao de toggle de senha
+`StyleQuiz.tsx` (/quiz) e `Quiz.tsx` (/style-dna) nao tem `SEOHead` integrado.
 
-### Header.tsx
-- Adicionar `aria-label="Configuracoes"` no botao de Settings (linha 152)
-- Adicionar `aria-label="Sair"` no botao de LogOut (linha 156)
+### 5. Seguranca -- Linter Warnings
 
-### BetaHero.tsx
-- Adicionar `aria-label="Mudar para Portugues"` e `aria-label="Mudar para Ingles"` nos botoes PT/EN
-- Adicionar `aria-label="Alternar tema escuro"` no Switch de tema
+Dois avisos de seguranca do linter:
 
----
+- **RLS Policy Always True**: A tabela `tester_notifications` tem INSERT com `WITH CHECK (true)`, permitindo insercao publica. Isso e intencional (service role insere), mas o `true` na policy significa que qualquer usuario anonimo pode inserir. Deveria ser restrito.
 
-## Parte 6: Footer -- Links SPA e Landmark nav
+- **Leaked Password Protection**: Esta desabilitada no painel de autenticacao. Requer ativacao manual (ja documentado na memoria do projeto).
 
-**Arquivo: `src/components/landing/Footer.tsx`**
+### 6. Subscription.tsx -- Conteudo Hardcoded em Portugues
 
-- Importar `Link` do `react-router-dom`
-- Trocar `<a href="/terms">` por `<Link to="/terms">` (evita reload completo)
-- Trocar `<a href="/privacy-policy">` por `<Link to="/privacy-policy">`
-- Manter `<a href="mailto:...">` (correto para email externo)
-- Envolver o grupo de links em `<nav aria-label="Footer">`
-
-### NotFound.tsx
-- Trocar `<a href="/">` por `<Link to="/">` para navegacao SPA
+A pagina de Subscription nao usa i18n (chaves de traducao). Todo o texto esta em portugues hardcoded, enquanto o resto da app suporta PT/EN. Isso nao e bloqueante para producao mas e uma inconsistencia.
 
 ---
 
-## Parte 7: Meta noindex no 404
+## Plano de Correcao
 
-**Arquivo: `src/pages/NotFound.tsx`**
+### Fase 1: SEOHead em Todas as Paginas (14 arquivos)
 
-- Adicionar `useEffect` que insere `<meta name="robots" content="noindex" />` no `<head>` e remove ao desmontar, evitando indexacao de paginas de erro
+Adicionar `import { SEOHead } from '@/components/seo/SEOHead'` e `<SEOHead title="..." />` em cada pagina listada acima. Mudanca minima: 2 linhas por arquivo.
 
----
+### Fase 2: Redirecionar Rota Duplicada
 
-## Parte 8: Sitemap e Robots.txt
-
-### Novo arquivo: `public/sitemap.xml`
-
-Sitemap estatico com as rotas publicas:
+Em `src/App.tsx`, substituir a rota duplicada `/try-on`:
 
 ```text
-https://ethra-fashion.lovable.app/welcome
-https://ethra-fashion.lovable.app/auth
-https://ethra-fashion.lovable.app/quiz
-https://ethra-fashion.lovable.app/terms
-https://ethra-fashion.lovable.app/privacy-policy
+// Antes:
+<Route path="/try-on" element={<VirtualTryOn />} />
+
+// Depois:
+<Route path="/try-on" element={<Navigate to="/provador" replace />} />
 ```
 
-### Arquivo: `public/robots.txt`
+### Fase 3: Corrigir Wrapper Semantico no Index.tsx
 
-- Adicionar `Sitemap: https://ethra-fashion.lovable.app/sitemap.xml`
-- Adicionar `Disallow` para rotas privadas: `/admin`, `/settings`, `/onboarding`, `/privacy`
+Trocar `<div className="min-h-screen dark:bg-transparent">` por Fragment `<>`.
+
+### Fase 4: Corrigir RLS da tester_notifications
+
+Alterar a policy de INSERT na tabela `tester_notifications` de `true` para verificar se a requisicao vem do service role ou de um usuario autenticado com role admin.
 
 ---
 
-## Resumo de Arquivos
+## O Que Ja Esta Pronto para Producao
 
-| Arquivo | Mudancas |
-|---------|----------|
-| `index.html` | lang, canonical, OG absolutos, twitter metas, apple-touch-icon, theme-color, JSON-LD |
-| `src/App.tsx` | useEffect para sincronizar `document.documentElement.lang` |
-| `src/components/seo/SEOHead.tsx` | **Novo** -- componente para titulo dinamico |
-| `src/pages/Landing.tsx` | Integrar SEOHead |
-| `src/pages/Auth.tsx` | `<main>`, aria-labels, SEOHead |
-| `src/pages/Terms.tsx` | `<main>`, SEOHead |
-| `src/pages/PrivacyPolicy.tsx` | `<main>`, SEOHead |
-| `src/pages/Index.tsx` | Fragment em vez de div, SEOHead |
-| `src/pages/NotFound.tsx` | `<main>`, meta noindex, Link SPA, SEOHead |
-| `src/components/landing/Footer.tsx` | `<nav>` + `Link` do React Router |
-| `src/components/landing/TesterSignupForm.tsx` | aria-labels nos inputs e botao |
-| `src/components/landing/BetaHero.tsx` | aria-labels nos botoes PT/EN e Switch |
-| `src/components/layout/Header.tsx` | aria-labels nos botoes Settings e LogOut |
-| `public/sitemap.xml` | **Novo** -- sitemap estatico |
-| `public/robots.txt` | Sitemap + Disallow rotas privadas |
+- Autenticacao completa com signup, login, validacao de email
+- Auth guards em todas as paginas protegidas (redirect para /welcome)
+- Error boundary global para captura de erros
+- 404 com noindex e Link SPA
+- Lazy loading de rotas para performance
+- Prefetching de dados em hover/touch na navegacao
+- RLS policies em todas as 15 tabelas
+- Edge Functions com CORS configurado
+- Consentimento biometrico LGPD-compliant
+- Termos de Uso e Politica de Privacidade completos
+- robots.txt com Disallow para rotas privadas
+- sitemap.xml com rotas publicas
+- JSON-LD com schema WebApplication
+- Metatags OG/Twitter com URLs absolutas
+- Componente SEOHead para titulos dinamicos
+- Footer com Link SPA e nav landmark
+- aria-labels em botoes de icone e inputs
+- Sincronizacao dinamica do atributo lang do HTML
 
-Nenhuma mudanca visual. Todas as correcoes sao semanticas, de acessibilidade e SEO.
+---
+
+## Detalhes Tecnicos da Implementacao
+
+### Arquivos a Editar
+
+| Arquivo | Mudanca |
+|---------|---------|
+| `src/pages/Index.tsx` | Adicionar SEOHead + trocar div por Fragment |
+| `src/pages/Wardrobe.tsx` | Adicionar SEOHead |
+| `src/pages/Chromatic.tsx` | Adicionar SEOHead |
+| `src/pages/VirtualTryOn.tsx` | Adicionar SEOHead |
+| `src/pages/Recommendations.tsx` | Adicionar SEOHead |
+| `src/pages/Events.tsx` | Adicionar SEOHead |
+| `src/pages/Settings.tsx` | Adicionar SEOHead |
+| `src/pages/Canvas.tsx` | Adicionar SEOHead |
+| `src/pages/Voyager.tsx` | Adicionar SEOHead |
+| `src/pages/Subscription.tsx` | Adicionar SEOHead |
+| `src/pages/Privacy.tsx` | Adicionar SEOHead |
+| `src/pages/Onboarding.tsx` | Adicionar SEOHead |
+| `src/pages/Quiz.tsx` | Adicionar SEOHead |
+| `src/pages/StyleQuiz.tsx` | Adicionar SEOHead |
+| `src/App.tsx` | Redirecionar /try-on para /provador |
+
+### Migracao SQL
+
+Corrigir a policy de INSERT na tabela `tester_notifications` para restringir ao service role.
+
+Nenhuma mudanca visual. Todas as correcoes sao tecnicas para producao.
