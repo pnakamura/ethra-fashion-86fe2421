@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { ConsentCheckbox, AgeConfirmationCheckbox } from '@/components/legal/ConsentCheckbox';
 import { supabase } from '@/integrations/supabase/client';
+import { SEOHead } from '@/components/seo/SEOHead';
 import { clearSavedQuizData } from '@/hooks/useStyleQuiz';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
@@ -140,7 +141,8 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 gradient-soft dark:bg-transparent">
+    <main className="min-h-screen flex flex-col items-center justify-center px-6 gradient-soft dark:bg-transparent">
+      <SEOHead title={isLogin ? 'Entrar — Ethra Fashion' : 'Criar Conta — Ethra Fashion'} />
       <div className="fixed top-6 left-6 z-50">
         <Button
           variant="ghost"
@@ -195,6 +197,7 @@ export default function Auth() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="pl-11 h-12 rounded-xl bg-card border-border"
+              aria-label={t('emailPlaceholder')}
             />
           </div>
 
@@ -206,11 +209,13 @@ export default function Auth() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="pl-11 pr-11 h-12 rounded-xl bg-card border-border"
+              aria-label={t('passwordPlaceholder')}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2"
+              aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
             >
               {showPassword ? (
                 <EyeOff className="w-5 h-5 text-muted-foreground" />
@@ -271,6 +276,6 @@ export default function Auth() {
           </button>
         </motion.div>
       </motion.div>
-    </div>
+    </main>
   );
 }

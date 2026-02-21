@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 
 export function Footer() {
   const { t } = useTranslation('landing');
@@ -23,17 +24,17 @@ export function Footer() {
           </motion.div>
 
           {/* Links */}
-          <div className="flex items-center gap-4 sm:gap-8 text-sm sm:text-base text-muted-foreground">
-            <a href="/terms" className="hover:text-foreground transition-colors">
+          <nav aria-label="Footer" className="flex items-center gap-4 sm:gap-8 text-sm sm:text-base text-muted-foreground">
+            <Link to="/terms" className="hover:text-foreground transition-colors">
               {t('footer.terms')}
-            </a>
-            <a href="/privacy-policy" className="hover:text-foreground transition-colors">
+            </Link>
+            <Link to="/privacy-policy" className="hover:text-foreground transition-colors">
               {t('footer.privacy')}
-            </a>
+            </Link>
             <a href="mailto:contato@ethra.app" className="hover:text-foreground transition-colors">
               {t('footer.contact')}
             </a>
-          </div>
+          </nav>
 
           {/* Badge */}
           <div className="flex items-center gap-2 text-sm sm:text-base text-muted-foreground">

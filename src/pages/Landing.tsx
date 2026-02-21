@@ -5,6 +5,7 @@ import { BetaHero } from '@/components/landing/BetaHero';
 import { DemoSection } from '@/components/landing/DemoSection';
 import { TesterSignupForm } from '@/components/landing/TesterSignupForm';
 import { Footer } from '@/components/landing/Footer';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 export default function Landing() {
   const { user, loading } = useAuth();
@@ -30,6 +31,7 @@ export default function Landing() {
 
   return (
     <main className="min-h-screen bg-transparent">
+      <SEOHead title="Ethra Fashion — Consultoria de Imagem com IA" />
       <BetaHero />
       <DemoSection />
       <TesterSignupForm ref={signupRef} />

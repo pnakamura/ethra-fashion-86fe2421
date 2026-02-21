@@ -2,10 +2,12 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 export default function Terms() {
   return (
-    <div className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background">
+      <SEOHead title="Termos de Uso — Ethra Fashion" />
       <div className="max-w-3xl mx-auto px-6 py-12">
         {/* Header */}
         <motion.div
@@ -207,6 +209,6 @@ export default function Terms() {
           </section>
         </motion.div>
       </div>
-    </div>
+    </main>
   );
 }

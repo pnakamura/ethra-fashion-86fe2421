@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, lazy, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +13,7 @@ import { BackgroundSettingsProvider } from "@/contexts/BackgroundSettingsContext
 import { ArtBackground } from "@/components/layout/ArtBackground";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageLoader } from "@/components/ui/PageLoader";
+import { useTranslation } from "react-i18next";
 
 // Critical routes - loaded immediately
 import Index from "./pages/Index";
@@ -72,6 +73,12 @@ function AppProviders({ children }: { children: React.ReactNode }) {
 }
 
 function AppRoutes() {
+  const { i18n } = useTranslation();
+
+  useEffect(() => {
+    document.documentElement.lang = i18n.language || 'pt-BR';
+  }, [i18n.language]);
+
   return (
     <BrowserRouter>
       <ArtBackground />
