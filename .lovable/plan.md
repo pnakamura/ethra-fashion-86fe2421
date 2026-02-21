@@ -1,59 +1,154 @@
 
+# Melhorias de HTML Semantico e SEO -- Plano Consolidado
 
-# Responsive Fixes for /welcome Page
+Este plano unifica todas as correcoes de HTML semantico e SEO identificadas nas analises anteriores em uma unica implementacao.
 
-## Issues Found
+---
 
-After inspecting the page at 375px (mobile), 768px (tablet), and 1920px (desktop), these responsive problems were identified:
+## Parte 1: Metadados e `index.html`
 
-1. **Language/theme toggle overlaps content on small screens** -- the fixed top-right bar with PT/EN + sun/moon controls is too wide for very small screens and sits too close to page content
-2. **Chromatic color grid uses `grid-cols-6` at all sizes** -- on a 375px screen, each swatch is tiny and color names are unreadable
-3. **Chromatic result metadata (skin/eyes/hair) wraps awkwardly on mobile** -- all metadata is on two long lines that break mid-word
-4. **Demo section container padding is large on mobile** -- `p-5 md:p-10 lg:p-12` but even `p-5` combined with the outer `px-6` leaves little room for content
-5. **Closet item text truncates on small screens** -- the item cards with thumbnail + name are tight at `grid-cols-2`
-6. **Hero heading sizes could be slightly smaller on the smallest screens** -- `text-3xl` for h2 is fine but the description paragraph could use tighter line-height on mobile
+**Arquivo: `index.html`**
 
-## Changes
+- Alterar `lang="en"` para `lang="pt-BR"` (idioma padrao do publico-alvo)
+- Converter imagens OG/Twitter de caminhos relativos para URLs absolutas (`https://ethra-fashion.lovable.app/images/backgrounds/art-background-1.jpeg`)
+- Adicionar metas faltantes:
+  - `<meta property="og:url" content="https://ethra-fashion.lovable.app/" />`
+  - `<meta name="twitter:title">` e `<meta name="twitter:description">`
+  - `<link rel="canonical" href="https://ethra-fashion.lovable.app/" />`
+  - `<link rel="apple-touch-icon" href="/favicon.ico" />`
+  - `<meta name="theme-color" content="#6366f1" />`
+- Adicionar bloco JSON-LD com schema `WebApplication` + `Organization` para dados estruturados
 
-### 1. BetaHero.tsx -- Compact mobile toolbar
-- Reduce gap and padding on mobile for the fixed top-right controls
-- Use `top-4 right-4 gap-2 sm:top-6 sm:right-6 sm:gap-3` for better mobile fit
-- Make sun/moon icons slightly smaller on mobile
+---
 
-### 2. ChromaticSim.tsx -- Responsive color grid and metadata
-- Change color grid from `grid-cols-6` to `grid-cols-4 sm:grid-cols-6` so swatches are readable on mobile
-- Stack the skin/eyes/hair metadata vertically on mobile instead of two horizontal lines
-- Reduce photo sizes slightly for tight mobile layouts
+## Parte 2: Idioma Dinamico
 
-### 3. DemoSection.tsx -- Tighter mobile padding
-- Reduce inner card padding from `p-5` to `p-4 md:p-8 lg:p-12` for breathing room
-- Reduce outer section padding from `py-24 px-6` to `py-16 px-4 md:py-24 md:px-6`
+**Arquivo: `src/App.tsx`**
 
-### 4. TryOnSim.tsx -- Tighter mobile spacing
-- Reduce before/after image sizes on very small screens: `w-32 h-44 sm:w-36 sm:h-48 md:w-44 md:h-56`
+- Adicionar `useEffect` dentro de `AppRoutes` que sincroniza `document.documentElement.lang` com `i18n.language`, reagindo a trocas de idioma em tempo real
 
-### 5. ClosetSim.tsx -- Better mobile item layout
-- Use `grid-cols-1 sm:grid-cols-2` for capsule item categories on small screens
-- Slightly reduce item thumbnail size on mobile
+---
 
-### 6. TesterSignupForm.tsx -- Minor mobile polish
-- Reduce section padding from `py-24` to `py-16 md:py-24`
+## Parte 3: Titulos Dinamicos por Rota (SEOHead)
 
-### 7. Footer.tsx -- Minor mobile polish
-- Reduce link gap from `gap-8` to `gap-4 sm:gap-8`
-- Reduce text size on mobile from `text-base` to `text-sm sm:text-base`
+**Novo arquivo: `src/components/seo/SEOHead.tsx`**
 
-## Summary of Files Changed
+Componente que atualiza `document.title` via `useEffect`. Recebe `title` como prop.
 
-| File | Change |
-|------|--------|
-| BetaHero.tsx | Compact mobile toolbar positioning |
-| ChromaticSim.tsx | Responsive color grid (4 cols mobile, 6 desktop), stacked metadata |
-| DemoSection.tsx | Tighter mobile padding |
-| TryOnSim.tsx | Smaller before/after images on mobile |
-| ClosetSim.tsx | Single-column categories on mobile |
-| TesterSignupForm.tsx | Reduced section padding on mobile |
-| Footer.tsx | Tighter mobile link spacing |
+**Integrar nas paginas publicas:**
 
-All changes are Tailwind class adjustments only -- no structural or logic changes.
+| Pagina | Titulo |
+|--------|--------|
+| Landing.tsx (`/welcome`) | Ethra Fashion -- Consultoria de Imagem com IA |
+| Auth.tsx (`/auth`) | Entrar -- Ethra Fashion |
+| Terms.tsx (`/terms`) | Termos de Uso -- Ethra Fashion |
+| PrivacyPolicy.tsx (`/privacy-policy`) | Politica de Privacidade -- Ethra Fashion |
+| StyleQuiz.tsx (`/quiz`) | Quiz de Estilo -- Ethra Fashion |
+| NotFound.tsx (`*`) | Pagina nao encontrada -- Ethra Fashion |
 
+---
+
+## Parte 4: Landmarks Semanticos
+
+### Index.tsx
+- Trocar o `<div className="min-h-screen">` raiz por `<>` (React Fragment), pois `PageContainer` ja renderiza `<main>`. Atualmente ha `<div> > <main>` redundante.
+
+### Auth.tsx
+- Trocar `<div className="min-h-screen ...">` raiz por `<main>`.
+
+### Terms.tsx
+- Trocar `<div className="min-h-screen ...">` raiz por `<main>`.
+
+### PrivacyPolicy.tsx
+- Trocar `<div className="min-h-screen ...">` raiz por `<main>`.
+
+### NotFound.tsx
+- Trocar `<div>` raiz por `<main>`.
+
+---
+
+## Parte 5: Acessibilidade em Formularios e Botoes
+
+### Auth.tsx
+- Adicionar `aria-label` nos inputs de email e senha
+- Adicionar `aria-label` no botao de mostrar/ocultar senha (`"Mostrar senha"` / `"Ocultar senha"`)
+
+### TesterSignupForm.tsx
+- Adicionar `aria-label` nos 3 inputs (nome, email, senha)
+- Adicionar `aria-label` no botao de toggle de senha
+
+### Header.tsx
+- Adicionar `aria-label="Configuracoes"` no botao de Settings (linha 152)
+- Adicionar `aria-label="Sair"` no botao de LogOut (linha 156)
+
+### BetaHero.tsx
+- Adicionar `aria-label="Mudar para Portugues"` e `aria-label="Mudar para Ingles"` nos botoes PT/EN
+- Adicionar `aria-label="Alternar tema escuro"` no Switch de tema
+
+---
+
+## Parte 6: Footer -- Links SPA e Landmark nav
+
+**Arquivo: `src/components/landing/Footer.tsx`**
+
+- Importar `Link` do `react-router-dom`
+- Trocar `<a href="/terms">` por `<Link to="/terms">` (evita reload completo)
+- Trocar `<a href="/privacy-policy">` por `<Link to="/privacy-policy">`
+- Manter `<a href="mailto:...">` (correto para email externo)
+- Envolver o grupo de links em `<nav aria-label="Footer">`
+
+### NotFound.tsx
+- Trocar `<a href="/">` por `<Link to="/">` para navegacao SPA
+
+---
+
+## Parte 7: Meta noindex no 404
+
+**Arquivo: `src/pages/NotFound.tsx`**
+
+- Adicionar `useEffect` que insere `<meta name="robots" content="noindex" />` no `<head>` e remove ao desmontar, evitando indexacao de paginas de erro
+
+---
+
+## Parte 8: Sitemap e Robots.txt
+
+### Novo arquivo: `public/sitemap.xml`
+
+Sitemap estatico com as rotas publicas:
+
+```text
+https://ethra-fashion.lovable.app/welcome
+https://ethra-fashion.lovable.app/auth
+https://ethra-fashion.lovable.app/quiz
+https://ethra-fashion.lovable.app/terms
+https://ethra-fashion.lovable.app/privacy-policy
+```
+
+### Arquivo: `public/robots.txt`
+
+- Adicionar `Sitemap: https://ethra-fashion.lovable.app/sitemap.xml`
+- Adicionar `Disallow` para rotas privadas: `/admin`, `/settings`, `/onboarding`, `/privacy`
+
+---
+
+## Resumo de Arquivos
+
+| Arquivo | Mudancas |
+|---------|----------|
+| `index.html` | lang, canonical, OG absolutos, twitter metas, apple-touch-icon, theme-color, JSON-LD |
+| `src/App.tsx` | useEffect para sincronizar `document.documentElement.lang` |
+| `src/components/seo/SEOHead.tsx` | **Novo** -- componente para titulo dinamico |
+| `src/pages/Landing.tsx` | Integrar SEOHead |
+| `src/pages/Auth.tsx` | `<main>`, aria-labels, SEOHead |
+| `src/pages/Terms.tsx` | `<main>`, SEOHead |
+| `src/pages/PrivacyPolicy.tsx` | `<main>`, SEOHead |
+| `src/pages/Index.tsx` | Fragment em vez de div, SEOHead |
+| `src/pages/NotFound.tsx` | `<main>`, meta noindex, Link SPA, SEOHead |
+| `src/components/landing/Footer.tsx` | `<nav>` + `Link` do React Router |
+| `src/components/landing/TesterSignupForm.tsx` | aria-labels nos inputs e botao |
+| `src/components/landing/BetaHero.tsx` | aria-labels nos botoes PT/EN e Switch |
+| `src/components/layout/Header.tsx` | aria-labels nos botoes Settings e LogOut |
+| `public/sitemap.xml` | **Novo** -- sitemap estatico |
+| `public/robots.txt` | Sitemap + Disallow rotas privadas |
+
+Nenhuma mudanca visual. Todas as correcoes sao semanticas, de acessibilidade e SEO.
