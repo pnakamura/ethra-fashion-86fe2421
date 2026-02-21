@@ -194,6 +194,7 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
                     onChange={(e) => setName(e.target.value)}
                     className="pl-11 h-12 md:h-14"
                     maxLength={100}
+                    aria-label={t('signup.namePlaceholder')}
                   />
                 </div>
 
@@ -205,6 +206,7 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-11 h-12 md:h-14"
+                    aria-label={t('signup.emailPlaceholder')}
                   />
                 </div>
 
@@ -216,11 +218,13 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-11 pr-11 h-12 md:h-14"
+                    aria-label={t('signup.passwordPlaceholder')}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2"
+                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                   >
                     {showPassword ? (
                       <EyeOff className="w-5 h-5 text-muted-foreground" />

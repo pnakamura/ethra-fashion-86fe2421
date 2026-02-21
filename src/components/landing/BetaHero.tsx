@@ -53,12 +53,14 @@ export function BetaHero() {
           <button
             onClick={() => { i18n.changeLanguage('pt-BR'); localStorage.setItem('ethra-locale', 'pt-BR'); }}
             className={`px-3 py-1.5 text-xs font-semibold transition-colors ${i18n.language?.startsWith('pt') ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            aria-label="Mudar para Português"
           >
             PT
           </button>
           <button
             onClick={() => { i18n.changeLanguage('en-US'); localStorage.setItem('ethra-locale', 'en-US'); }}
             className={`px-3 py-1.5 text-xs font-semibold transition-colors ${!i18n.language?.startsWith('pt') ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            aria-label="Switch to English"
           >
             EN
           </button>
@@ -68,6 +70,7 @@ export function BetaHero() {
           <Switch
             checked={theme === 'dark'}
             onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+            aria-label="Alternar tema escuro"
           />
           <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground" />
         </div>
