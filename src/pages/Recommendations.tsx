@@ -23,6 +23,7 @@ import { useNavigate } from 'react-router-dom';
 import { useProfile } from '@/hooks/useProfile';
 import { useWardrobeItems } from '@/hooks/useWardrobeItems';
 import { useTranslation } from 'react-i18next';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 // Type for color items (can be string or object with hex/name)
 type ColorItem = string | { hex: string; name: string };
@@ -162,6 +163,7 @@ export default function Recommendations() {
   if (!hasAnalysis) {
     return (
       <>
+        <SEOHead title="Looks — Ethra Fashion" />
         <Header title="Looks" />
         <PageContainer className="px-4 py-6">
           <div className="max-w-lg mx-auto text-center py-16">
@@ -190,6 +192,7 @@ export default function Recommendations() {
 
   return (
     <>
+      <SEOHead title="Looks — Ethra Fashion" />
       <Header title="Looks" />
       <PageContainer className="px-4 py-6">
         <div className="max-w-2xl mx-auto space-y-6">

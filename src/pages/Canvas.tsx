@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { generateLookThumbnail } from '@/lib/look-image-generator';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 interface WardrobeItem {
   id: string;
@@ -178,6 +179,7 @@ export default function Canvas() {
 
   return (
     <>
+      <SEOHead title="Look Canvas — Ethra Fashion" />
       <Header title="Look Canvas" />
       <PageContainer className="px-4 py-6">
         <div className="max-w-lg mx-auto">

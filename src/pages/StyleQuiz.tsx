@@ -5,6 +5,7 @@ import { PainPointPicker } from '@/components/quiz/PainPointPicker';
 import { PhysicalIdentity } from '@/components/quiz/PhysicalIdentity';
 import { SilhouettePicker } from '@/components/quiz/SilhouettePicker';
 import { DNAReveal, AnalyzingAnimation } from '@/components/quiz/DNAReveal';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 export default function StyleQuiz() {
   const {
@@ -102,6 +103,7 @@ export default function StyleQuiz() {
   if (state.step === 5) {
     return (
       <div className="min-h-screen bg-background dark:bg-transparent">
+        <SEOHead title="Quiz de Estilo — Ethra Fashion" />
         <QuizStep
           step={state.step}
           totalSteps={totalSteps}
@@ -121,6 +123,8 @@ export default function StyleQuiz() {
   }
 
   return (
+    <>
+    <SEOHead title="Quiz de Estilo — Ethra Fashion" />
     <QuizStep
       step={state.step}
       totalSteps={totalSteps}
@@ -138,5 +142,6 @@ export default function StyleQuiz() {
     >
       {currentStep.content}
     </QuizStep>
+    </>
   );
 }

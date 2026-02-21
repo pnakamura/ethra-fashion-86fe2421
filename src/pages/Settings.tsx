@@ -40,6 +40,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { useLocale } from '@/i18n/useLocale';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 interface NotificationPrefs {
   look_of_day_enabled: boolean;
@@ -244,6 +245,7 @@ export default function Settings() {
 
   return (
     <>
+      <SEOHead title="Configurações — Ethra Fashion" />
       <Header title={t('title')} showBack />
       <PageContainer className="px-4 py-6">
         <div className="max-w-lg mx-auto md:max-w-2xl lg:max-w-3xl space-y-6">

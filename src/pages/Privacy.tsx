@@ -19,6 +19,7 @@ import {
   type CameraPermissionStatus 
 } from '@/lib/camera-permissions';
 import { toast } from 'sonner';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 type PermissionStatus = 'granted' | 'denied' | 'prompt' | 'unsupported' | 'loading';
 
@@ -211,6 +212,7 @@ export default function Privacy() {
 
   return (
     <>
+      <SEOHead title="Privacidade — Ethra Fashion" />
       <Header title="Privacidade" showBack />
       <PageContainer className="px-4 py-6">
         <div className="max-w-lg mx-auto md:max-w-2xl lg:max-w-3xl space-y-6">

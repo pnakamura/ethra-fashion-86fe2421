@@ -11,6 +11,7 @@ import { PainPointSelector } from '@/components/onboarding/PainPointSelector';
 import { ColorTeaser } from '@/components/onboarding/ColorTeaser';
 
 import { WelcomeComplete } from '@/components/onboarding/WelcomeComplete';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 export default function Onboarding() {
   const { user, loading: authLoading } = useAuth();
@@ -117,6 +118,8 @@ export default function Onboarding() {
   const showBack = currentStep !== 'welcome';
 
   return (
+    <>
+    <SEOHead title="Boas-vindas — Ethra Fashion" />
     <OnboardingStep
       progress={progress}
       showBack={showBack}
@@ -126,5 +129,6 @@ export default function Onboarding() {
         {renderStep()}
       </AnimatePresence>
     </OnboardingStep>
+    </>
   );
 }
