@@ -14,8 +14,9 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { SEOHead } from '@/components/seo/SEOHead';
+import { useTranslation } from 'react-i18next';
 
-// Static fallback data for when Supabase returns empty (RLS or connectivity)
+// Static fallback data for when DB returns empty
 const FALLBACK_PLANS = [
   { id: 'free', display_name: 'Iniciante', description: 'Para começar sua jornada', price_monthly: 0, price_yearly: 0, badge_color: '#6B7280', is_active: true, sort_order: 1 },
   { id: 'trendsetter', display_name: 'Trendsetter', description: 'Para quem quer mais', price_monthly: 29.90, price_yearly: 299, badge_color: '#8B5CF6', is_active: true, sort_order: 2 },
@@ -24,53 +25,26 @@ const FALLBACK_PLANS = [
 ];
 
 const FALLBACK_LIMITS: PlanLimit[] = [
-  // Free
   { id: 'f1', plan_id: 'free', feature_key: 'avatars', limit_type: 'count', limit_value: 1, feature_display_name: 'Avatares' },
   { id: 'f2', plan_id: 'free', feature_key: 'wardrobe_slots', limit_type: 'count', limit_value: 10, feature_display_name: 'Peças no Closet' },
   { id: 'f3', plan_id: 'free', feature_key: 'try_on_daily', limit_type: 'count', limit_value: 3, feature_display_name: 'Provas por dia' },
   { id: 'f4', plan_id: 'free', feature_key: 'trips', limit_type: 'boolean', limit_value: 0, feature_display_name: 'Voyager' },
   { id: 'f5', plan_id: 'free', feature_key: 'vip_looks', limit_type: 'boolean', limit_value: 0, feature_display_name: 'VIP Looks' },
-  // Trendsetter
   { id: 't1', plan_id: 'trendsetter', feature_key: 'avatars', limit_type: 'count', limit_value: 3, feature_display_name: 'Avatares' },
   { id: 't2', plan_id: 'trendsetter', feature_key: 'wardrobe_slots', limit_type: 'count', limit_value: 50, feature_display_name: 'Peças no Closet' },
   { id: 't3', plan_id: 'trendsetter', feature_key: 'try_on_daily', limit_type: 'count', limit_value: 10, feature_display_name: 'Provas por dia' },
   { id: 't4', plan_id: 'trendsetter', feature_key: 'trips', limit_type: 'boolean', limit_value: 0, feature_display_name: 'Voyager' },
   { id: 't5', plan_id: 'trendsetter', feature_key: 'vip_looks', limit_type: 'boolean', limit_value: 0, feature_display_name: 'VIP Looks' },
-  // Icon
   { id: 'i1', plan_id: 'icon', feature_key: 'avatars', limit_type: 'count', limit_value: -1, feature_display_name: 'Avatares' },
   { id: 'i2', plan_id: 'icon', feature_key: 'wardrobe_slots', limit_type: 'count', limit_value: 200, feature_display_name: 'Peças no Closet' },
   { id: 'i3', plan_id: 'icon', feature_key: 'try_on_daily', limit_type: 'count', limit_value: 30, feature_display_name: 'Provas por dia' },
   { id: 'i4', plan_id: 'icon', feature_key: 'trips', limit_type: 'boolean', limit_value: 1, feature_display_name: 'Voyager' },
   { id: 'i5', plan_id: 'icon', feature_key: 'vip_looks', limit_type: 'boolean', limit_value: 0, feature_display_name: 'VIP Looks' },
-  // Muse
   { id: 'm1', plan_id: 'muse', feature_key: 'avatars', limit_type: 'count', limit_value: -1, feature_display_name: 'Avatares' },
   { id: 'm2', plan_id: 'muse', feature_key: 'wardrobe_slots', limit_type: 'count', limit_value: -1, feature_display_name: 'Peças no Closet' },
   { id: 'm3', plan_id: 'muse', feature_key: 'try_on_daily', limit_type: 'count', limit_value: -1, feature_display_name: 'Provas por dia' },
   { id: 'm4', plan_id: 'muse', feature_key: 'trips', limit_type: 'boolean', limit_value: 1, feature_display_name: 'Voyager' },
   { id: 'm5', plan_id: 'muse', feature_key: 'vip_looks', limit_type: 'boolean', limit_value: 1, feature_display_name: 'VIP Looks' },
-];
-
-const faqs = [
-  {
-    q: 'Preciso de cartão de crédito para o trial?',
-    a: 'Não! O trial de 7 dias é completamente grátis e não exige cartão de crédito. Ao final, você volta automaticamente para o plano gratuito.',
-  },
-  {
-    q: 'Posso cancelar a qualquer momento?',
-    a: 'Sim! Você pode cancelar sua assinatura quando quiser, sem multa ou burocracia. Seus dados são mantidos e você pode voltar quando desejar.',
-  },
-  {
-    q: 'O que acontece quando meu trial acaba?',
-    a: 'Você volta automaticamente para o plano Iniciante (gratuito). Nenhuma cobrança é feita. Suas peças e dados continuam salvos.',
-  },
-  {
-    q: 'Qual a diferença entre os planos?',
-    a: 'A principal diferença é a quantidade de peças no closet, provas virtuais por dia e acesso a recursos premium como Voyager e VIP Looks. Veja a tabela comparativa acima.',
-  },
-  {
-    q: 'Posso trocar de plano depois?',
-    a: 'Sim! Você pode fazer upgrade ou downgrade a qualquer momento. A mudança é imediata e o valor é ajustado proporcionalmente.',
-  },
 ];
 
 function FAQItem({ q, a }: { q: string; a: string }) {
@@ -102,13 +76,13 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 }
 
 export default function Subscription() {
+  const { t } = useTranslation('subscription');
   const { plan: currentPlan, currentPlanId, demoPlanId, setDemoPlan, allPlans } = useSubscription();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const isFreeUser = currentPlanId === 'free';
 
-  // Fetch all plan limits for display
   const { data: dbLimits = [] } = useQuery({
     queryKey: ['all-plan-limits'],
     queryFn: async () => {
@@ -117,24 +91,29 @@ export default function Subscription() {
     },
   });
 
-  // Use DB data if available, otherwise use static fallback
   const allLimits = dbLimits.length > 0 ? dbLimits : FALLBACK_LIMITS;
   const displayPlans = allPlans.length > 0 ? allPlans : FALLBACK_PLANS;
 
-  // Group limits by plan
   const getLimitsForPlan = (planId: string) => {
     return allLimits.filter((l) => l.plan_id === planId);
   };
 
   const handleSelectPlan = (planId: string) => {
     setSelectedPlan(planId);
-    // In a real app, this would trigger a payment flow
   };
+
+  const faqs = [
+    { q: t('faq1q'), a: t('faq1a') },
+    { q: t('faq2q'), a: t('faq2a') },
+    { q: t('faq3q'), a: t('faq3a') },
+    { q: t('faq4q'), a: t('faq4a') },
+    { q: t('faq5q'), a: t('faq5a') },
+  ];
 
   return (
     <>
       <SEOHead title="Assinatura — Ethra Fashion" />
-      <Header title="Assinatura" />
+      <Header title={t('title')} />
       <PageContainer className="px-4 py-6">
         <div className="max-w-4xl mx-auto space-y-8">
 
@@ -151,7 +130,7 @@ export default function Subscription() {
               className="text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="w-4 h-4 mr-1.5" />
-              Voltar
+              {t('back')}
             </Button>
             <Button
               variant="ghost"
@@ -160,7 +139,7 @@ export default function Subscription() {
               className="text-muted-foreground hover:text-foreground"
             >
               <Home className="w-4 h-4 mr-1.5" />
-              Início
+              {t('home')}
             </Button>
           </motion.div>
 
@@ -177,8 +156,8 @@ export default function Subscription() {
               <Crown className="w-3.5 h-3.5 mr-1.5" />
               {currentPlan?.display_name || 'Free'}
             </Badge>
-            <h1 className="font-display text-3xl mt-4 mb-2">Escolha seu plano</h1>
-            <p className="text-muted-foreground">Desbloqueie recursos premium para sua experiência de moda</p>
+            <h1 className="font-display text-3xl mt-4 mb-2">{t('choosePlan')}</h1>
+            <p className="text-muted-foreground">{t('choosePlanDesc')}</p>
           </motion.div>
 
           {/* Trial Banner - only for free users */}
@@ -195,10 +174,10 @@ export default function Subscription() {
                   </div>
                   <div className="flex-1 text-center sm:text-left">
                     <p className="font-medium text-green-800 dark:text-green-200">
-                      Experimente o Trendsetter por 7 dias grátis
+                      {t('trialBanner')}
                     </p>
                     <p className="text-sm text-green-700/70 dark:text-green-300/70">
-                      Sem cartão de crédito. Cancele quando quiser. Volta ao plano gratuito automaticamente.
+                      {t('trialBannerDesc')}
                     </p>
                   </div>
                   <Button
@@ -206,7 +185,7 @@ export default function Subscription() {
                     className="bg-green-600 hover:bg-green-700 text-white flex-shrink-0"
                     onClick={() => handleSelectPlan('trendsetter')}
                   >
-                    Ativar trial grátis
+                    {t('activateTrial')}
                   </Button>
                 </div>
               </Card>
@@ -217,7 +196,7 @@ export default function Subscription() {
           <Card className="p-5 bg-gradient-to-br from-primary/5 via-transparent to-transparent">
             <h3 className="font-medium mb-4 flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-primary" />
-              Seu uso atual
+              {t('currentUsage')}
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <UsageIndicator feature="wardrobe_slots" />
@@ -226,7 +205,7 @@ export default function Subscription() {
             </div>
             {isFreeUser && (
               <p className="text-xs text-muted-foreground mt-3">
-                Chegou no limite? Ative o trial grátis acima ou escolha um plano.
+                {t('usageLimitHint')}
               </p>
             )}
           </Card>
@@ -237,7 +216,7 @@ export default function Subscription() {
               <Sparkles className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="text-sm font-medium text-amber-800 dark:text-amber-200 mb-2">
-                  Modo Demo: Visualize como seria com outro plano
+                  {t('demoMode')}
                 </p>
                 <div className="flex gap-2 flex-wrap">
                   {displayPlans.map((p) => (
@@ -261,7 +240,7 @@ export default function Subscription() {
                       onClick={() => setDemoPlan(null)}
                       className="text-xs text-amber-700"
                     >
-                      Resetar
+                      {t('reset')}
                     </Button>
                   )}
                 </div>
@@ -292,12 +271,12 @@ export default function Subscription() {
 
           {/* Feature Comparison */}
           <Card className="p-6">
-            <h3 className="font-display text-lg mb-4">Comparativo de recursos</h3>
+            <h3 className="font-display text-lg mb-4">{t('featureComparison')}</h3>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left py-3 pr-4">Recurso</th>
+                    <th className="text-left py-3 pr-4">{t('feature')}</th>
                     {displayPlans.map((p) => (
                       <th
                         key={p.id}
@@ -352,7 +331,7 @@ export default function Subscription() {
           <div>
             <h3 className="font-display text-lg mb-4 flex items-center gap-2">
               <HelpCircle className="w-5 h-5 text-primary" />
-              Perguntas frequentes
+              {t('faqTitle')}
             </h3>
             <div className="space-y-2">
               {faqs.map((faq) => (
@@ -365,22 +344,22 @@ export default function Subscription() {
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 py-4">
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <CreditCard className="w-3.5 h-3.5" />
-              Sem cartão para trial
+              {t('trustNoCard')}
             </span>
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Shield className="w-3.5 h-3.5" />
-              Pagamento seguro
+              {t('trustSecure')}
             </span>
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Crown className="w-3.5 h-3.5" />
-              Cancele quando quiser
+              {t('trustCancel')}
             </span>
           </div>
 
           {/* Alternative Actions */}
           <Card className="p-5 text-center bg-secondary/30 border-border/50">
             <p className="text-sm text-muted-foreground mb-4">
-              Ainda não decidiu? Sem problema!
+              {t('undecided')}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
@@ -389,7 +368,7 @@ export default function Subscription() {
                 onClick={() => navigate('/')}
               >
                 <Home className="w-4 h-4 mr-1.5" />
-                Continuar no plano gratuito
+                {t('continueFree')}
               </Button>
               <Button
                 variant="outline"
@@ -397,14 +376,14 @@ export default function Subscription() {
                 onClick={() => navigate('/chromatic')}
               >
                 <Sparkles className="w-4 h-4 mr-1.5" />
-                Explorar colorimetria grátis
+                {t('exploreChromatic')}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => navigate('/wardrobe')}
               >
-                Montar meu closet
+                {t('buildCloset')}
               </Button>
             </div>
           </Card>

@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { generateLookThumbnail } from '@/lib/look-image-generator';
 import { SEOHead } from '@/components/seo/SEOHead';
+import { useTranslation } from 'react-i18next';
 
 interface WardrobeItem {
   id: string;
@@ -41,6 +42,7 @@ interface CanvasItem {
 }
 
 export default function Canvas() {
+  const { t } = useTranslation('canvas');
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -79,12 +81,10 @@ export default function Canvas() {
     mutationFn: async ({ name, itemIds }: { name: string; itemIds: string[] }) => {
       if (!user) throw new Error('Not authenticated');
       
-      // Get items for thumbnail generation
       const itemsForThumbnail = itemIds
         .map(id => itemsMap[id])
         .filter(Boolean);
       
-      // Generate thumbnail
       let thumbnailUrl: string | null = null;
       if (itemsForThumbnail.length > 0) {
         try {
@@ -105,11 +105,11 @@ export default function Canvas() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['saved-outfits'] });
-      toast({ title: 'Look salvo!', description: 'Seu look foi adicionado à coleção.' });
+      toast({ title: t('lookSaved'), description: t('lookSavedDesc') });
     },
     onError: (error) => {
       toast({
-        title: 'Erro ao salvar',
+        title: t('saveError'),
         description: error.message,
         variant: 'destructive'
       });
@@ -139,21 +139,20 @@ export default function Canvas() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['saved-outfits'] });
-      toast({ title: 'Look removido' });
+      toast({ title: t('lookRemoved') });
     }
   });
 
   // Handle save from canvas
   const handleSave = (canvasItems: CanvasItem[], name: string) => {
-    // Extract original item IDs (remove timestamp suffix using ::: separator)
     const itemIds = canvasItems
       .map(item => item.id.split(':::')[0])
-      .filter((id, index, arr) => arr.indexOf(id) === index); // Remove duplicates
+      .filter((id, index, arr) => arr.indexOf(id) === index);
     
     if (itemIds.length === 0) {
       toast({
-        title: 'Canvas vazio',
-        description: 'Adicione peças antes de salvar',
+        title: t('emptyCanvas'),
+        description: t('emptyCanvasDesc'),
         variant: 'destructive'
       });
       return;
@@ -167,8 +166,8 @@ export default function Canvas() {
     setPreloadItems(outfitItems);
     setActiveTab('create');
     toast({
-      title: 'Look carregado',
-      description: `"${outfit.name}" foi aberto no canvas`
+      title: t('lookLoaded'),
+      description: t('lookLoadedDesc', { name: outfit.name })
     });
   };
 
@@ -180,16 +179,16 @@ export default function Canvas() {
   return (
     <>
       <SEOHead title="Look Canvas — Ethra Fashion" />
-      <Header title="Look Canvas" />
+      <Header title={t('title')} />
       <PageContainer className="px-4 py-6">
         <div className="max-w-lg mx-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="w-full grid grid-cols-2 mb-4">
               <TabsTrigger value="create" className="font-display">
-                Criar Look
+                {t('createLook')}
               </TabsTrigger>
               <TabsTrigger value="saved" className="font-display">
-                Salvos
+                {t('saved')}
               </TabsTrigger>
             </TabsList>
 

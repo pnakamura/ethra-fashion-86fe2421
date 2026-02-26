@@ -1,0 +1,13 @@
+{
+  "title": "Look Canvas",
+  "createLook": "Create Look",
+  "saved": "Saved",
+  "lookSaved": "Look saved!",
+  "lookSavedDesc": "Your look was added to the collection.",
+  "saveError": "Error saving",
+  "emptyCanvas": "Empty canvas",
+  "emptyCanvasDesc": "Add items before saving",
+  "lookLoaded": "Look loaded",
+  "lookLoadedDesc": "\"{{name}}\" was opened in the canvas",
+  "lookRemoved": "Look removed"
+}
