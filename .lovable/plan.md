@@ -1,148 +1,172 @@
 
-# Analise de Producao -- Ethra Fashion
+# Analise Completa -- Falhas de Operacao e Funcionalidades
 
-Apos inspecao completa de todas as paginas, rotas, navegacao, backend e seguranca, este e o diagnostico do estado atual e as correcoes necessarias para producao.
-
----
-
-## Estado Atual: Muito Bom
-
-A aplicacao esta bem estruturada, com:
-- Zero erros de console em todas as rotas testadas
-- Navegacao SPA funcional entre todas as paginas
-- Auth guards implementados em todas as paginas protegidas
-- SEO basico ja implementado (SEOHead, sitemap, robots.txt, JSON-LD)
-- HTML semantico corrigido (landmarks, aria-labels, nav)
-- i18n bilingue (PT-BR/EN) funcional
-- RLS policies em todas as tabelas
-- Code splitting com lazy loading para performance
+Apos inspecao detalhada de todas as paginas, componentes, hooks, navegacao e backend, segue o diagnostico completo.
 
 ---
 
-## Problemas Identificados para Correcao
+## Estado Geral: Aplicacao Estavel
 
-### 1. SEOHead Ausente em Paginas Autenticadas
+Zero erros de console em producao (apenas warnings do framework Lovable). Navegacao SPA funcional. Auth guards presentes em todas as paginas protegidas. Backend com RLS em todas as tabelas.
 
-As seguintes paginas nao possuem o componente `SEOHead` para titulo dinamico:
+---
 
-| Pagina | Titulo Sugerido |
-|--------|----------------|
-| Index.tsx (/) | Inicio -- Ethra Fashion |
-| Wardrobe.tsx | Closet -- Ethra Fashion |
-| Chromatic.tsx | Paleta Cromatica -- Ethra Fashion |
-| VirtualTryOn.tsx | Provador Virtual -- Ethra Fashion |
-| Recommendations.tsx | Looks -- Ethra Fashion |
-| Events.tsx | Agenda -- Ethra Fashion |
-| Settings.tsx | Configuracoes -- Ethra Fashion |
-| Canvas.tsx | Look Canvas -- Ethra Fashion |
-| Voyager.tsx | Voyager -- Ethra Fashion |
-| Subscription.tsx | Assinatura -- Ethra Fashion |
-| Privacy.tsx | Privacidade -- Ethra Fashion |
-| Onboarding.tsx | Boas-vindas -- Ethra Fashion |
-| Quiz.tsx (/style-dna) | DNA de Estilo -- Ethra Fashion |
-| StyleQuiz.tsx (/quiz) | Quiz de Estilo -- Ethra Fashion |
+## Problemas Identificados
 
-### 2. Rota Duplicada: `/provador` e `/try-on`
+### 1. StyleQuiz.tsx -- Textos Hardcoded em Portugues (Sem i18n)
 
-Ambas as rotas apontam para o mesmo componente `VirtualTryOn`. Isso causa conteudo duplicado para crawlers e fragmenta links internos. Solucao: manter `/provador` como rota principal e redirecionar `/try-on` para ela.
+**Gravidade: Media**
 
-### 3. Index.tsx -- Wrapper `<div>` Redundante
+A pagina `/quiz` (StyleQuiz.tsx) tem TODOS os textos hardcoded em portugues, sem usar o sistema de traducao i18n. Quando o usuario troca para ingles, esta pagina permanece em portugues.
 
-O `Index.tsx` envolve `PageContainer` (que ja renderiza `<main>`) em um `<div className="min-h-screen">`. Deveria ser `<>` (Fragment) para evitar `<div> > <main>` redundante, conforme ja identificado no plano anterior mas nao corrigido.
+Textos afetados:
+- "Qual estetica fala com voce?" 
+- "Selecione 2 que mais ressoam"
+- "Qual e o seu maior desafio de estilo?"
+- "Vamos descobrir suas cores"
+- "Qual e o seu tipo de corpo?"
+- "Revelar meu DNA"
+- "Criar minha conta"
 
-### 4. Paginas sem SEOHead para Quiz
+**Correcao**: Criar chaves i18n no namespace `common` (ou novo namespace `quiz`) para PT e EN, e substituir os textos hardcoded por chamadas `t()`.
 
-`StyleQuiz.tsx` (/quiz) e `Quiz.tsx` (/style-dna) nao tem `SEOHead` integrado.
+---
 
-### 5. Seguranca -- Linter Warnings
+### 2. Subscription.tsx -- Textos Hardcoded em Portugues (Sem i18n)
 
-Dois avisos de seguranca do linter:
+**Gravidade: Media**
 
-- **RLS Policy Always True**: A tabela `tester_notifications` tem INSERT com `WITH CHECK (true)`, permitindo insercao publica. Isso e intencional (service role insere), mas o `true` na policy significa que qualquer usuario anonimo pode inserir. Deveria ser restrito.
+A pagina `/subscription` tem todo o conteudo (titulos, descricoes, FAQs, badges) hardcoded em portugues. Isso inclui:
 
-- **Leaked Password Protection**: Esta desabilitada no painel de autenticacao. Requer ativacao manual (ja documentado na memoria do projeto).
+- "Escolha seu plano"
+- "Seu uso atual"
+- "Modo Demo: Visualize como seria com outro plano"
+- Todas as 5 FAQs
+- "Sem cartao para trial", "Pagamento seguro", "Cancele quando quiser"
+- Labels dos fallback plans
 
-### 6. Subscription.tsx -- Conteudo Hardcoded em Portugues
+**Correcao**: Migrar para i18n com novo namespace ou chaves existentes.
 
-A pagina de Subscription nao usa i18n (chaves de traducao). Todo o texto esta em portugues hardcoded, enquanto o resto da app suporta PT/EN. Isso nao e bloqueante para producao mas e uma inconsistencia.
+---
+
+### 3. Canvas.tsx -- Textos Hardcoded em Portugues
+
+**Gravidade: Media**
+
+A pagina `/canvas` tem textos como "Criar Look", "Salvos", "Look salvo!", "Canvas vazio", "Look carregado" sem i18n.
+
+**Correcao**: Adicionar traducoes e usar `useTranslation`.
+
+---
+
+### 4. Privacy.tsx -- Textos Hardcoded em Portugues
+
+**Gravidade: Media**
+
+A pagina `/privacy` tem todos os textos de permissoes, garantias de privacidade e transparencia hardcoded.
+
+**Correcao**: Migrar para i18n.
+
+---
+
+### 5. Onboarding -- Redirect Inconsistente
+
+**Gravidade: Baixa**
+
+Em `Onboarding.tsx` (linha 35), o redirect para usuarios nao autenticados vai para `/auth`, enquanto todas as outras paginas protegidas redirecionam para `/welcome`. Isso cria uma experiencia inconsistente.
+
+**Correcao**: Alterar `navigate('/auth')` para `navigate('/welcome')` em `Onboarding.tsx`.
+
+---
+
+### 6. TesterSignupForm -- Signup Sem Confirmacao de Email
+
+**Gravidade: Baixa-Media**
+
+O formulario de signup da landing page (`TesterSignupForm.tsx`) chama `signUp()` e imediatamente tenta atualizar o perfil do usuario via `supabase.auth.getUser()`. Se a confirmacao de email estiver habilitada (padrao), o `getUser()` pode retornar um usuario nao confirmado, e o update do perfil com `username` e `is_tester` pode falhar silenciosamente ou o usuario pode ficar confuso ao nao conseguir logar.
+
+O formulario mostra uma tela de sucesso com botao "Comecar a explorar" que redireciona para `/`, mas o usuario pode nao estar autenticado ainda (aguardando confirmacao de email).
+
+**Correcao**: Apos o signup, mostrar mensagem clara sobre verificacao de email e nao redirecionar para `/` ate a confirmacao.
+
+---
+
+### 7. `subscription_plans` e `plan_limits` -- Tabelas Vazias no Banco
+
+**Gravidade: Media**
+
+As requisicoes de rede mostram que `subscription_plans` e `plan_limits` retornam arrays vazios (`[]`). A pagina de Subscription usa fallback estatico, mas o `SubscriptionContext` pode nao ter dados reais, afetando o `UsageIndicator` em toda a app.
+
+**Correcao**: Inserir os dados dos planos e limites nas tabelas do banco de dados via migracao SQL, para que os fallbacks nao sejam necessarios.
+
+---
+
+### 8. Rota `/try-on` -- Redirect Ja Implementado (OK)
+
+A rota duplicada `/try-on` ja foi corrigida com `<Navigate to="/provador" replace />`. Nenhuma acao necessaria.
+
+---
+
+## Resumo de Prioridades
+
+| # | Problema | Gravidade | Tipo |
+|---|----------|-----------|------|
+| 1 | StyleQuiz sem i18n | Media | i18n |
+| 2 | Subscription sem i18n | Media | i18n |
+| 3 | Canvas sem i18n | Media | i18n |
+| 4 | Privacy sem i18n | Media | i18n |
+| 5 | Onboarding redirect inconsistente | Baixa | Navegacao |
+| 6 | Signup sem feedback de confirmacao | Baixa-Media | UX/Auth |
+| 7 | Tabelas de planos vazias no banco | Media | Dados |
 
 ---
 
 ## Plano de Correcao
 
-### Fase 1: SEOHead em Todas as Paginas (14 arquivos)
+### Fase 1: Dados de Planos (SQL Migration)
 
-Adicionar `import { SEOHead } from '@/components/seo/SEOHead'` e `<SEOHead title="..." />` em cada pagina listada acima. Mudanca minima: 2 linhas por arquivo.
+Inserir dados nas tabelas `subscription_plans` e `plan_limits` para que a app funcione sem fallbacks estaticos. Usar os mesmos valores ja definidos no `FALLBACK_PLANS` e `FALLBACK_LIMITS` do `Subscription.tsx`.
 
-### Fase 2: Redirecionar Rota Duplicada
+### Fase 2: Redirect do Onboarding
 
-Em `src/App.tsx`, substituir a rota duplicada `/try-on`:
+Alterar uma unica linha em `Onboarding.tsx`: trocar `navigate('/auth')` por `navigate('/welcome')`.
 
-```text
-// Antes:
-<Route path="/try-on" element={<VirtualTryOn />} />
+### Fase 3: i18n para StyleQuiz
 
-// Depois:
-<Route path="/try-on" element={<Navigate to="/provador" replace />} />
-```
+Criar chaves de traducao no namespace `common` ou novo namespace para o quiz e substituir todos os textos hardcoded em `StyleQuiz.tsx` por chamadas `t()`. Adicionar traducoes em `en-US` e `pt-BR`.
 
-### Fase 3: Corrigir Wrapper Semantico no Index.tsx
+### Fase 4: i18n para Subscription
 
-Trocar `<div className="min-h-screen dark:bg-transparent">` por Fragment `<>`.
+Criar namespace de traducao `subscription` com todas as strings da pagina (titulos, FAQs, badges, descricoes). Adicionar traducoes em ambos idiomas.
 
-### Fase 4: Corrigir RLS da tester_notifications
+### Fase 5: i18n para Canvas e Privacy
 
-Alterar a policy de INSERT na tabela `tester_notifications` de `true` para verificar se a requisicao vem do service role ou de um usuario autenticado com role admin.
+Mesmo processo para `Canvas.tsx` e `Privacy.tsx`.
 
----
+### Fase 6: Melhoria no Signup Flow
 
-## O Que Ja Esta Pronto para Producao
-
-- Autenticacao completa com signup, login, validacao de email
-- Auth guards em todas as paginas protegidas (redirect para /welcome)
-- Error boundary global para captura de erros
-- 404 com noindex e Link SPA
-- Lazy loading de rotas para performance
-- Prefetching de dados em hover/touch na navegacao
-- RLS policies em todas as 15 tabelas
-- Edge Functions com CORS configurado
-- Consentimento biometrico LGPD-compliant
-- Termos de Uso e Politica de Privacidade completos
-- robots.txt com Disallow para rotas privadas
-- sitemap.xml com rotas publicas
-- JSON-LD com schema WebApplication
-- Metatags OG/Twitter com URLs absolutas
-- Componente SEOHead para titulos dinamicos
-- Footer com Link SPA e nav landmark
-- aria-labels em botoes de icone e inputs
-- Sincronizacao dinamica do atributo lang do HTML
+Ajustar `TesterSignupForm.tsx` para exibir mensagem sobre verificacao de email apos signup, removendo o botao "Comecar a explorar" que pode nao funcionar sem confirmacao.
 
 ---
 
-## Detalhes Tecnicos da Implementacao
+## Detalhes Tecnicos
 
 ### Arquivos a Editar
 
 | Arquivo | Mudanca |
 |---------|---------|
-| `src/pages/Index.tsx` | Adicionar SEOHead + trocar div por Fragment |
-| `src/pages/Wardrobe.tsx` | Adicionar SEOHead |
-| `src/pages/Chromatic.tsx` | Adicionar SEOHead |
-| `src/pages/VirtualTryOn.tsx` | Adicionar SEOHead |
-| `src/pages/Recommendations.tsx` | Adicionar SEOHead |
-| `src/pages/Events.tsx` | Adicionar SEOHead |
-| `src/pages/Settings.tsx` | Adicionar SEOHead |
-| `src/pages/Canvas.tsx` | Adicionar SEOHead |
-| `src/pages/Voyager.tsx` | Adicionar SEOHead |
-| `src/pages/Subscription.tsx` | Adicionar SEOHead |
-| `src/pages/Privacy.tsx` | Adicionar SEOHead |
-| `src/pages/Onboarding.tsx` | Adicionar SEOHead |
-| `src/pages/Quiz.tsx` | Adicionar SEOHead |
-| `src/pages/StyleQuiz.tsx` | Adicionar SEOHead |
-| `src/App.tsx` | Redirecionar /try-on para /provador |
+| `src/pages/Onboarding.tsx` | Redirect `/auth` para `/welcome` |
+| `src/pages/StyleQuiz.tsx` | Adicionar useTranslation e trocar textos |
+| `src/pages/Subscription.tsx` | Adicionar useTranslation e trocar textos |
+| `src/pages/Canvas.tsx` | Adicionar useTranslation e trocar textos |
+| `src/pages/Privacy.tsx` | Adicionar useTranslation e trocar textos |
+| `src/i18n/locales/pt-BR/common.json` | Novas chaves para quiz, canvas, privacy |
+| `src/i18n/locales/en-US/common.json` | Traducoes em ingles |
+| `src/components/landing/TesterSignupForm.tsx` | Melhorar feedback pos-signup |
+| Migracao SQL | Inserir dados em subscription_plans e plan_limits |
 
-### Migracao SQL
+### Migracao SQL Necessaria
 
-Corrigir a policy de INSERT na tabela `tester_notifications` para restringir ao service role.
+Inserir 4 planos na tabela `subscription_plans` e 20 registros na tabela `plan_limits`, correspondendo exatamente aos valores dos fallbacks estaticos ja definidos no codigo.
 
-Nenhuma mudanca visual. Todas as correcoes sao tecnicas para producao.
+Nenhuma mudanca visual. Correcoes focadas em consistencia de idioma, dados e fluxo de navegacao.
