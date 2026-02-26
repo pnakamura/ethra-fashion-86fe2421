@@ -121,6 +121,15 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
                 </p>
               </div>
 
+              <div className="space-y-3 text-left bg-amber-500/10 rounded-2xl p-5 border border-amber-500/20">
+                <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                  📧 {t('signup.emailVerificationTitle', { defaultValue: 'Verifique seu e-mail' })}
+                </p>
+                <p className="text-xs text-amber-700/80 dark:text-amber-300/80">
+                  {t('signup.emailVerificationDesc', { defaultValue: 'Enviamos um link de confirmação para o seu e-mail. Clique nele para ativar sua conta e começar a explorar.' })}
+                </p>
+              </div>
+
               <div className="space-y-3 text-left bg-primary/5 rounded-2xl p-5">
                 <p className="text-sm font-medium text-foreground">{t('signup.successWhatAwaits')}</p>
                 {[
@@ -140,15 +149,6 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
                   </motion.div>
                 ))}
               </div>
-
-              <Button
-                size="lg"
-                onClick={() => navigate('/')}
-                className="w-full gradient-primary text-primary-foreground shadow-glow"
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                {t('signup.successCta')}
-              </Button>
 
               <p className="text-sm text-muted-foreground/70">
                 {t('signup.successNote')}

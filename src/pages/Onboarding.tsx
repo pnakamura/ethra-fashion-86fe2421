@@ -31,7 +31,7 @@ export default function Onboarding() {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate('/auth');
+      navigate('/welcome');
     }
   }, [user, authLoading, navigate]);
 

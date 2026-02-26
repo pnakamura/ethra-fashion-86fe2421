@@ -6,8 +6,10 @@ import { PhysicalIdentity } from '@/components/quiz/PhysicalIdentity';
 import { SilhouettePicker } from '@/components/quiz/SilhouettePicker';
 import { DNAReveal, AnalyzingAnimation } from '@/components/quiz/DNAReveal';
 import { SEOHead } from '@/components/seo/SEOHead';
+import { useTranslation } from 'react-i18next';
 
 export default function StyleQuiz() {
+  const { t } = useTranslation('quiz');
   const {
     state,
     progress,
@@ -35,30 +37,30 @@ export default function StyleQuiz() {
   // Step configurations
   const stepConfig = {
     1: {
-      title: 'Qual estética fala com você?',
-      subtitle: 'Selecione 2 que mais ressoam',
+      title: t('step1Title'),
+      subtitle: t('step1Subtitle'),
       content: (
         <AestheticPicker
           selected={state.aesthetics}
           onToggle={toggleAesthetic}
         />
       ),
-      nextLabel: 'Continuar',
+      nextLabel: t('continue'),
     },
     2: {
-      title: 'Qual é o seu maior desafio de estilo?',
-      subtitle: 'Vamos personalizar o app para você',
+      title: t('step2Title'),
+      subtitle: t('step2Subtitle'),
       content: (
         <PainPointPicker
           selected={state.painPoint}
           onSelect={setPainPoint}
         />
       ),
-      nextLabel: 'Continuar',
+      nextLabel: t('continue'),
     },
     3: {
-      title: 'Vamos descobrir suas cores',
-      subtitle: 'A mágica da colorimetria começa aqui',
+      title: t('step3Title'),
+      subtitle: t('step3Subtitle'),
       content: (
         <PhysicalIdentity
           selectedSkinTone={state.skinTone}
@@ -69,30 +71,30 @@ export default function StyleQuiz() {
           onSelectHairColor={setHairColor}
         />
       ),
-      nextLabel: 'Continuar',
+      nextLabel: t('continue'),
     },
     4: {
-      title: 'Qual é o seu tipo de corpo?',
-      subtitle: 'Para sugestões de caimento perfeito',
+      title: t('step4Title'),
+      subtitle: t('step4Subtitle'),
       content: (
         <SilhouettePicker
           selected={state.silhouette}
           onSelect={setSilhouette}
         />
       ),
-      nextLabel: 'Revelar meu DNA',
+      nextLabel: t('revealDNA'),
     },
     5: {
-      title: 'Seu estilo revelado!',
+      title: t('step5Title'),
       subtitle: null,
       content: (
         <DNAReveal
-          styleDNA={state.styleDNA || 'Eclético com Subtom Neutro'}
+          styleDNA={state.styleDNA || t('defaultDNA')}
           suggestedLooks={suggestedLooks}
           onCreateAccount={completeQuiz}
         />
       ),
-      nextLabel: 'Criar minha conta',
+      nextLabel: t('createAccount'),
       showFooter: false,
     },
   };
@@ -114,7 +116,7 @@ export default function StyleQuiz() {
           showBack={true}
           onNext={completeQuiz}
           onBack={prevStep}
-          nextLabel="Criar minha conta"
+          nextLabel={t('createAccount')}
         >
           {currentStep.content}
         </QuizStep>

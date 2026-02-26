@@ -15,6 +15,10 @@ import tryOnPtBR from './locales/pt-BR/tryOn.json';
 import eventsPtBR from './locales/pt-BR/events.json';
 import voyagerPtBR from './locales/pt-BR/voyager.json';
 import landingPtBR from './locales/pt-BR/landing.json';
+import quizPtBR from './locales/pt-BR/quiz.json';
+import subscriptionPtBR from './locales/pt-BR/subscription.json';
+import canvasPtBR from './locales/pt-BR/canvas.json';
+import privacyPtBR from './locales/pt-BR/privacy.json';
 
 // EN-US translations
 import commonEnUS from './locales/en-US/common.json';
@@ -29,6 +33,10 @@ import tryOnEnUS from './locales/en-US/tryOn.json';
 import eventsEnUS from './locales/en-US/events.json';
 import voyagerEnUS from './locales/en-US/voyager.json';
 import landingEnUS from './locales/en-US/landing.json';
+import quizEnUS from './locales/en-US/quiz.json';
+import subscriptionEnUS from './locales/en-US/subscription.json';
+import canvasEnUS from './locales/en-US/canvas.json';
+import privacyEnUS from './locales/en-US/privacy.json';
 
 i18n
   .use(LanguageDetector)
@@ -48,6 +56,10 @@ i18n
         events: eventsPtBR,
         voyager: voyagerPtBR,
         landing: landingPtBR,
+        quiz: quizPtBR,
+        subscription: subscriptionPtBR,
+        canvas: canvasPtBR,
+        privacy: privacyPtBR,
       },
       'en-US': {
         common: commonEnUS,
@@ -62,12 +74,16 @@ i18n
         events: eventsEnUS,
         voyager: voyagerEnUS,
         landing: landingEnUS,
+        quiz: quizEnUS,
+        subscription: subscriptionEnUS,
+        canvas: canvasEnUS,
+        privacy: privacyEnUS,
       },
     },
     fallbackLng: 'pt-BR',
     supportedLngs: ['pt-BR', 'en-US'],
     defaultNS: 'common',
-    ns: ['common', 'legal', 'settings', 'dashboard', 'auth', 'wardrobe', 'recommendations', 'chromatic', 'tryOn', 'events', 'voyager', 'landing'],
+    ns: ['common', 'legal', 'settings', 'dashboard', 'auth', 'wardrobe', 'recommendations', 'chromatic', 'tryOn', 'events', 'voyager', 'landing', 'quiz', 'subscription', 'canvas', 'privacy'],
     interpolation: {
       escapeValue: false,
     },
