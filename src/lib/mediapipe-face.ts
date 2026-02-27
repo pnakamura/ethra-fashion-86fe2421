@@ -32,7 +32,6 @@ export async function getFaceLandmarker(): Promise<FaceLandmarker> {
         outputFaceBlendshapes: false,
         outputFacialTransformationMatrixes: false,
       });
-      console.log('[MediaPipe] FaceLandmarker created with GPU delegate');
     } catch (gpuError) {
       console.warn('[MediaPipe] GPU delegate failed, falling back to CPU:', gpuError);
       faceLandmarkerInstance = await FaceLandmarker.createFromOptions(vision, {
@@ -45,7 +44,6 @@ export async function getFaceLandmarker(): Promise<FaceLandmarker> {
         outputFaceBlendshapes: false,
         outputFacialTransformationMatrixes: false,
       });
-      console.log('[MediaPipe] FaceLandmarker created with CPU delegate');
     }
 
     return faceLandmarkerInstance;

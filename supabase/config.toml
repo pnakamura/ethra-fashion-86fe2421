@@ -36,8 +36,11 @@ verify_jwt = false
 [functions.cleanup-expired-tryons]
 verify_jwt = false
 
+[functions.export-user-data]
+verify_jwt = true
+
 [functions.delete-user-data]
-verify_jwt = false
+verify_jwt = true
 
 [functions.admin-delete-user]
-verify_jwt = false
+verify_jwt = true

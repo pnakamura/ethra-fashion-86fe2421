@@ -76,21 +76,12 @@ export function useLivenessDetection() {
     }, TIMEOUT_MS);
 
     try {
-      console.log('[Liveness] Loading FaceLandmarker...');
       const landmarker = await getFaceLandmarker();
-      console.log('[Liveness] FaceLandmarker ready, starting detection loop');
       isRunning.current = true;
       let lastTimestamp = -1;
-      let logCounter = 0;
 
       const detect = () => {
         if (!isRunning.current || !videoElement || videoElement.readyState < 2) {
-          if (isRunning.current && videoElement) {
-            logCounter++;
-            if (logCounter % 60 === 0) {
-              console.log(`[Liveness] Waiting for video... readyState=${videoElement.readyState}`);
-            }
-          }
           animationFrameRef.current = requestAnimationFrame(detect);
           return;
         }
@@ -105,18 +96,12 @@ export function useLivenessDetection() {
         try {
           const result = landmarker.detectForVideo(videoElement, now);
 
-          // Log first 5 frames for diagnostics
-          if (logCounter < 5) {
-            console.log(`[Liveness] Frame #${logCounter}: faceLandmarks=${result.faceLandmarks?.length ?? 0}, videoSize=${videoElement.videoWidth}x${videoElement.videoHeight}`);
-          }
-
           if (result.faceLandmarks && result.faceLandmarks.length > 0) {
             const landmarks = result.faceLandmarks[0];
 
             // Mark face as detected
             setState((s) => {
               if (s.faceDetected) return s;
-              console.log('[Liveness] Face detected!');
               return { ...s, faceDetected: true };
             });
 
@@ -130,19 +115,12 @@ export function useLivenessDetection() {
               if (earSamples.current.length >= CALIBRATION_FRAMES) {
                 const avg = earSamples.current.reduce((a, b) => a + b, 0) / earSamples.current.length;
                 earBaseline.current = avg;
-                console.log(`[Liveness] Calibrated: baseline=${avg.toFixed(3)}, threshold=${(avg * EAR_RATIO).toFixed(3)}`);
               }
               if (isRunning.current) animationFrameRef.current = requestAnimationFrame(detect);
               return;
             }
 
             const dynamicThreshold = earBaseline.current * EAR_RATIO;
-
-            // Log every 30 frames
-            logCounter++;
-            if (logCounter % 30 === 0) {
-              console.log(`[Liveness] EAR=${ear.toFixed(3)} (thr=${dynamicThreshold.toFixed(3)}) | Yaw=${yaw.toFixed(1)}° (thr=${HEAD_YAW_THRESHOLD}) | eyeClosed=${wasEyeClosed.current} | lowFrames=${lowEarFrames.current}`);
-            }
 
             if (ear < dynamicThreshold) {
               lowEarFrames.current++;
