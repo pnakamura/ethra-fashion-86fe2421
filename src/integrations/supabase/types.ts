@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action: string
+          admin_user_id: string
+          created_at: string
+          details: Json | null
+          id: string
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_user_id: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_user_id?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       app_feature_flags: {
         Row: {
           description: string | null
@@ -67,6 +94,39 @@ export type Database = {
           id?: string
           term_version?: string
           user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      data_requests: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          request_type: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          request_type: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          request_type?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
           user_id?: string
         }
         Relationships: []
@@ -272,6 +332,8 @@ export type Database = {
           font_size: string | null
           id: string
           is_banned: boolean | null
+          is_tester: boolean | null
+          locale: string | null
           onboarding_complete: boolean | null
           privacy_accepted_at: string | null
           privacy_version: string | null
@@ -281,6 +343,7 @@ export type Database = {
           subscription_plan_id: string | null
           terms_accepted_at: string | null
           terms_version: string | null
+          tester_registered_at: string | null
           theme_preference: string | null
           updated_at: string
           user_id: string
@@ -301,6 +364,8 @@ export type Database = {
           font_size?: string | null
           id?: string
           is_banned?: boolean | null
+          is_tester?: boolean | null
+          locale?: string | null
           onboarding_complete?: boolean | null
           privacy_accepted_at?: string | null
           privacy_version?: string | null
@@ -310,6 +375,7 @@ export type Database = {
           subscription_plan_id?: string | null
           terms_accepted_at?: string | null
           terms_version?: string | null
+          tester_registered_at?: string | null
           theme_preference?: string | null
           updated_at?: string
           user_id: string
@@ -330,6 +396,8 @@ export type Database = {
           font_size?: string | null
           id?: string
           is_banned?: boolean | null
+          is_tester?: boolean | null
+          locale?: string | null
           onboarding_complete?: boolean | null
           privacy_accepted_at?: string | null
           privacy_version?: string | null
@@ -339,6 +407,7 @@ export type Database = {
           subscription_plan_id?: string | null
           terms_accepted_at?: string | null
           terms_version?: string | null
+          tester_registered_at?: string | null
           theme_preference?: string | null
           updated_at?: string
           user_id?: string
@@ -414,6 +483,33 @@ export type Database = {
           price_monthly?: number | null
           price_yearly?: number | null
           sort_order?: number | null
+        }
+        Relationships: []
+      }
+      tester_notifications: {
+        Row: {
+          email: string
+          id: string
+          notification_status: string
+          notified_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          email: string
+          id?: string
+          notification_status?: string
+          notified_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          email?: string
+          id?: string
+          notification_status?: string
+          notified_at?: string
+          user_id?: string
+          username?: string | null
         }
         Relationships: []
       }
