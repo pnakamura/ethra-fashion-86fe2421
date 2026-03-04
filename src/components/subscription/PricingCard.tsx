@@ -23,12 +23,13 @@ const planIcons: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 export function PricingCard({ plan, limits, isCurrentPlan, isPopular, hasTrial, onSelect }: PricingCardProps) {
+  const { t } = useTranslation('subscription');
   const Icon = planIcons[plan.id] || User;
 
   const getButtonLabel = () => {
-    if (isCurrentPlan) return 'Plano Atual';
-    if (hasTrial) return '7 dias grátis';
-    return 'Escolher Plano';
+    if (isCurrentPlan) return t('pricing.currentPlan');
+    if (hasTrial) return t('pricing.trialFree');
+    return t('pricing.choosePlan');
   };
 
   return (
