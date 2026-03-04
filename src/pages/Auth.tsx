@@ -142,7 +142,7 @@ export default function Auth() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center px-6 gradient-soft dark:bg-transparent">
-      <SEOHead title={isLogin ? 'Entrar — Ethra Fashion' : 'Criar Conta — Ethra Fashion'} />
+      <SEOHead title={isLogin ? t('loginTitle') + ' — Ethra Fashion' : t('signupTitle') + ' — Ethra Fashion'} />
       <div className="fixed top-6 left-6 z-50">
         <Button
           variant="ghost"
