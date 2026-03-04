@@ -11,6 +11,7 @@ interface UsageIndicatorProps {
 }
 
 export function UsageIndicator({ feature, showLabel = true, compact = false }: UsageIndicatorProps) {
+  const { t } = useTranslation('subscription');
   const { currentUsage, limit, isUnlimited, percentUsed, featureName, isLoading } = usePermission(feature);
 
   if (isLoading) {
