@@ -31,7 +31,7 @@ export function Footer() {
             <Link to="/privacy-policy" className="hover:text-foreground transition-colors">
               {t('footer.privacy')}
             </Link>
-            <a href="mailto:contato@ethra.app" className="hover:text-foreground transition-colors">
+            <a href="mailto:contato@ethra.com.br" className="hover:text-foreground transition-colors">
               {t('footer.contact')}
             </a>
           </nav>

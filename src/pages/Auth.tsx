@@ -215,7 +215,7 @@ export default function Auth() {
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2"
-              aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+              aria-label={showPassword ? t('hidePassword', 'Hide password') : t('showPassword', 'Show password')}
             >
               {showPassword ? (
                 <EyeOff className="w-5 h-5 text-muted-foreground" />

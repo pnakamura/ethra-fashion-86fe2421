@@ -202,8 +202,8 @@ export default function Terms() {
             <h2 className="text-xl font-semibold text-foreground">12. Contato</h2>
             <p className="text-muted-foreground leading-relaxed">
               Para dúvidas sobre estes Termos de Uso, entre em contato pelo email:{' '}
-              <a href="mailto:contato@ethra.app" className="text-primary hover:underline">
-                contato@ethra.app
+              <a href="mailto:contato@ethra.com.br" className="text-primary hover:underline">
+                contato@ethra.com.br
               </a>
             </p>
           </section>

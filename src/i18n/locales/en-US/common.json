@@ -40,5 +40,11 @@
   },
   "user": {
     "defaultName": "User"
-  }
+  },
+  "notFound": {
+    "title": "Page Not Found — Ethra Fashion",
+    "message": "Oops! Page not found",
+    "backHome": "Back to home"
+  },
+  "actions.signOut": "Sign out"
 }

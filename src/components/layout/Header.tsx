@@ -158,7 +158,7 @@ export function Header({ title, showBack }: HeaderProps) {
               size="icon" 
               className="rounded-full hover:bg-primary/10 dark:hover:bg-primary/20"
               onClick={handleSignOut}
-              aria-label="Sair"
+              aria-label={t('actions.signOut', 'Sign out')}
             >
               <LogOut className="w-5 h-5 text-muted-foreground dark:text-muted-foreground" />
             </Button>
