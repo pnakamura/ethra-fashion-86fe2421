@@ -42,18 +42,18 @@ export class ErrorBoundary extends Component<Props, State> {
             <AlertTriangle className="w-8 h-8 text-destructive" />
           </div>
           <h2 className="text-lg font-display font-medium mb-2">
-            Algo deu errado
+            Something went wrong
           </h2>
           <p className="text-sm text-muted-foreground mb-4 max-w-md">
-            Ocorreu um erro inesperado. Tente recarregar a página.
+            An unexpected error occurred. Try reloading the page.
           </p>
           <div className="flex gap-2">
             <Button onClick={this.handleRetry} variant="outline">
               <RefreshCw className="w-4 h-4 mr-2" />
-              Tentar novamente
+              Try again
             </Button>
             <Button onClick={() => window.location.reload()}>
-              Recarregar página
+              Reload page
             </Button>
           </div>
           {process.env.NODE_ENV === 'development' && this.state.error && (

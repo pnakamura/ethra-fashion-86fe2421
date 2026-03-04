@@ -40,5 +40,11 @@
   },
   "user": {
     "defaultName": "Usuário"
-  }
+  },
+  "notFound": {
+    "title": "Página não encontrada — Ethra Fashion",
+    "message": "Ops! Página não encontrada",
+    "backHome": "Voltar para o início"
+  },
+  "actions.signOut": "Sair"
 }

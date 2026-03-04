@@ -29,7 +29,7 @@ export default function PrivacyPolicy() {
             <h1 className="text-3xl font-display font-semibold">Política de Privacidade</h1>
           </div>
           <p className="text-muted-foreground">
-            Última atualização: {new Date().toLocaleDateString('pt-BR')}
+            Última atualização: 01/03/2025
           </p>
         </motion.div>
 
