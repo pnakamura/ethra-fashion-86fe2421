@@ -44,12 +44,12 @@ export function PricingCard({ plan, limits, isCurrentPlan, isPopular, hasTrial, 
       {hasTrial && (
         <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-green-600 text-white">
           <Gift className="w-3 h-3 mr-1" />
-          7 dias grátis
+          {t('pricing.trialFree')}
         </Badge>
       )}
       {isPopular && !hasTrial && (
         <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 gradient-primary text-primary-foreground">
-          Mais Popular
+          {t('pricing.mostPopular')}
         </Badge>
       )}
 
