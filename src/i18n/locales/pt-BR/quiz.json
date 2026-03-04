@@ -11,5 +11,97 @@
   "continue": "Continuar",
   "revealDNA": "Revelar meu DNA",
   "createAccount": "Criar minha conta",
-  "defaultDNA": "Eclético com Subtom Neutro"
+  "defaultDNA": "Eclético com Subtom Neutro",
+
+  "step": {
+    "skip": "Pular",
+    "stepOf": "{{step}} de {{total}}",
+    "analyzing": "Analisando...",
+    "continue": "Continuar"
+  },
+
+  "dna": {
+    "label": "Seu DNA de Estilo",
+    "profileDescription": "Descobrimos seu perfil único baseado nas suas escolhas",
+    "suggestedLooks": "Looks perfeitos para você",
+    "ctaTitle": "Gostou? Vamos ver como fica com seu armário.",
+    "ctaDescription": "Suba sua primeira foto para desbloquear seu provador virtual",
+    "ctaButton": "Criar conta e desbloquear",
+    "learnMore": "Ver mais sobre meu DNA",
+    "analyzingTitle": "Analisando seu DNA de estilo...",
+    "analyzingSubtitle": "Combinando suas preferências com nossa IA"
+  },
+
+  "silhouette": {
+    "preferNotToSay": "Prefiro não informar",
+    "empoweringMessage": "\"Seu formato é único. A IA ajusta as sugestões para valorizar suas curvas.\""
+  },
+
+  "identity": {
+    "skinTone": "Seu tom de pele",
+    "undertone": "Seu subtom",
+    "hairColor": "Cor do cabelo",
+    "personalizing": "Perfeito! Já estamos personalizando..."
+  },
+
+  "aesthetics": {
+    "old-money": { "name": "Old Money", "description": "Luxo discreto e atemporal" },
+    "streetwear": { "name": "Streetwear", "description": "Atitude urbana e autêntica" },
+    "minimalist": { "name": "Minimalista", "description": "Menos é mais" },
+    "boho-chic": { "name": "Boho-Chic", "description": "Livre e artístico" },
+    "romantic": { "name": "Romântico", "description": "Feminino e delicado" },
+    "avant-garde": { "name": "Avant-Garde", "description": "Experimental e ousado" }
+  },
+
+  "painPoints": {
+    "wardrobe-chaos": "Tenho muita roupa e não sei combinar",
+    "same-look": "Sinto que estou sempre com a mesma cara",
+    "event-anxiety": "Tenho um evento e não sei o que vestir",
+    "unused-clothes": "Compro roupas mas não uso",
+    "travel-mess": "Malas de viagem são um caos"
+  },
+
+  "occasions": {
+    "power-meeting": "Reunião importante",
+    "weekend-brunch": "Brunch casual",
+    "night-out": "Saída noturna",
+    "office-chic": "Dia no escritório",
+    "garden-party": "Festa ao ar livre",
+    "urban-explorer": "Explorar a cidade"
+  },
+
+  "skinTones": {
+    "very-light": { "name": "Muito Clara", "description": "Pele de porcelana" },
+    "light": { "name": "Clara", "description": "Tom claro natural" },
+    "light-medium": { "name": "Clara-Média", "description": "Tom intermediário claro" },
+    "medium": { "name": "Média", "description": "Tom dourado" },
+    "medium-dark": { "name": "Média-Escura", "description": "Tom bronze" },
+    "dark": { "name": "Escura", "description": "Tom mogno" }
+  },
+
+  "undertones": {
+    "warm": { "name": "Quente", "description": "Dourado, pêssego, amarelado", "veins": "Veias esverdeadas no pulso" },
+    "cool": { "name": "Frio", "description": "Rosado, azulado, prateado", "veins": "Veias azuladas no pulso" },
+    "neutral": { "name": "Neutro", "description": "Equilíbrio entre quente e frio", "veins": "Veias verde-azuladas" }
+  },
+
+  "hairColors": {
+    "black": "Preto",
+    "dark-brown": "Castanho Escuro",
+    "medium-brown": "Castanho Médio",
+    "light-brown": "Castanho Claro",
+    "blonde": "Loiro",
+    "red": "Ruivo",
+    "gray": "Grisalho",
+    "white": "Branco"
+  },
+
+  "silhouettes": {
+    "hourglass": { "name": "Curvas Harmônicas", "description": "Proporções equilibradas que fluem naturalmente" },
+    "pear": { "name": "Base Expressiva", "description": "Presença marcante que ancora o look" },
+    "inverted": { "name": "Ombros Imponentes", "description": "Força e estrutura que comandam atenção" },
+    "rectangle": { "name": "Linhas Alongadas", "description": "Elegância vertical e fluidez nos looks" },
+    "apple": { "name": "Centro Poderoso", "description": "Eixo forte com pernas que alongam" },
+    "athletic": { "name": "Silhueta Esculpida", "description": "Contornos definidos e presença atlética" }
+  }
 }
