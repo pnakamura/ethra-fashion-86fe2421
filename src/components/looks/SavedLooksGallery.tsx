@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { SavedLookCard } from './SavedLookCard';
+import { useTranslation } from 'react-i18next';
 
 interface WardrobeItem {
   id: string;
@@ -39,6 +40,7 @@ export function SavedLooksGallery({
   onToggleFavorite,
   onShareLook
 }: SavedLooksGalleryProps) {
+  const { t } = useTranslation('canvas');
   const { user } = useAuth();
   const [filter, setFilter] = useState<'all' | 'favorites'>('all');
 
@@ -111,15 +113,15 @@ export function SavedLooksGallery({
     <div className="space-y-4">
       {/* Tabs for filtering */}
       <div className="flex justify-between items-center">
-        <h3 className="font-medium font-display text-lg">Meus Looks</h3>
+        <h3 className="font-medium font-display text-lg">{t('gallery.myLooks')}</h3>
         <Tabs value={filter} onValueChange={(v) => setFilter(v as 'all' | 'favorites')}>
           <TabsList className="h-8">
             <TabsTrigger value="all" className="text-xs px-3 h-6">
-              Todos ({outfits.length})
+              {t('gallery.all')} ({outfits.length})
             </TabsTrigger>
             <TabsTrigger value="favorites" className="text-xs px-3 h-6">
               <Heart className="w-3 h-3 mr-1" />
-              Favoritos
+              {t('gallery.favorites')}
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -132,12 +134,12 @@ export function SavedLooksGallery({
             <FolderOpen className="w-8 h-8 text-muted-foreground" />
           </div>
           <p className="font-display text-lg font-medium mb-1">
-            {filter === 'favorites' ? 'Nenhum favorito' : 'Nenhum look salvo'}
+            {filter === 'favorites' ? t('gallery.noFavorites') : t('gallery.noLooks')}
           </p>
           <p className="text-sm text-muted-foreground max-w-[200px]">
             {filter === 'favorites'
-              ? 'Marque looks com ♥ para vê-los aqui'
-              : 'Toque nas peças e monte seu look no canvas'}
+              ? t('gallery.markFavorites')
+              : t('gallery.tapToCreate')}
           </p>
         </div>
       ) : (

@@ -98,7 +98,7 @@ export function PricingCard({ plan, limits, isCurrentPlan, isPopular, hasTrial, 
               )}
               <span className={cn(!isIncluded && 'text-muted-foreground')}>
                 {isUnlimited
-                  ? `${limit.feature_display_name} ilimitados`
+                  ? `${limit.feature_display_name} ${t('pricing.unlimited')}`
                   : limit.limit_type === 'boolean'
                   ? limit.feature_display_name
                   : `${limit.limit_value} ${limit.feature_display_name}`}
