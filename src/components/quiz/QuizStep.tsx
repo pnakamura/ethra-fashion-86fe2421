@@ -3,6 +3,7 @@ import { ReactNode } from 'react';
 import { ChevronLeft, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { useTranslation } from 'react-i18next';
 
 interface QuizStepProps {
   children: ReactNode;
@@ -35,8 +36,11 @@ export function QuizStep({
   onNext,
   onBack,
   onSkip,
-  nextLabel = 'Continuar',
+  nextLabel,
 }: QuizStepProps) {
+  const { t } = useTranslation('quiz');
+  const resolvedNextLabel = nextLabel || t('step.continue');
+
   return (
     <div className="min-h-screen flex flex-col bg-background dark:bg-transparent">
       {/* Header */}
@@ -66,7 +70,7 @@ export function QuizStep({
               onClick={onSkip}
               className="text-muted-foreground hover:text-foreground text-sm"
             >
-              Pular
+              {t('step.skip')}
             </Button>
           ) : (
             <div className="w-12" />
@@ -74,7 +78,7 @@ export function QuizStep({
         </div>
         
         <p className="text-center text-xs text-muted-foreground pb-2">
-          {step} de {totalSteps}
+          {t('step.stepOf', { step, total: totalSteps })}
         </p>
       </header>
 
@@ -130,10 +134,10 @@ export function QuizStep({
                 transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                 className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full"
               />
-              Analisando...
+              {t('step.analyzing')}
             </span>
           ) : (
-            nextLabel
+            resolvedNextLabel
           )}
         </Button>
       </footer>

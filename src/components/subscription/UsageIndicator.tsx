@@ -2,6 +2,7 @@ import { Infinity as InfinityIcon } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { usePermission } from '@/hooks/usePermission';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface UsageIndicatorProps {
   feature: string;

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { SubscriptionPlan, PlanLimit } from '@/contexts/SubscriptionContext';
+import { useTranslation } from 'react-i18next';
 
 interface PricingCardProps {
   plan: SubscriptionPlan & { plan_limits?: PlanLimit[] };
