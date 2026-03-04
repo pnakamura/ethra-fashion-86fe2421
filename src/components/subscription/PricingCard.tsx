@@ -71,14 +71,14 @@ export function PricingCard({ plan, limits, isCurrentPlan, isPopular, hasTrial, 
               R${plan.price_monthly.toFixed(2).replace('.', ',')}
             </span>
             <span className="text-3xl font-bold text-green-600 dark:text-green-400">R$0</span>
-            <span className="text-xs text-muted-foreground ml-1">por 7 dias</span>
+            <span className="text-xs text-muted-foreground ml-1">{t('pricing.for7days')}</span>
           </>
         ) : (
           <>
             <span className="text-3xl font-bold">
-              {plan.price_monthly === 0 ? 'Grátis' : `R$${plan.price_monthly.toFixed(2).replace('.', ',')}`}
+              {plan.price_monthly === 0 ? t('pricing.free') : `R$${plan.price_monthly.toFixed(2).replace('.', ',')}`}
             </span>
-            {plan.price_monthly > 0 && <span className="text-muted-foreground">/mês</span>}
+            {plan.price_monthly > 0 && <span className="text-muted-foreground">{t('pricing.perMonth')}</span>}
           </>
         )}
       </div>
