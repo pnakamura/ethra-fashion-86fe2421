@@ -149,7 +149,7 @@ export function Header({ title, showBack }: HeaderProps) {
             
             <NotificationBell />
             <Link to="/settings">
-              <Button variant="ghost" size="icon" className="rounded-full hover:bg-primary/10 dark:hover:bg-primary/20" aria-label="Configurações">
+              <Button variant="ghost" size="icon" className="rounded-full hover:bg-primary/10 dark:hover:bg-primary/20" aria-label={t('nav.settings')}>
                 <Settings className="w-5 h-5 text-muted-foreground dark:text-muted-foreground" />
               </Button>
             </Link>
