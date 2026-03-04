@@ -10,6 +10,7 @@ import {
   type HairColor,
 } from '@/data/quiz-skin-tones';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface PhysicalIdentityProps {
   selectedSkinTone: string | null;
@@ -28,13 +29,13 @@ export function PhysicalIdentity({
   onSelectUndertone,
   onSelectHairColor,
 }: PhysicalIdentityProps) {
+  const { t } = useTranslation('quiz');
   const undertoneColors = selectedUndertone
     ? getUndertoneColors(selectedUndertone)
     : null;
 
   return (
     <div className="space-y-8">
-      {/* Dynamic background based on undertone */}
       <AnimatePresence>
         {undertoneColors && (
           <motion.div
@@ -52,7 +53,7 @@ export function PhysicalIdentity({
       {/* Skin Tone Section */}
       <section>
         <h3 className="text-sm font-medium text-muted-foreground mb-3">
-          Seu tom de pele
+          {t('identity.skinTone')}
         </h3>
         <div className="grid grid-cols-6 gap-2">
           {skinTones.map((tone, index) => (
@@ -70,7 +71,7 @@ export function PhysicalIdentity({
       {/* Undertone Section */}
       <section>
         <h3 className="text-sm font-medium text-muted-foreground mb-3">
-          Seu subtom
+          {t('identity.undertone')}
         </h3>
         <div className="grid grid-cols-3 gap-3">
           {undertones.map((undertone, index) => (
@@ -88,7 +89,7 @@ export function PhysicalIdentity({
       {/* Hair Color Section */}
       <section>
         <h3 className="text-sm font-medium text-muted-foreground mb-3">
-          Cor do cabelo
+          {t('identity.hairColor')}
         </h3>
         <div className="grid grid-cols-4 gap-3">
           {hairColors.map((color, index) => (
@@ -113,7 +114,7 @@ export function PhysicalIdentity({
             className="flex items-center gap-2 justify-center text-sm text-primary"
           >
             <Sparkles className="w-4 h-4" />
-            <span>Perfeito! Já estamos personalizando...</span>
+            <span>{t('identity.personalizing')}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -129,12 +130,9 @@ interface SkinToneButtonProps {
   index: number;
 }
 
-function SkinToneButton({
-  tone,
-  isSelected,
-  onSelect,
-  index,
-}: SkinToneButtonProps) {
+function SkinToneButton({ tone, isSelected, onSelect, index }: SkinToneButtonProps) {
+  const { t } = useTranslation('quiz');
+
   return (
     <motion.button
       initial={{ opacity: 0, scale: 0.8 }}
@@ -147,7 +145,7 @@ function SkinToneButton({
         isSelected && 'ring-2 ring-primary ring-offset-2 scale-110'
       )}
       style={{ backgroundColor: tone.hex }}
-      title={tone.name}
+      title={t(`skinTones.${tone.id}.name`, { defaultValue: tone.name })}
     >
       {isSelected && (
         <motion.div
@@ -170,12 +168,9 @@ interface UndertoneButtonProps {
   index: number;
 }
 
-function UndertoneButton({
-  undertone,
-  isSelected,
-  onSelect,
-  index,
-}: UndertoneButtonProps) {
+function UndertoneButton({ undertone, isSelected, onSelect, index }: UndertoneButtonProps) {
+  const { t } = useTranslation('quiz');
+
   return (
     <motion.button
       initial={{ opacity: 0, y: 10 }}
@@ -190,23 +185,20 @@ function UndertoneButton({
           : 'border-border bg-card hover:border-primary/50'
       )}
     >
-      {/* Color indicator */}
       <div
         className="w-10 h-10 rounded-full shadow-inner border border-border/50"
         style={{ backgroundColor: undertone.accentColor }}
       />
-
       <span
         className={cn(
           'font-medium text-sm',
           isSelected ? 'text-primary' : 'text-foreground'
         )}
       >
-        {undertone.name}
+        {t(`undertones.${undertone.id}.name`, { defaultValue: undertone.name })}
       </span>
-
       <span className="text-[10px] text-muted-foreground text-center line-clamp-2">
-        {undertone.veinsColor}
+        {t(`undertones.${undertone.id}.veins`, { defaultValue: undertone.veinsColor })}
       </span>
     </motion.button>
   );
@@ -220,12 +212,9 @@ interface HairColorButtonProps {
   index: number;
 }
 
-function HairColorButton({
-  color,
-  isSelected,
-  onSelect,
-  index,
-}: HairColorButtonProps) {
+function HairColorButton({ color, isSelected, onSelect, index }: HairColorButtonProps) {
+  const { t } = useTranslation('quiz');
+
   return (
     <motion.button
       initial={{ opacity: 0, scale: 0.8 }}
@@ -253,7 +242,7 @@ function HairColorButton({
           isSelected ? 'text-primary' : 'text-muted-foreground'
         )}
       >
-        {color.name}
+        {t(`hairColors.${color.id}`, { defaultValue: color.name })}
       </span>
     </motion.button>
   );

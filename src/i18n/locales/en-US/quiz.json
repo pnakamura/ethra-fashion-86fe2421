@@ -11,5 +11,97 @@
   "continue": "Continue",
   "revealDNA": "Reveal my DNA",
   "createAccount": "Create my account",
-  "defaultDNA": "Eclectic with Neutral Undertone"
+  "defaultDNA": "Eclectic with Neutral Undertone",
+
+  "step": {
+    "skip": "Skip",
+    "stepOf": "{{step}} of {{total}}",
+    "analyzing": "Analyzing...",
+    "continue": "Continue"
+  },
+
+  "dna": {
+    "label": "Your Style DNA",
+    "profileDescription": "We discovered your unique profile based on your choices",
+    "suggestedLooks": "Perfect looks for you",
+    "ctaTitle": "Like it? Let's see how it looks with your wardrobe.",
+    "ctaDescription": "Upload your first photo to unlock your virtual try-on",
+    "ctaButton": "Create account & unlock",
+    "learnMore": "Learn more about my DNA",
+    "analyzingTitle": "Analyzing your style DNA...",
+    "analyzingSubtitle": "Matching your preferences with our AI"
+  },
+
+  "silhouette": {
+    "preferNotToSay": "Prefer not to say",
+    "empoweringMessage": "\"Your shape is unique. The AI adjusts suggestions to flatter your curves.\""
+  },
+
+  "identity": {
+    "skinTone": "Your skin tone",
+    "undertone": "Your undertone",
+    "hairColor": "Hair color",
+    "personalizing": "Perfect! Already personalizing..."
+  },
+
+  "aesthetics": {
+    "old-money": { "name": "Old Money", "description": "Timeless, understated luxury" },
+    "streetwear": { "name": "Streetwear", "description": "Authentic urban attitude" },
+    "minimalist": { "name": "Minimalist", "description": "Less is more" },
+    "boho-chic": { "name": "Boho-Chic", "description": "Free and artistic" },
+    "romantic": { "name": "Romantic", "description": "Feminine and delicate" },
+    "avant-garde": { "name": "Avant-Garde", "description": "Experimental and bold" }
+  },
+
+  "painPoints": {
+    "wardrobe-chaos": "I have lots of clothes but can't combine them",
+    "same-look": "I feel like I always look the same",
+    "event-anxiety": "I have an event and don't know what to wear",
+    "unused-clothes": "I buy clothes but don't wear them",
+    "travel-mess": "Packing for trips is chaos"
+  },
+
+  "occasions": {
+    "power-meeting": "Important meeting",
+    "weekend-brunch": "Casual brunch",
+    "night-out": "Night out",
+    "office-chic": "Day at the office",
+    "garden-party": "Outdoor party",
+    "urban-explorer": "Exploring the city"
+  },
+
+  "skinTones": {
+    "very-light": { "name": "Very Light", "description": "Porcelain skin" },
+    "light": { "name": "Light", "description": "Natural light tone" },
+    "light-medium": { "name": "Light-Medium", "description": "Light intermediate tone" },
+    "medium": { "name": "Medium", "description": "Golden tone" },
+    "medium-dark": { "name": "Medium-Dark", "description": "Bronze tone" },
+    "dark": { "name": "Dark", "description": "Mahogany tone" }
+  },
+
+  "undertones": {
+    "warm": { "name": "Warm", "description": "Golden, peach, yellowish", "veins": "Greenish veins on wrist" },
+    "cool": { "name": "Cool", "description": "Pinkish, bluish, silvery", "veins": "Bluish veins on wrist" },
+    "neutral": { "name": "Neutral", "description": "Balance between warm and cool", "veins": "Blue-green veins" }
+  },
+
+  "hairColors": {
+    "black": "Black",
+    "dark-brown": "Dark Brown",
+    "medium-brown": "Medium Brown",
+    "light-brown": "Light Brown",
+    "blonde": "Blonde",
+    "red": "Red",
+    "gray": "Gray",
+    "white": "White"
+  },
+
+  "silhouettes": {
+    "hourglass": { "name": "Harmonic Curves", "description": "Balanced proportions that flow naturally" },
+    "pear": { "name": "Expressive Base", "description": "Strong presence that anchors the look" },
+    "inverted": { "name": "Commanding Shoulders", "description": "Strength and structure that command attention" },
+    "rectangle": { "name": "Elongated Lines", "description": "Vertical elegance and fluid looks" },
+    "apple": { "name": "Powerful Center", "description": "Strong core with legs that elongate" },
+    "athletic": { "name": "Sculpted Silhouette", "description": "Defined contours and athletic presence" }
+  }
 }

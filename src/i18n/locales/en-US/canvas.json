@@ -9,5 +9,25 @@
   "emptyCanvasDesc": "Add items before saving",
   "lookLoaded": "Look loaded",
   "lookLoadedDesc": "\"{{name}}\" was opened in the canvas",
-  "lookRemoved": "Look removed"
+  "lookRemoved": "Look removed",
+
+  "canvas": {
+    "yourCanvas": "Your Canvas",
+    "tapToAdd": "Tap items below to add to your look",
+    "clear": "Clear",
+    "saveLook": "Save Look",
+    "closetItems": "Closet Items",
+    "addItemsFirst": "Add items to your closet first",
+    "removeItem": "Remove item"
+  },
+
+  "gallery": {
+    "myLooks": "My Looks",
+    "all": "All",
+    "favorites": "Favorites",
+    "noFavorites": "No favorites",
+    "noLooks": "No saved looks",
+    "markFavorites": "Mark looks with ♥ to see them here",
+    "tapToCreate": "Tap items and build your look on the canvas"
+  }
 }

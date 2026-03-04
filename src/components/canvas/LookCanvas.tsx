@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Save, Trash2, RotateCcw, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { useTranslation } from 'react-i18next';
 
 interface CanvasItem {
   id: string;
@@ -19,6 +20,7 @@ interface LookCanvasProps {
 }
 
 export function LookCanvas({ availableItems, onSave, preloadItems }: LookCanvasProps) {
+  const { t } = useTranslation('canvas');
   const [canvasItems, setCanvasItems] = useState<CanvasItem[]>([]);
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
@@ -76,11 +78,8 @@ export function LookCanvas({ availableItems, onSave, preloadItems }: LookCanvasP
   const handleDragEnd = useCallback((itemId: string, offsetX: number, offsetY: number) => {
     const initial = initialPosRef.current[itemId];
     if (!initial) return;
-
-    // Calculate new position based on offset from drag start
     const newX = Math.max(0, initial.x + offsetX);
     const newY = Math.max(0, initial.y + offsetY);
-
     setCanvasItems(prev =>
       prev.map((item) =>
         item.id === itemId ? { ...item, x: newX, y: newY } : item
@@ -117,10 +116,10 @@ export function LookCanvas({ availableItems, onSave, preloadItems }: LookCanvasP
                 <Plus className="w-8 h-8 text-muted-foreground" />
               </div>
               <p className="text-lg font-display font-semibold text-foreground mb-1">
-                Seu Canvas
+                {t('canvas.yourCanvas')}
               </p>
               <p className="text-sm text-muted-foreground">
-                Toque nas peças abaixo para adicionar ao look
+                {t('canvas.tapToAdd')}
               </p>
             </div>
           ) : (
@@ -153,7 +152,6 @@ export function LookCanvas({ availableItems, onSave, preloadItems }: LookCanvasP
                     className="w-24 h-24 object-cover rounded-xl shadow-elevated"
                     draggable={false}
                   />
-                  {/* Delete button - always visible on mobile, hover on desktop */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -162,7 +160,7 @@ export function LookCanvas({ availableItems, onSave, preloadItems }: LookCanvasP
                     className="absolute -top-2 -right-2 p-1.5 rounded-full bg-destructive text-destructive-foreground 
                       opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity
                       touch-manipulation"
-                    aria-label="Remover peça"
+                    aria-label={t('canvas.removeItem')}
                   >
                     <Trash2 className="w-3 h-3" />
                   </button>
@@ -182,7 +180,7 @@ export function LookCanvas({ availableItems, onSave, preloadItems }: LookCanvasP
           className="flex-1 rounded-xl"
         >
           <RotateCcw className="w-4 h-4 mr-2" />
-          Limpar
+          {t('canvas.clear')}
         </Button>
         <Button
           onClick={handleSave}
@@ -190,14 +188,14 @@ export function LookCanvas({ availableItems, onSave, preloadItems }: LookCanvasP
           className="flex-1 rounded-xl gradient-primary text-primary-foreground"
         >
           <Save className="w-4 h-4 mr-2" />
-          Salvar Look
+          {t('canvas.saveLook')}
         </Button>
       </div>
 
       {/* Items selector */}
       <div className="pt-4 border-t border-border">
         <h4 className="text-sm font-medium text-muted-foreground mb-3">
-          Peças do Closet
+          {t('canvas.closetItems')}
         </h4>
         <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
           {availableItems.map((item) => (
@@ -216,7 +214,7 @@ export function LookCanvas({ availableItems, onSave, preloadItems }: LookCanvasP
           ))}
           {availableItems.length === 0 && (
             <p className="text-sm text-muted-foreground py-4">
-              Adicione peças ao seu closet primeiro
+              {t('canvas.addItemsFirst')}
             </p>
           )}
         </div>

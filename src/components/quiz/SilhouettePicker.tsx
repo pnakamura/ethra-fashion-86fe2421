@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
 import { silhouettes, type Silhouette } from '@/data/quiz-skin-tones';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface SilhouettePickerProps {
   selected: string | null;
@@ -9,6 +10,8 @@ interface SilhouettePickerProps {
 }
 
 export function SilhouettePicker({ selected, onSelect }: SilhouettePickerProps) {
+  const { t } = useTranslation('quiz');
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -23,7 +26,6 @@ export function SilhouettePicker({ selected, onSelect }: SilhouettePickerProps) 
         ))}
       </div>
 
-      {/* Skip option */}
       <motion.button
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -34,12 +36,11 @@ export function SilhouettePicker({ selected, onSelect }: SilhouettePickerProps) 
           selected === 'prefer-not-to-say' && 'text-primary font-medium'
         )}
       >
-        Prefiro não informar
+        {t('silhouette.preferNotToSay')}
       </motion.button>
 
-      {/* Empowering message */}
       <p className="text-center text-xs text-muted-foreground italic">
-        "Seu formato é único. A IA ajusta as sugestões para valorizar suas curvas."
+        {t('silhouette.empoweringMessage')}
       </p>
     </div>
   );
@@ -58,6 +59,8 @@ function SilhouetteCard({
   onSelect,
   index,
 }: SilhouetteCardProps) {
+  const { t } = useTranslation('quiz');
+
   return (
     <motion.button
       initial={{ opacity: 0, y: 20 }}
@@ -72,7 +75,6 @@ function SilhouetteCard({
           : 'border-border bg-card hover:border-primary/50 hover:bg-accent/50'
       )}
     >
-      {/* Icon/Emoji */}
       <motion.span
         className="text-4xl"
         animate={{ scale: isSelected ? 1.1 : 1 }}
@@ -81,22 +83,19 @@ function SilhouetteCard({
         {silhouette.icon}
       </motion.span>
 
-      {/* Name */}
       <h4
         className={cn(
           'font-medium transition-colors',
           isSelected ? 'text-primary' : 'text-foreground'
         )}
       >
-        {silhouette.name}
+        {t(`silhouettes.${silhouette.id}.name`, { defaultValue: silhouette.name })}
       </h4>
 
-      {/* Description */}
       <p className="text-xs text-muted-foreground text-center line-clamp-2">
-        {silhouette.description}
+        {t(`silhouettes.${silhouette.id}.description`, { defaultValue: silhouette.description })}
       </p>
 
-      {/* Selection indicator */}
       {isSelected && (
         <motion.div
           initial={{ scale: 0 }}

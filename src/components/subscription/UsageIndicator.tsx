@@ -2,6 +2,7 @@ import { Infinity as InfinityIcon } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { usePermission } from '@/hooks/usePermission';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface UsageIndicatorProps {
   feature: string;
@@ -10,6 +11,7 @@ interface UsageIndicatorProps {
 }
 
 export function UsageIndicator({ feature, showLabel = true, compact = false }: UsageIndicatorProps) {
+  const { t } = useTranslation('subscription');
   const { currentUsage, limit, isUnlimited, percentUsed, featureName, isLoading } = usePermission(feature);
 
   if (isLoading) {
@@ -24,7 +26,7 @@ export function UsageIndicator({ feature, showLabel = true, compact = false }: U
     return (
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <InfinityIcon className="w-3.5 h-3.5" />
-        <span>Ilimitado</span>
+        <span>{t('usage.unlimited')}</span>
       </div>
     );
   }

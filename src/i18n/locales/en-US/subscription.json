@@ -30,5 +30,20 @@
   "faq4q": "What's the difference between plans?",
   "faq4a": "The main difference is the number of closet items, daily virtual try-ons, and access to premium features like Voyager and VIP Looks. See the comparison table above.",
   "faq5q": "Can I switch plans later?",
-  "faq5a": "Yes! You can upgrade or downgrade at any time. The change is immediate and the price is adjusted proportionally."
+  "faq5a": "Yes! You can upgrade or downgrade at any time. The change is immediate and the price is adjusted proportionally.",
+
+  "pricing": {
+    "currentPlan": "Current Plan",
+    "trialFree": "7-day free trial",
+    "choosePlan": "Choose Plan",
+    "mostPopular": "Most Popular",
+    "unlimited": "unlimited",
+    "free": "Free",
+    "perMonth": "/month",
+    "for7days": "for 7 days"
+  },
+
+  "usage": {
+    "unlimited": "Unlimited"
+  }
 }

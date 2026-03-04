@@ -3,6 +3,7 @@ import { Sparkles, ArrowRight, Lock, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { type SuggestedLook } from '@/data/quiz-aesthetics';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface DNARevealProps {
   styleDNA: string;
@@ -17,6 +18,8 @@ export function DNAReveal({
   onCreateAccount,
   onLearnMore,
 }: DNARevealProps) {
+  const { t } = useTranslation('quiz');
+
   return (
     <div className="space-y-8">
       {/* DNA Result Card */}
@@ -26,7 +29,6 @@ export function DNAReveal({
         transition={{ duration: 0.5 }}
         className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20 border border-primary/30 p-6 text-center"
       >
-        {/* Sparkle decoration */}
         <motion.div
           className="absolute top-4 right-4"
           animate={{ rotate: [0, 15, -15, 0] }}
@@ -41,7 +43,7 @@ export function DNAReveal({
           transition={{ delay: 0.3 }}
         >
           <p className="text-sm text-muted-foreground uppercase tracking-wider mb-2">
-            Seu DNA de Estilo
+            {t('dna.label')}
           </p>
 
           <h2 className="text-2xl md:text-3xl font-display font-bold text-gradient mb-4">
@@ -55,7 +57,7 @@ export function DNAReveal({
           </div>
 
           <p className="text-sm text-muted-foreground mt-3">
-            Descobrimos seu perfil único baseado nas suas escolhas
+            {t('dna.profileDescription')}
           </p>
         </motion.div>
       </motion.div>
@@ -63,7 +65,7 @@ export function DNAReveal({
       {/* Suggested Looks */}
       <section>
         <h3 className="text-lg font-medium mb-4 text-center">
-          Looks perfeitos para você
+          {t('dna.suggestedLooks')}
         </h3>
 
         <div className="grid gap-4">
@@ -84,18 +86,18 @@ export function DNAReveal({
           <Lock className="w-8 h-8 text-primary mx-auto mb-3" />
 
           <h3 className="font-medium mb-2">
-            Gostou? Vamos ver como fica com seu armário.
+            {t('dna.ctaTitle')}
           </h3>
 
           <p className="text-sm text-muted-foreground mb-4">
-            Suba sua primeira foto para desbloquear seu provador virtual
+            {t('dna.ctaDescription')}
           </p>
 
           <Button
             onClick={onCreateAccount}
             className="w-full gradient-primary text-primary-foreground shadow-glow group"
           >
-            Criar conta e desbloquear
+            {t('dna.ctaButton')}
             <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Button>
         </div>
@@ -106,7 +108,7 @@ export function DNAReveal({
             className="w-full text-muted-foreground"
             onClick={onLearnMore}
           >
-            Ver mais sobre meu DNA
+            {t('dna.learnMore')}
           </Button>
         )}
       </motion.section>
@@ -120,6 +122,8 @@ interface LookCardProps {
 }
 
 function LookCard({ look, index }: LookCardProps) {
+  const { t } = useTranslation('quiz');
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
@@ -131,22 +135,15 @@ function LookCard({ look, index }: LookCardProps) {
         look.gradient
       )}
     >
-      {/* Glass overlay */}
       <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
-
-      {/* Content */}
       <div className="relative z-10 flex items-center gap-4">
-        {/* Look indicator */}
         <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
           <span className="text-2xl">👗</span>
         </div>
-
         <div className="flex-1">
           <h4 className="text-white font-medium">{look.name}</h4>
-          <p className="text-white/70 text-sm">{look.occasion}</p>
+          <p className="text-white/70 text-sm">{t(`occasions.${look.id}`, { defaultValue: look.occasion })}</p>
         </div>
-
-        {/* Lock indicator */}
         <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
           <Lock className="w-4 h-4 text-white/70" />
         </div>
@@ -157,10 +154,11 @@ function LookCard({ look, index }: LookCardProps) {
 
 // Loading/Analyzing Animation Component
 export function AnalyzingAnimation() {
+  const { t } = useTranslation('quiz');
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
       <div className="text-center space-y-6">
-        {/* Animated rings */}
         <div className="relative w-32 h-32 mx-auto">
           {[0, 1, 2].map((i) => (
             <motion.div
@@ -179,8 +177,6 @@ export function AnalyzingAnimation() {
               }}
             />
           ))}
-
-          {/* Center icon */}
           <motion.div
             className="absolute inset-0 flex items-center justify-center"
             animate={{ rotate: 360 }}
@@ -190,21 +186,19 @@ export function AnalyzingAnimation() {
           </motion.div>
         </div>
 
-        {/* Text */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
           <h2 className="text-xl font-display font-semibold mb-2">
-            Analisando seu DNA de estilo...
+            {t('dna.analyzingTitle')}
           </h2>
           <p className="text-sm text-muted-foreground">
-            Combinando suas preferências com nossa IA
+            {t('dna.analyzingSubtitle')}
           </p>
         </motion.div>
 
-        {/* Progress dots */}
         <div className="flex justify-center gap-2">
           {[0, 1, 2].map((i) => (
             <motion.div

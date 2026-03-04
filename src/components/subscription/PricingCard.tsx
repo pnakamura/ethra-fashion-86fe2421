@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { SubscriptionPlan, PlanLimit } from '@/contexts/SubscriptionContext';
+import { useTranslation } from 'react-i18next';
 
 interface PricingCardProps {
   plan: SubscriptionPlan & { plan_limits?: PlanLimit[] };
@@ -22,12 +23,13 @@ const planIcons: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 export function PricingCard({ plan, limits, isCurrentPlan, isPopular, hasTrial, onSelect }: PricingCardProps) {
+  const { t } = useTranslation('subscription');
   const Icon = planIcons[plan.id] || User;
 
   const getButtonLabel = () => {
-    if (isCurrentPlan) return 'Plano Atual';
-    if (hasTrial) return '7 dias grátis';
-    return 'Escolher Plano';
+    if (isCurrentPlan) return t('pricing.currentPlan');
+    if (hasTrial) return t('pricing.trialFree');
+    return t('pricing.choosePlan');
   };
 
   return (
@@ -42,12 +44,12 @@ export function PricingCard({ plan, limits, isCurrentPlan, isPopular, hasTrial, 
       {hasTrial && (
         <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-green-600 text-white">
           <Gift className="w-3 h-3 mr-1" />
-          7 dias grátis
+          {t('pricing.trialFree')}
         </Badge>
       )}
       {isPopular && !hasTrial && (
         <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 gradient-primary text-primary-foreground">
-          Mais Popular
+          {t('pricing.mostPopular')}
         </Badge>
       )}
 
@@ -69,14 +71,14 @@ export function PricingCard({ plan, limits, isCurrentPlan, isPopular, hasTrial, 
               R${plan.price_monthly.toFixed(2).replace('.', ',')}
             </span>
             <span className="text-3xl font-bold text-green-600 dark:text-green-400">R$0</span>
-            <span className="text-xs text-muted-foreground ml-1">por 7 dias</span>
+            <span className="text-xs text-muted-foreground ml-1">{t('pricing.for7days')}</span>
           </>
         ) : (
           <>
             <span className="text-3xl font-bold">
-              {plan.price_monthly === 0 ? 'Grátis' : `R$${plan.price_monthly.toFixed(2).replace('.', ',')}`}
+              {plan.price_monthly === 0 ? t('pricing.free') : `R$${plan.price_monthly.toFixed(2).replace('.', ',')}`}
             </span>
-            {plan.price_monthly > 0 && <span className="text-muted-foreground">/mês</span>}
+            {plan.price_monthly > 0 && <span className="text-muted-foreground">{t('pricing.perMonth')}</span>}
           </>
         )}
       </div>
@@ -96,7 +98,7 @@ export function PricingCard({ plan, limits, isCurrentPlan, isPopular, hasTrial, 
               )}
               <span className={cn(!isIncluded && 'text-muted-foreground')}>
                 {isUnlimited
-                  ? `${limit.feature_display_name} ilimitados`
+                  ? `${limit.feature_display_name} ${t('pricing.unlimited')}`
                   : limit.limit_type === 'boolean'
                   ? limit.feature_display_name
                   : `${limit.limit_value} ${limit.feature_display_name}`}
