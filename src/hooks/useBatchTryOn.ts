@@ -41,6 +41,7 @@ export function useBatchTryOn() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const cancelledRef = useRef(false);
+  const resultsRef = useRef<BatchResult[]>([]);
   
   const [state, setState] = useState<BatchTryOnState>({
     isRunning: false,
@@ -104,14 +105,18 @@ export function useBatchTryOn() {
       const piece = pieces[i];
       
       // Update current processing state
-      setState((prev) => ({
-        ...prev,
-        currentIndex: i + 1,
-        currentPieceName: piece.name || `Peça ${i + 1}`,
-        results: prev.results.map((r, idx) =>
-          idx === i ? { ...r, status: 'processing' } : r
-        ),
-      }));
+      setState((prev) => {
+        const newResults = prev.results.map((r, idx) =>
+          idx === i ? { ...r, status: 'processing' as const } : r
+        );
+        resultsRef.current = newResults;
+        return {
+          ...prev,
+          currentIndex: i + 1,
+          currentPieceName: piece.name || `Peça ${i + 1}`,
+          results: newResults,
+        };
+      });
 
       try {
         // Preprocess garment
@@ -156,34 +161,28 @@ export function useBatchTryOn() {
         }
 
         // Update success state
-        setState((prev) => ({
-          ...prev,
-          results: prev.results.map((r, idx) =>
+        setState((prev) => {
+          const newResults = prev.results.map((r, idx) =>
             idx === i
-              ? {
-                  ...r,
-                  status: 'completed',
-                  resultImageUrl: response.data.resultImageUrl,
-                }
+              ? { ...r, status: 'completed' as const, resultImageUrl: response.data.resultImageUrl }
               : r
-          ),
-        }));
+          );
+          resultsRef.current = newResults;
+          return { ...prev, results: newResults };
+        });
       } catch (error) {
         console.error(`Error processing piece ${i}:`, error);
         
         // Update failed state
-        setState((prev) => ({
-          ...prev,
-          results: prev.results.map((r, idx) =>
+        setState((prev) => {
+          const newResults = prev.results.map((r, idx) =>
             idx === i
-              ? {
-                  ...r,
-                  status: 'failed',
-                  errorMessage: error instanceof Error ? error.message : 'Erro desconhecido',
-                }
+              ? { ...r, status: 'failed' as const, errorMessage: error instanceof Error ? error.message : 'Erro desconhecido' }
               : r
-          ),
-        }));
+          );
+          resultsRef.current = newResults;
+          return { ...prev, results: newResults };
+        });
       }
 
       // Delay before next piece (unless cancelled or last piece)
@@ -326,9 +325,8 @@ export function useBatchTryOn() {
         // Individual mode
         await startIndividualTryOn(pieces, avatarImageUrl, avatarId, lookName);
         
-        // Summary toast for individual mode
-        const finalState = state;
-        const completedCount = finalState.results.filter((r) => r.status === 'completed').length + 1;
+        // Summary toast using ref for fresh state
+        const completedCount = resultsRef.current.filter((r) => r.status === 'completed').length;
         const failedCount = pieces.length - completedCount;
 
         if (failedCount === 0) {
@@ -347,7 +345,7 @@ export function useBatchTryOn() {
     // Finalize
     setState((prev) => ({ ...prev, isRunning: false }));
     queryClient.invalidateQueries({ queryKey: ['try-on-history'] });
-  }, [user, queryClient, state]);
+  }, [user, queryClient]);
 
   const cancelBatch = useCallback(() => {
     cancelledRef.current = true;

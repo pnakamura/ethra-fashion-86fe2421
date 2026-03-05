@@ -1,83 +1,172 @@
 
+# Analise Completa -- Falhas de Operacao e Funcionalidades
 
-# Análise Completa do Fluxo de Virtual Try-On
-
-## Estado Atual — Resumo Executivo
-
-O sistema de Try-On é **tecnicamente robusto** com arquitetura resiliente multi-provedor (IDM-VTON → Vertex AI → Gemini), preprocessing de imagens, e múltiplas estratégias de execução. Porém há **problemas de usabilidade e bugs ativos** que impactam a experiência dos testers.
+Apos inspecao detalhada de todas as paginas, componentes, hooks, navegacao e backend, segue o diagnostico completo.
 
 ---
 
-## Bug Ativo: Erro no Wardrobe
+## Estado Geral: Aplicacao Estavel
 
-O console mostra um erro crítico:
-```
-SyntaxError: Unterminated string in JSON at position 2159296
-```
-Isso acontece em `useWardrobeItems.ts` ao fazer parse da resposta do Supabase. Provavelmente há um item no banco com um campo muito grande (possivelmente uma imagem base64 armazenada em `image_url` ou `dominant_colors`), corrompendo o JSON da resposta. Este bug **impede o carregamento do closet na aba "Closet" do Try-On**, tornando impossível selecionar peças do guarda-roupa.
-
-**Ação**: Investigar e corrigir o registro corrompido no banco. Adicionar validação no frontend para tratar payloads gigantes.
+Zero erros de console em producao (apenas warnings do framework Lovable). Navegacao SPA funcional. Auth guards presentes em todas as paginas protegidas. Backend com RLS em todas as tabelas.
 
 ---
 
-## Análise de Usabilidade
+## Problemas Identificados
 
-### Pontos Fortes
-1. **Fluxo claro**: Avatar → Selecionar peça → "Experimentar" (botão fixo no rodapé)
-2. **3 fontes de peças**: Closet, Looks salvos, Captura externa (câmera/galeria/URL)
-3. **Feedback loop**: Like/Dislike com retry automático em modelo superior
-4. **Comparação antes/depois**: Slider interativo funcional
-5. **Benchmark**: Modo para comparar modelos lado a lado
-6. **Preprocessing inteligente**: Normaliza avatar (768×1024, 3:4) e peça automaticamente
-7. **Privacidade**: Face blur, consentimento biométrico, face matching
+### 1. StyleQuiz.tsx -- Textos Hardcoded em Portugues (Sem i18n)
 
-### Problemas de Usabilidade Identificados
+**Gravidade: Media**
 
-| # | Problema | Impacto | Severidade |
-|---|---------|---------|------------|
-| 1 | **Wardrobe JSON parse error** quebra aba Closet | Testers não conseguem selecionar peças do closet | Crítico |
-| 2 | **Sem indicação de progresso granular** — apenas spinner genérico com "15-30s" | Usuário não sabe se está funcionando ou travou | Médio |
-| 3 | **Correção de orientação** usa Canvas API client-side no `TryOnCanvas` (rotação 90°) — pode falhar com imagens cross-origin | Imagem pode não renderizar se CORS falhar no canvas | Médio |
-| 4 | **Botão "Experimentar" só aparece quando há avatar E peça selecionada** mas não há guidance visual | Novos testers não entendem o fluxo | Baixo |
-| 5 | **Batch try-on `state` stale** em `useBatchTryOn` — usa `state` no callback do `useCallback` | Toast de summary pode mostrar contagem errada | Médio |
+A pagina `/quiz` (StyleQuiz.tsx) tem TODOS os textos hardcoded em portugues, sem usar o sistema de traducao i18n. Quando o usuario troca para ingles, esta pagina permanece em portugues.
+
+Textos afetados:
+- "Qual estetica fala com voce?" 
+- "Selecione 2 que mais ressoam"
+- "Qual e o seu maior desafio de estilo?"
+- "Vamos descobrir suas cores"
+- "Qual e o seu tipo de corpo?"
+- "Revelar meu DNA"
+- "Criar minha conta"
+
+**Correcao**: Criar chaves i18n no namespace `common` (ou novo namespace `quiz`) para PT e EN, e substituir os textos hardcoded por chamadas `t()`.
 
 ---
 
-## Análise de Desempenho
+### 2. Subscription.tsx -- Textos Hardcoded em Portugues (Sem i18n)
 
-### Tempos de Processamento
-- **IDM-VTON (Replicate)**: Polling a cada 2s, timeout de 2min. É o mais lento mas produz melhor qualidade.
-- **Vertex AI**: Chamada interna via edge function. Depende do Google Cloud.
-- **Gemini 3 Pro Image Preview**: Chamada direta ao Lovable AI Gateway. Geralmente mais rápido.
-- **Strategy "race"** (padrão no frontend): Vertex + Gemini em paralelo. Se ambos falharem, IDM-VTON como backup. **Melhor latência**.
+**Gravidade: Media**
 
-### Gargalos
-1. **Duplo preprocessing** no batch mode: Avatar é preprocessado por `useBatchTryOn` E novamente pela edge function no `compose-look-tryon` (que chama `virtual-try-on` internamente)
-2. **Base64 results do Gemini** podem ser muito grandes (~2-3MB), trafegando pela rede sem compressão
-3. **Imagens temporárias** em `avatars/temp/` não têm limpeza automática visível (apenas `cleanup-expired-tryons` para resultados)
+A pagina `/subscription` tem todo o conteudo (titulos, descricoes, FAQs, badges) hardcoded em portugues. Isso inclui:
+
+- "Escolha seu plano"
+- "Seu uso atual"
+- "Modo Demo: Visualize como seria com outro plano"
+- Todas as 5 FAQs
+- "Sem cartao para trial", "Pagamento seguro", "Cancele quando quiser"
+- Labels dos fallback plans
+
+**Correcao**: Migrar para i18n com novo namespace ou chaves existentes.
 
 ---
 
-## Plano de Melhorias
+### 3. Canvas.tsx -- Textos Hardcoded em Portugues
 
-### 1. Corrigir Bug do Wardrobe (Crítico)
-| Arquivo | Mudança |
+**Gravidade: Media**
+
+A pagina `/canvas` tem textos como "Criar Look", "Salvos", "Look salvo!", "Canvas vazio", "Look carregado" sem i18n.
+
+**Correcao**: Adicionar traducoes e usar `useTranslation`.
+
+---
+
+### 4. Privacy.tsx -- Textos Hardcoded em Portugues
+
+**Gravidade: Media**
+
+A pagina `/privacy` tem todos os textos de permissoes, garantias de privacidade e transparencia hardcoded.
+
+**Correcao**: Migrar para i18n.
+
+---
+
+### 5. Onboarding -- Redirect Inconsistente
+
+**Gravidade: Baixa**
+
+Em `Onboarding.tsx` (linha 35), o redirect para usuarios nao autenticados vai para `/auth`, enquanto todas as outras paginas protegidas redirecionam para `/welcome`. Isso cria uma experiencia inconsistente.
+
+**Correcao**: Alterar `navigate('/auth')` para `navigate('/welcome')` em `Onboarding.tsx`.
+
+---
+
+### 6. TesterSignupForm -- Signup Sem Confirmacao de Email
+
+**Gravidade: Baixa-Media**
+
+O formulario de signup da landing page (`TesterSignupForm.tsx`) chama `signUp()` e imediatamente tenta atualizar o perfil do usuario via `supabase.auth.getUser()`. Se a confirmacao de email estiver habilitada (padrao), o `getUser()` pode retornar um usuario nao confirmado, e o update do perfil com `username` e `is_tester` pode falhar silenciosamente ou o usuario pode ficar confuso ao nao conseguir logar.
+
+O formulario mostra uma tela de sucesso com botao "Comecar a explorar" que redireciona para `/`, mas o usuario pode nao estar autenticado ainda (aguardando confirmacao de email).
+
+**Correcao**: Apos o signup, mostrar mensagem clara sobre verificacao de email e nao redirecionar para `/` ate a confirmacao.
+
+---
+
+### 7. `subscription_plans` e `plan_limits` -- Tabelas Vazias no Banco
+
+**Gravidade: Media**
+
+As requisicoes de rede mostram que `subscription_plans` e `plan_limits` retornam arrays vazios (`[]`). A pagina de Subscription usa fallback estatico, mas o `SubscriptionContext` pode nao ter dados reais, afetando o `UsageIndicator` em toda a app.
+
+**Correcao**: Inserir os dados dos planos e limites nas tabelas do banco de dados via migracao SQL, para que os fallbacks nao sejam necessarios.
+
+---
+
+### 8. Rota `/try-on` -- Redirect Ja Implementado (OK)
+
+A rota duplicada `/try-on` ja foi corrigida com `<Navigate to="/provador" replace />`. Nenhuma acao necessaria.
+
+---
+
+## Resumo de Prioridades
+
+| # | Problema | Gravidade | Tipo |
+|---|----------|-----------|------|
+| 1 | StyleQuiz sem i18n | Media | i18n |
+| 2 | Subscription sem i18n | Media | i18n |
+| 3 | Canvas sem i18n | Media | i18n |
+| 4 | Privacy sem i18n | Media | i18n |
+| 5 | Onboarding redirect inconsistente | Baixa | Navegacao |
+| 6 | Signup sem feedback de confirmacao | Baixa-Media | UX/Auth |
+| 7 | Tabelas de planos vazias no banco | Media | Dados |
+
+---
+
+## Plano de Correcao
+
+### Fase 1: Dados de Planos (SQL Migration)
+
+Inserir dados nas tabelas `subscription_plans` e `plan_limits` para que a app funcione sem fallbacks estaticos. Usar os mesmos valores ja definidos no `FALLBACK_PLANS` e `FALLBACK_LIMITS` do `Subscription.tsx`.
+
+### Fase 2: Redirect do Onboarding
+
+Alterar uma unica linha em `Onboarding.tsx`: trocar `navigate('/auth')` por `navigate('/welcome')`.
+
+### Fase 3: i18n para StyleQuiz
+
+Criar chaves de traducao no namespace `common` ou novo namespace para o quiz e substituir todos os textos hardcoded em `StyleQuiz.tsx` por chamadas `t()`. Adicionar traducoes em `en-US` e `pt-BR`.
+
+### Fase 4: i18n para Subscription
+
+Criar namespace de traducao `subscription` com todas as strings da pagina (titulos, FAQs, badges, descricoes). Adicionar traducoes em ambos idiomas.
+
+### Fase 5: i18n para Canvas e Privacy
+
+Mesmo processo para `Canvas.tsx` e `Privacy.tsx`.
+
+### Fase 6: Melhoria no Signup Flow
+
+Ajustar `TesterSignupForm.tsx` para exibir mensagem sobre verificacao de email apos signup, removendo o botao "Comecar a explorar" que pode nao funcionar sem confirmacao.
+
+---
+
+## Detalhes Tecnicos
+
+### Arquivos a Editar
+
+| Arquivo | Mudanca |
 |---------|---------|
-| `src/hooks/useWardrobeItems.ts` | Adicionar `try/catch` no parse e selecionar apenas colunas necessárias (`select('id, name, image_url, category, ...')` em vez de `select('*')`) para evitar payloads gigantes |
-| Banco de dados | Query diagnóstica para encontrar registros com `image_url` contendo base64 ou campos `dominant_colors` excessivamente grandes, e corrigir |
+| `src/pages/Onboarding.tsx` | Redirect `/auth` para `/welcome` |
+| `src/pages/StyleQuiz.tsx` | Adicionar useTranslation e trocar textos |
+| `src/pages/Subscription.tsx` | Adicionar useTranslation e trocar textos |
+| `src/pages/Canvas.tsx` | Adicionar useTranslation e trocar textos |
+| `src/pages/Privacy.tsx` | Adicionar useTranslation e trocar textos |
+| `src/i18n/locales/pt-BR/common.json` | Novas chaves para quiz, canvas, privacy |
+| `src/i18n/locales/en-US/common.json` | Traducoes em ingles |
+| `src/components/landing/TesterSignupForm.tsx` | Melhorar feedback pos-signup |
+| Migracao SQL | Inserir dados em subscription_plans e plan_limits |
 
-### 2. Corrigir Bug de State Stale no Batch
-| Arquivo | Mudança |
-|---------|---------|
-| `src/hooks/useBatchTryOn.ts` | Remover `state` das dependências do `useCallback` do `startBatchTryOn` e usar uma ref para acessar o estado mais recente no toast de summary (linha ~330) |
+### Migracao SQL Necessaria
 
-### 3. Melhorar Feedback de Progresso no Canvas
-| Arquivo | Mudança |
-|---------|---------|
-| `src/components/try-on/TryOnCanvas.tsx` | Adicionar barra de progresso indeterminada e texto dinâmico ("Conectando ao modelo...", "Processando imagem...", "Finalizando...") baseado em tempo decorrido |
+Inserir 4 planos na tabela `subscription_plans` e 20 registros na tabela `plan_limits`, correspondendo exatamente aos valores dos fallbacks estaticos ja definidos no codigo.
 
-### 4. Otimizar Query do Wardrobe para Try-On
-| Arquivo | Mudança |
-|---------|---------|
-| `src/hooks/useWardrobeItems.ts` | Usar `.select('id, name, image_url, category, chromatic_compatibility, is_favorite, is_capsule')` em vez de `select('*')` para reduzir payload e evitar o bug do JSON |
-
+Nenhuma mudanca visual. Correcoes focadas em consistencia de idioma, dados e fluxo de navegacao.

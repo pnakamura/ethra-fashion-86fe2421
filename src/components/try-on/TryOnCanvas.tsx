@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Download, Share2, RotateCcw, Heart, ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, Zap, Crown, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Progress } from '@/components/ui/progress';
 import { AIDisclaimer } from '@/components/legal/AIDisclaimer';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
@@ -45,6 +46,30 @@ export function TryOnCanvas({
   const [comparisonPosition, setComparisonPosition] = useState(50);
   const [correctedImage, setCorrectedImage] = useState<string | null>(null);
   const [isCorrectingImage, setIsCorrectingImage] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Dynamic progress timer
+  useEffect(() => {
+    if (isProcessing) {
+      setElapsedSeconds(0);
+      timerRef.current = setInterval(() => {
+        setElapsedSeconds(prev => prev + 1);
+      }, 1000);
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+      setElapsedSeconds(0);
+    }
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [isProcessing]);
+
+  const getProgressInfo = (seconds: number) => {
+    if (seconds < 3) return { progress: 10, text: t('canvas.connectingModel', 'Conectando ao modelo...') };
+    if (seconds < 8) return { progress: 30, text: t('canvas.analyzingImage', 'Analisando imagem...') };
+    if (seconds < 15) return { progress: 55, text: t('canvas.generatingResult', 'Gerando resultado...') };
+    if (seconds < 25) return { progress: 75, text: t('canvas.almostReady', 'Quase pronto...') };
+    return { progress: 90, text: t('canvas.finalizing', 'Finalizando...') };
+  };
 
   const getModelInfo = (modelUsed: string | null | undefined) => {
     if (!modelUsed) return { icon: Sparkles, label: t('canvas.auto'), color: 'text-muted-foreground', description: t('canvas.autoDesc') };
@@ -168,7 +193,7 @@ export function TryOnCanvas({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex flex-col items-center justify-center py-20"
+              className="flex flex-col items-center justify-center py-20 px-6"
             >
               <motion.div
                 animate={{
@@ -184,9 +209,18 @@ export function TryOnCanvas({
               >
                 <Sparkles className="w-8 h-8 text-primary-foreground" />
               </motion.div>
-              <p className="text-sm font-medium text-foreground">{t('canvas.processing')}</p>
-              <p className="text-xs text-muted-foreground mt-1">{t('canvas.processingTime')}</p>
-              <p className="text-xs text-muted-foreground mt-3 max-w-[200px] text-center">
+              
+              <div className="w-full max-w-[240px] space-y-3">
+                <Progress value={getProgressInfo(elapsedSeconds).progress} className="h-2" />
+                <p className="text-sm font-medium text-foreground text-center">
+                  {getProgressInfo(elapsedSeconds).text}
+                </p>
+                <p className="text-xs text-muted-foreground text-center">
+                  {elapsedSeconds}s • {t('canvas.processingTime')}
+                </p>
+              </div>
+              
+              <p className="text-xs text-muted-foreground mt-4 max-w-[200px] text-center">
                 {t('canvas.aiAnalyzing')}
               </p>
             </motion.div>
