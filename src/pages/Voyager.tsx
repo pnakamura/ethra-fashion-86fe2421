@@ -10,6 +10,7 @@ import { TripDetailSheet } from '@/components/voyager/TripDetailSheet';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useWardrobeItems } from '@/hooks/useWardrobeItems';
 import { useToast } from '@/hooks/use-toast';
 import { downloadPackingListPDF } from '@/lib/pdf-generator';
 import { openGoogleCalendar } from '@/lib/google-calendar';
