@@ -153,7 +153,7 @@ export default function Canvas() {
   };
 
   // Handle opening a saved look in the canvas
-  const handleOpenLook = (outfit: Outfit, outfitItems: WardrobeItem[]) => {
+  const handleOpenLook = (outfit: Outfit, outfitItems: CanvasWardrobeItem[]) => {
     setPreloadItems(outfitItems);
     setActiveTab('create');
     toast({
