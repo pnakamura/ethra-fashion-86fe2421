@@ -1,12 +1,15 @@
 import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 
 interface WelcomeScreenProps {
   onContinue: () => void;
 }
 
 export function WelcomeScreen({ onContinue }: WelcomeScreenProps) {
+  const { t } = useTranslation('onboarding');
+
   return (
     <div className="text-center max-w-md mx-auto">
       {/* Animated logo */}
@@ -56,9 +59,9 @@ export function WelcomeScreen({ onContinue }: WelcomeScreenProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        Bem-vindo(a) ao
+        {t('welcome.title1')}
         <br />
-        <span className="text-gradient">Ethra</span>
+        <span className="text-gradient">{t('welcome.title2')}</span>
       </motion.h1>
 
       <motion.p
@@ -67,7 +70,7 @@ export function WelcomeScreen({ onContinue }: WelcomeScreenProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
       >
-        O estilo perfeito começa com autoconhecimento
+        {t('welcome.subtitle')}
       </motion.p>
 
       <motion.div
@@ -80,7 +83,7 @@ export function WelcomeScreen({ onContinue }: WelcomeScreenProps) {
           className="text-lg px-10 py-6 gradient-primary text-primary-foreground shadow-glow"
           onClick={onContinue}
         >
-          Vamos começar ✨
+          {t('welcome.cta')}
         </Button>
       </motion.div>
     </div>

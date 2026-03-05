@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Shirt, Sparkles, Palette, Plane, Check, Trophy, ArrowRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface WelcomeCompleteProps {
   username: string;
@@ -8,14 +9,16 @@ interface WelcomeCompleteProps {
   isLoading?: boolean;
 }
 
-const features = [
-  { icon: Shirt, label: 'Organize seu closet digital', bonus: '+20 pts' },
-  { icon: Sparkles, label: 'Prove roupas virtualmente', bonus: '+20 pts' },
-  { icon: Palette, label: 'Descubra sua paleta de cores', bonus: '+25 pts' },
-  { icon: Plane, label: 'Monte malas inteligentes', bonus: '+25 pts' },
-];
-
 export function WelcomeComplete({ username, onComplete, isLoading }: WelcomeCompleteProps) {
+  const { t } = useTranslation('onboarding');
+
+  const features = [
+    { icon: Shirt, label: t('complete.feature1'), bonus: '+20 pts' },
+    { icon: Sparkles, label: t('complete.feature2'), bonus: '+20 pts' },
+    { icon: Palette, label: t('complete.feature3'), bonus: '+25 pts' },
+    { icon: Plane, label: t('complete.feature4'), bonus: '+25 pts' },
+  ];
+
   return (
     <div className="text-center max-w-lg mx-auto w-full">
       {/* Success animation */}
@@ -42,9 +45,9 @@ export function WelcomeComplete({ username, onComplete, isLoading }: WelcomeComp
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        Tudo pronto,
+        {t('complete.title')}
         <br />
-        <span className="text-gradient">{username || 'Querido(a)'}!</span>
+        <span className="text-gradient">{username || t('complete.defaultName')}!</span>
       </motion.h2>
 
       {/* First mission bonus */}
@@ -56,7 +59,7 @@ export function WelcomeComplete({ username, onComplete, isLoading }: WelcomeComp
       >
         <Trophy className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
         <span className="text-xs text-amber-700 dark:text-amber-300 font-medium">
-          +10 pontos por completar seu perfil!
+          {t('complete.profileBonus')}
         </span>
       </motion.div>
 
@@ -66,7 +69,7 @@ export function WelcomeComplete({ username, onComplete, isLoading }: WelcomeComp
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.45 }}
       >
-        Complete missões para ganhar pontos e desbloquear conquistas:
+        {t('complete.missionsIntro')}
       </motion.p>
 
       <motion.div
@@ -105,7 +108,7 @@ export function WelcomeComplete({ username, onComplete, isLoading }: WelcomeComp
           onClick={onComplete}
           disabled={isLoading}
         >
-          {isLoading ? 'Preparando...' : 'Explorar o Ethra'}
+          {isLoading ? t('complete.ctaLoading') : t('complete.cta')}
           {!isLoading && <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />}
         </Button>
       </motion.div>

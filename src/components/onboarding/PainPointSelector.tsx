@@ -2,13 +2,14 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Palette, FolderOpen, CalendarDays, ShoppingBag, Plane } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const painPoints = [
-  { id: 'cores', label: 'Não sei combinar cores', icon: Palette },
-  { id: 'organizacao', label: 'Meu closet é bagunçado', icon: FolderOpen },
-  { id: 'ocasioes', label: 'Não sei o que vestir para eventos', icon: CalendarDays },
-  { id: 'compras', label: 'Compro mas não uso', icon: ShoppingBag },
-  { id: 'viagens', label: 'Malas de viagem são um caos', icon: Plane },
+  { id: 'cores', labelKey: 'painPoints.cores', icon: Palette },
+  { id: 'organizacao', labelKey: 'painPoints.organizacao', icon: FolderOpen },
+  { id: 'ocasioes', labelKey: 'painPoints.ocasioes', icon: CalendarDays },
+  { id: 'compras', labelKey: 'painPoints.compras', icon: ShoppingBag },
+  { id: 'viagens', labelKey: 'painPoints.viagens', icon: Plane },
 ];
 
 interface PainPointSelectorProps {
@@ -18,6 +19,8 @@ interface PainPointSelectorProps {
 }
 
 export function PainPointSelector({ selected, onSubmit, onContinue }: PainPointSelectorProps) {
+  const { t } = useTranslation('onboarding');
+
   const togglePainPoint = (id: string) => {
     if (selected.includes(id)) {
       onSubmit(selected.filter(p => p !== id));
@@ -33,9 +36,9 @@ export function PainPointSelector({ selected, onSubmit, onContinue }: PainPointS
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        O que mais te desafia
+        {t('painPoints.title1')}
         <br />
-        <span className="text-gradient">ao se vestir?</span>
+        <span className="text-gradient">{t('painPoints.title2')}</span>
       </motion.h2>
 
       <motion.p
@@ -44,7 +47,7 @@ export function PainPointSelector({ selected, onSubmit, onContinue }: PainPointS
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        Todos temos desafios. Selecione os seus.
+        {t('painPoints.subtitle')}
       </motion.p>
 
       <motion.div
@@ -80,7 +83,7 @@ export function PainPointSelector({ selected, onSubmit, onContinue }: PainPointS
                 "font-medium transition-colors",
                 isSelected ? "text-foreground" : "text-muted-foreground"
               )}>
-                {point.label}
+                {t(point.labelKey)}
               </span>
               
               {isSelected && (
@@ -108,7 +111,7 @@ export function PainPointSelector({ selected, onSubmit, onContinue }: PainPointS
           className="text-lg px-10 py-6 gradient-primary text-primary-foreground shadow-glow"
           onClick={onContinue}
         >
-          Continuar
+          {t('painPoints.cta')}
         </Button>
       </motion.div>
     </div>

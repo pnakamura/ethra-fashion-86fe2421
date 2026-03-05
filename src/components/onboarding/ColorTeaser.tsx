@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Palette, Sun, Leaf, Snowflake, Flower2, ArrowRight } from 'lucide-react';
 import { ColorAnalysis } from '@/components/chromatic/ColorAnalysis';
 import { useColorAnalysis, type ColorAnalysisResult } from '@/hooks/useColorAnalysis';
+import { useTranslation } from 'react-i18next';
 
 interface ColorTeaserProps {
   onDoLater: () => void;
@@ -12,13 +13,14 @@ interface ColorTeaserProps {
 }
 
 const seasons = [
-  { id: 'spring', label: 'Primavera', icon: Flower2, color: 'from-pink-400 to-yellow-300' },
-  { id: 'summer', label: 'Verão', icon: Sun, color: 'from-blue-300 to-pink-300' },
-  { id: 'autumn', label: 'Outono', icon: Leaf, color: 'from-orange-400 to-red-500' },
-  { id: 'winter', label: 'Inverno', icon: Snowflake, color: 'from-blue-500 to-purple-500' },
+  { id: 'spring', color: 'from-pink-400 to-yellow-300' },
+  { id: 'summer', color: 'from-blue-300 to-pink-300' },
+  { id: 'autumn', color: 'from-orange-400 to-red-500' },
+  { id: 'winter', color: 'from-blue-500 to-purple-500' },
 ];
 
 export function ColorTeaser({ onDoLater, onDoNow, onComplete }: ColorTeaserProps) {
+  const { t } = useTranslation('onboarding');
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [analysisComplete, setAnalysisComplete] = useState(false);
   const [savedResult, setSavedResult] = useState<ColorAnalysisResult | null>(null);
@@ -44,11 +46,9 @@ export function ColorTeaser({ onDoLater, onDoNow, onComplete }: ColorTeaserProps
   };
 
   const handleSkipAfterAnalysis = () => {
-    // If analysis is complete but user skips saving, still continue
     onDoNow();
   };
 
-  // Show inline analysis
   if (showAnalysis) {
     return (
       <div className="max-w-lg mx-auto w-full">
@@ -65,8 +65,6 @@ export function ColorTeaser({ onDoLater, onDoNow, onComplete }: ColorTeaserProps
                 onSave={handleSave}
                 showSaveButton={true}
               />
-              
-              {/* Skip option after analysis */}
               <motion.div
                 className="mt-4 text-center"
                 initial={{ opacity: 0 }}
@@ -77,7 +75,7 @@ export function ColorTeaser({ onDoLater, onDoNow, onComplete }: ColorTeaserProps
                   onClick={handleSkipAfterAnalysis}
                   className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
                 >
-                  Salvar depois
+                  {t('colorTeaser.saveLater')}
                 </button>
               </motion.div>
             </motion.div>
@@ -93,8 +91,6 @@ export function ColorTeaser({ onDoLater, onDoNow, onComplete }: ColorTeaserProps
                 onSave={handleSave}
                 showSaveButton={true}
               />
-              
-              {/* Back option */}
               <motion.div
                 className="mt-6 text-center"
                 initial={{ opacity: 0 }}
@@ -105,7 +101,7 @@ export function ColorTeaser({ onDoLater, onDoNow, onComplete }: ColorTeaserProps
                   onClick={() => setShowAnalysis(false)}
                   className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline"
                 >
-                  ← Voltar
+                  {t('colorTeaser.back')}
                 </button>
               </motion.div>
             </motion.div>
@@ -115,7 +111,6 @@ export function ColorTeaser({ onDoLater, onDoNow, onComplete }: ColorTeaserProps
     );
   }
 
-  // Initial teaser screen
   return (
     <div className="text-center max-w-lg mx-auto w-full">
       <motion.div
@@ -123,7 +118,6 @@ export function ColorTeaser({ onDoLater, onDoNow, onComplete }: ColorTeaserProps
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
       >
-        {/* Rotating color wheel */}
         <motion.div
           className="absolute inset-0"
           animate={{ rotate: 360 }}
@@ -154,9 +148,9 @@ export function ColorTeaser({ onDoLater, onDoNow, onComplete }: ColorTeaserProps
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-        Vamos descobrir
+        {t('colorTeaser.title1')}
         <br />
-        <span className="text-gradient">suas cores!</span>
+        <span className="text-gradient">{t('colorTeaser.title2')}</span>
       </motion.h2>
 
       <motion.p
@@ -165,7 +159,7 @@ export function ColorTeaser({ onDoLater, onDoNow, onComplete }: ColorTeaserProps
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        Seu tom de pele e olhos têm cores que te valorizam mais.
+        {t('colorTeaser.subtitle')}
       </motion.p>
 
       <motion.p
@@ -174,7 +168,7 @@ export function ColorTeaser({ onDoLater, onDoNow, onComplete }: ColorTeaserProps
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
       >
-        Nossa IA analisa sua foto e revela sua paleta perfeita em segundos.
+        {t('colorTeaser.aiHint')}
       </motion.p>
 
       <motion.div
@@ -189,14 +183,14 @@ export function ColorTeaser({ onDoLater, onDoNow, onComplete }: ColorTeaserProps
           className="text-lg px-8 py-6 border-border/50"
           onClick={onDoLater}
         >
-          Descobrir depois
+          {t('colorTeaser.doLater')}
         </Button>
         <Button
           size="lg"
           className="text-lg px-8 py-6 gradient-primary text-primary-foreground shadow-glow"
           onClick={handleDoNow}
         >
-          Analisar agora ✨
+          {t('colorTeaser.doNow')}
           <ArrowRight className="w-5 h-5 ml-2" />
         </Button>
       </motion.div>
