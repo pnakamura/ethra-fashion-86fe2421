@@ -72,9 +72,29 @@ export default function Auth() {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const emailValidation = z.string().email(t('errors.invalidEmail')).safeParse(email);
+    if (!emailValidation.success) {
+      toast({ title: t('errors.validation'), description: emailValidation.error.errors[0].message, variant: 'destructive' });
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await resetPassword(email);
+      if (error) {
+        toast({ title: t('errors.generic'), description: error.message, variant: 'destructive' });
+      } else {
+        toast({ title: t('resetEmailSent'), description: t('resetEmailSentDesc') });
+        setIsForgotPassword(false);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     const validation = authSchema.safeParse({ email, password });
     if (!validation.success) {
       toast({
