@@ -319,5 +319,14 @@
   "faceMatch": {
     "notRecognized": "Person not recognized",
     "notMatchDescription": "The person in the photo does not match your profile. Use a photo of yourself for the virtual try-on."
+  },
+  "errors": {
+    "connectionFailed": "Could not connect to the server. Check your internet and try again.",
+    "serverError": "The server is busy. Wait a few seconds and try again.",
+    "generic": "Could not analyze image. Try with a different photo.",
+    "noImageToRetry": "No image to retry",
+    "loginToSave": "Log in to save",
+    "paletteSaved": "Your palette has been saved!",
+    "saveError": "Error saving"
   }
 }

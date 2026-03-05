@@ -18,9 +18,44 @@ export interface ColorAnalysisResult {
   analyzed_at: string;
 }
 
+async function compressImage(base64: string, maxSize = 512, quality = 0.7): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let { width, height } = img;
+      if (width > maxSize || height > maxSize) {
+        const ratio = Math.min(maxSize / width, maxSize / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0, width, height);
+      const compressed = canvas.toDataURL('image/jpeg', quality);
+      resolve(compressed.replace(/^data:image\/\w+;base64,/, ''));
+    };
+    img.onerror = () => resolve(base64); // fallback to original
+    const prefix = base64.startsWith('data:') ? '' : 'data:image/jpeg;base64,';
+    img.src = prefix + base64;
+  });
+}
+
+function mapErrorMessage(err: unknown, t: (key: string) => string): string {
+  const msg = err instanceof Error ? err.message : String(err);
+  if (msg.includes('Failed to send a request') || msg.includes('FetchError') || msg.includes('fetch')) {
+    return t('errors.connectionFailed');
+  }
+  if (msg.includes('500') || msg.includes('Internal Server Error')) {
+    return t('errors.serverError');
+  }
+  return t('errors.generic');
+}
+
 export function useColorAnalysis() {
   const { user } = useAuth();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation('chromatic');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<ColorAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -36,17 +71,19 @@ export function useColorAnalysis() {
     const MAX_RETRIES = 2;
 
     try {
+      // Compress image to reduce payload size
+      const compressed = await compressImage(imageBase64);
+
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
       
       const locale = i18n.language || 'pt-BR';
       const { data, error: fnError } = await supabase.functions.invoke('analyze-colors', {
-        body: { image_base64: imageBase64, locale },
+        body: { image_base64: compressed, locale },
         headers: token ? { Authorization: `Bearer ${token}` } : undefined
       });
 
       if (fnError) {
-        // Retry on 500 errors
         if (fnError.message?.includes('500') && retryCount < MAX_RETRIES) {
           console.log(`[ColorAnalysis] Retry ${retryCount + 1}/${MAX_RETRIES}`);
           await new Promise(resolve => setTimeout(resolve, 1500 * (retryCount + 1)));
@@ -63,7 +100,7 @@ export function useColorAnalysis() {
       setResult(analysisResult);
       return analysisResult;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erro ao analisar imagem';
+      const message = mapErrorMessage(err, t);
       setError(message);
       setHasError(true);
       toast.error(message);
@@ -75,7 +112,7 @@ export function useColorAnalysis() {
 
   const retry = useCallback(async (): Promise<ColorAnalysisResult | null> => {
     if (!lastImageBase64) {
-      toast.error('Nenhuma imagem para tentar novamente');
+      toast.error(t('errors.noImageToRetry'));
       return null;
     }
     return analyzeImage(lastImageBase64);
@@ -83,7 +120,7 @@ export function useColorAnalysis() {
 
   const saveToProfile = async (analysis: ColorAnalysisResult) => {
     if (!user) {
-      toast.error('Você precisa estar logado para salvar');
+      toast.error(t('errors.loginToSave'));
       return false;
     }
 
@@ -99,11 +136,10 @@ export function useColorAnalysis() {
 
       if (updateError) throw updateError;
 
-      toast.success('Sua paleta foi salva!');
+      toast.success(t('errors.paletteSaved'));
       return true;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erro ao salvar';
-      toast.error(message);
+      toast.error(t('errors.saveError'));
       return false;
     }
   };
