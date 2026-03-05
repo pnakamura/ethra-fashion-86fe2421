@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 export default function Onboarding() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation(['onboarding', 'common']);
   const {
     currentStep,
     data,
