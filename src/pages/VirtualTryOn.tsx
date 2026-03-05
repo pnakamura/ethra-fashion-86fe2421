@@ -379,7 +379,7 @@ export default function VirtualTryOn() {
             </Alert>
           )}
 
-          {viewMode === 'benchmark' ? (
+          {viewMode === 'benchmark' && isAdmin ? (
             <ModelBenchmark 
               avatarImageUrl={primaryAvatar?.image_url}
               onSelectResult={(imageUrl, model) => {
