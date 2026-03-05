@@ -149,9 +149,9 @@ export function useSmartCamera() {
     const score = Math.max(0, Math.min(100, 100 - variance * 1.5));
     
     let status: 'simple' | 'moderate' | 'complex';
-    if (variance < 25) {
+    if (variance < 35) {
       status = 'simple';
-    } else if (variance < 50) {
+    } else if (variance < 65) {
       status = 'moderate';
     } else {
       status = 'complex';
