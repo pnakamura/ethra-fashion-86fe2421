@@ -93,6 +93,7 @@ function AppRoutes() {
             <Route path="/welcome" element={<Landing />} />
             <Route path="/quiz" element={<StyleQuiz />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             
             {/* Lazy-loaded routes */}
             <Route path="/onboarding" element={<Onboarding />} />

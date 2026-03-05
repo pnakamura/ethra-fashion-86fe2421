@@ -200,102 +200,156 @@ export default function Auth() {
         </div>
 
         <h2 className="text-xl font-medium text-center mb-6 text-foreground">
-          {isLogin ? t('loginTitle') : t('signupTitle')}
+          {isForgotPassword ? t('forgotPassword') : isLogin ? t('loginTitle') : t('signupTitle')}
         </h2>
 
-        <motion.form
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          onSubmit={handleSubmit}
-          className="space-y-4"
-        >
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
-              type="email"
-              placeholder={t('emailPlaceholder')}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="pl-11 h-12 rounded-xl bg-card border-border"
-              aria-label={t('emailPlaceholder')}
-            />
-          </div>
-
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input
-              type={showPassword ? 'text' : 'password'}
-              placeholder={t('passwordPlaceholder')}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="pl-11 pr-11 h-12 rounded-xl bg-card border-border"
-              aria-label={t('passwordPlaceholder')}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2"
-              aria-label={showPassword ? t('hidePassword', 'Hide password') : t('showPassword', 'Show password')}
-            >
-              {showPassword ? (
-                <EyeOff className="w-5 h-5 text-muted-foreground" />
-              ) : (
-                <Eye className="w-5 h-5 text-muted-foreground" />
-              )}
-            </button>
-            <p className="text-xs text-muted-foreground mt-1.5">{t('passwordHint')}</p>
-          </div>
-
-          {!isLogin && (
-            <div className="space-y-3 pt-2">
-              <ConsentCheckbox
-                id="consent-terms"
-                checked={acceptedTerms}
-                onCheckedChange={(checked) => {
-                  setAcceptedTerms(checked as boolean);
-                  if (checked) setShowConsentErrors(false);
-                }}
-                error={showConsentErrors && !acceptedTerms}
-              />
-              <AgeConfirmationCheckbox
-                id="consent-age"
-                checked={ageConfirmed}
-                onCheckedChange={(checked) => {
-                  setAgeConfirmed(checked as boolean);
-                  if (checked) setShowConsentErrors(false);
-                }}
-                error={showConsentErrors && !ageConfirmed}
+        {isForgotPassword ? (
+          <motion.form
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            onSubmit={handleForgotPassword}
+            className="space-y-4"
+          >
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input
+                type="email"
+                placeholder={t('emailPlaceholder')}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="pl-11 h-12 rounded-xl bg-card border-border"
+                aria-label={t('emailPlaceholder')}
               />
             </div>
-          )}
 
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full h-12 rounded-xl gradient-primary text-primary-foreground font-medium shadow-glow hover:opacity-90 transition-opacity"
-          >
-            {loading ? t('loading') : isLogin ? t('loginButton') : t('signupButton')}
-          </Button>
-        </motion.form>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full h-12 rounded-xl gradient-primary text-primary-foreground font-medium shadow-glow hover:opacity-90 transition-opacity"
+            >
+              {loading ? t('loading') : t('sendResetLink')}
+            </Button>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-          className="text-center mt-6"
-        >
-          <button
-            type="button"
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-sm text-muted-foreground hover:text-primary transition-colors"
-          >
-            {isLogin ? t('noAccount') : t('hasAccount')}
-            <span className="text-primary font-medium">
-              {isLogin ? t('createNow') : t('loginNow')}
-            </span>
-          </button>
-        </motion.div>
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => setIsForgotPassword(false)}
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                {t('backToLogin')}
+              </button>
+            </div>
+          </motion.form>
+        ) : (
+          <>
+            <motion.form
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              onSubmit={handleSubmit}
+              className="space-y-4"
+            >
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  type="email"
+                  placeholder={t('emailPlaceholder')}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-11 h-12 rounded-xl bg-card border-border"
+                  aria-label={t('emailPlaceholder')}
+                />
+              </div>
+
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder={t('passwordPlaceholder')}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-11 pr-11 h-12 rounded-xl bg-card border-border"
+                  aria-label={t('passwordPlaceholder')}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  aria-label={showPassword ? t('hidePassword') : t('showPassword')}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5 text-muted-foreground" />
+                  ) : (
+                    <Eye className="w-5 h-5 text-muted-foreground" />
+                  )}
+                </button>
+                <p className="text-xs text-muted-foreground mt-1.5">{t('passwordHint')}</p>
+              </div>
+
+              {isLogin && (
+                <div className="text-right -mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsForgotPassword(true)}
+                    className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    {t('forgotPassword')}
+                  </button>
+                </div>
+              )}
+
+              {!isLogin && (
+                <div className="space-y-3 pt-2">
+                  <ConsentCheckbox
+                    id="consent-terms"
+                    checked={acceptedTerms}
+                    onCheckedChange={(checked) => {
+                      setAcceptedTerms(checked as boolean);
+                      if (checked) setShowConsentErrors(false);
+                    }}
+                    error={showConsentErrors && !acceptedTerms}
+                  />
+                  <AgeConfirmationCheckbox
+                    id="consent-age"
+                    checked={ageConfirmed}
+                    onCheckedChange={(checked) => {
+                      setAgeConfirmed(checked as boolean);
+                      if (checked) setShowConsentErrors(false);
+                    }}
+                    error={showConsentErrors && !ageConfirmed}
+                  />
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full h-12 rounded-xl gradient-primary text-primary-foreground font-medium shadow-glow hover:opacity-90 transition-opacity"
+              >
+                {loading ? t('loading') : isLogin ? t('loginButton') : t('signupButton')}
+              </Button>
+            </motion.form>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+              className="text-center mt-6"
+            >
+              <button
+                type="button"
+                onClick={() => setIsLogin(!isLogin)}
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                {isLogin ? t('noAccount') : t('hasAccount')}
+                <span className="text-primary font-medium">
+                  {isLogin ? t('createNow') : t('loginNow')}
+                </span>
+              </button>
+            </motion.div>
+          </>
+        )}
       </motion.div>
     </main>
   );
