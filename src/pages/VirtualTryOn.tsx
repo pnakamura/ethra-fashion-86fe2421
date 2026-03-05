@@ -28,6 +28,7 @@ import { toast } from 'sonner';
 import { getFirstName } from '@/lib/greeting';
 import { useTranslation } from 'react-i18next';
 import { SEOHead } from '@/components/seo/SEOHead';
+import { useAdmin } from '@/hooks/useAdmin';
 
 interface SelectedGarment {
   id?: string;
