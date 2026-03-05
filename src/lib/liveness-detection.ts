@@ -143,7 +143,7 @@ export class LivenessDetector {
 
     // Once fully confirmed, stay confirmed
     if (this.confirmedAlive) {
-      return this.result('alive', 100, 'Prova de vida confirmada');
+      return this.result('alive', 100, 'Liveness confirmed');
     }
 
     // ── Phase 1: passive motion ──────────────────────────────────────
