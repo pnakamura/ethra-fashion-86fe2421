@@ -1,5 +1,5 @@
 /**
- * Liveness Detection (Prova de Vida) - Enhanced
+ * Liveness Detection - Enhanced
  *
  * Two-phase verification:
  *  Phase 1 – Passive motion: detects natural micro-movements to rule out
