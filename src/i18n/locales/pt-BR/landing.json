@@ -202,13 +202,14 @@
     "errorAlreadyRegistered": "Este email já está cadastrado. Faça login normalmente.",
     "error": "Erro",
     "successTitle": "Você está dentro! 🎉",
-    "successDescription": "Seu acesso de beta tester foi confirmado. Confira seu email para ativar a conta e comece a explorar o Ethra.",
+    "successDescription": "Seu cadastro foi confirmado! Em breve nosso time entrará em contato. Como tester, você terá acesso total ao plano premium.",
     "successWhatAwaits": "O que te espera:",
     "successFeature1": "Colorimetria pessoal por IA",
     "successFeature2": "Provador virtual com suas roupas",
     "successFeature3": "Closet inteligente com armário cápsula",
+    "successLoginLink": "Acesse sua conta",
     "successCta": "Explorar o Ethra",
-    "successNote": "Testers terão acesso vitalício às funcionalidades premium."
+    "successNote": "Testers têm acesso vitalício a todas as funcionalidades premium do Ethra."
   },
   "socialProof": {
     "activeUsers": "usuárias ativas",

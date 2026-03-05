@@ -150,6 +150,13 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
                 ))}
               </div>
 
+              <Link
+                to="/auth"
+                className="inline-flex items-center justify-center w-full h-12 md:h-14 rounded-xl gradient-primary text-primary-foreground font-medium shadow-glow hover:opacity-90 transition-opacity text-base md:text-lg"
+              >
+                {t('signup.successLoginLink')}
+              </Link>
+
               <p className="text-sm text-muted-foreground/70">
                 {t('signup.successNote')}
               </p>
