@@ -12,6 +12,8 @@ export default function Landing() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const signupRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation('common');
+  const signupRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!loading && user) {
