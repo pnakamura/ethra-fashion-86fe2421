@@ -132,7 +132,7 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
 
               <div className="space-y-3 text-left bg-amber-500/10 rounded-2xl p-5 border border-amber-500/20">
                 <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                  📧 {t('signup.emailVerificationTitle', { defaultValue: 'Verifique seu e-mail' })}
+                  📧 {t('signup.emailVerificationTitle')}
                 </p>
                 <p className="text-xs text-amber-700/80 dark:text-amber-300/80">
                   {t('signup.emailVerificationDesc', { defaultValue: 'Enviamos um link de confirmação para o seu e-mail. Clique nele para ativar sua conta e começar a explorar.' })}
