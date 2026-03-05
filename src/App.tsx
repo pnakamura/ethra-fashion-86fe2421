@@ -38,6 +38,7 @@ const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const Quiz = lazy(() => import("./pages/Quiz"));
 const StyleQuiz = lazy(() => import("./pages/StyleQuiz"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
