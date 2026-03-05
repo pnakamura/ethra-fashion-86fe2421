@@ -46,6 +46,30 @@ export function TryOnCanvas({
   const [comparisonPosition, setComparisonPosition] = useState(50);
   const [correctedImage, setCorrectedImage] = useState<string | null>(null);
   const [isCorrectingImage, setIsCorrectingImage] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Dynamic progress timer
+  useEffect(() => {
+    if (isProcessing) {
+      setElapsedSeconds(0);
+      timerRef.current = setInterval(() => {
+        setElapsedSeconds(prev => prev + 1);
+      }, 1000);
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+      setElapsedSeconds(0);
+    }
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [isProcessing]);
+
+  const getProgressInfo = (seconds: number) => {
+    if (seconds < 3) return { progress: 10, text: t('canvas.connectingModel', 'Conectando ao modelo...') };
+    if (seconds < 8) return { progress: 30, text: t('canvas.analyzingImage', 'Analisando imagem...') };
+    if (seconds < 15) return { progress: 55, text: t('canvas.generatingResult', 'Gerando resultado...') };
+    if (seconds < 25) return { progress: 75, text: t('canvas.almostReady', 'Quase pronto...') };
+    return { progress: 90, text: t('canvas.finalizing', 'Finalizando...') };
+  };
 
   const getModelInfo = (modelUsed: string | null | undefined) => {
     if (!modelUsed) return { icon: Sparkles, label: t('canvas.auto'), color: 'text-muted-foreground', description: t('canvas.autoDesc') };
