@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Progress } from '@/components/ui/progress';
 import { AIDisclaimer } from '@/components/legal/AIDisclaimer';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
