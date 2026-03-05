@@ -81,6 +81,7 @@ i18n
         subscription: subscriptionEnUS,
         canvas: canvasEnUS,
         privacy: privacyEnUS,
+        onboarding: onboardingEnUS,
       },
     },
     fallbackLng: 'pt-BR',
