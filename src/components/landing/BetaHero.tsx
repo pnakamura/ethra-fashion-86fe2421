@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { Sparkles, Palette, Shirt, LayoutGrid, Clock, Users, FlaskConical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
@@ -188,6 +189,12 @@ export function BetaHero() {
             <FlaskConical className="w-4 h-4 mr-2" />
             {t('hero.cta')}
           </Button>
+          <Link
+            to="/auth"
+            className="text-sm text-muted-foreground hover:text-primary transition-colors underline underline-offset-4"
+          >
+            {t('hero.alreadyHaveAccount', 'Já tem conta? Entrar')}
+          </Link>
         </motion.div>
 
         {/* Reciprocity note */}

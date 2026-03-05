@@ -14,7 +14,8 @@
     "socialProof": "We're already {{count}} beta testers",
     "fewInvites": "Few invites remaining",
     "cta": "I want to be a BETA tester",
-    "reciprocity": "Your feedback will shape the product. Beta testers will have lifetime access to premium features."
+    "reciprocity": "Your feedback will shape the product. Beta testers will have lifetime access to premium features.",
+    "alreadyHaveAccount": "Already have an account? Sign in"
   },
   "demo": {
     "badge": "Interactive demo",
