@@ -105,14 +105,18 @@ export function useBatchTryOn() {
       const piece = pieces[i];
       
       // Update current processing state
-      setState((prev) => ({
-        ...prev,
-        currentIndex: i + 1,
-        currentPieceName: piece.name || `Peça ${i + 1}`,
-        results: prev.results.map((r, idx) =>
-          idx === i ? { ...r, status: 'processing' } : r
-        ),
-      }));
+      setState((prev) => {
+        const newResults = prev.results.map((r, idx) =>
+          idx === i ? { ...r, status: 'processing' as const } : r
+        );
+        resultsRef.current = newResults;
+        return {
+          ...prev,
+          currentIndex: i + 1,
+          currentPieceName: piece.name || `Peça ${i + 1}`,
+          results: newResults,
+        };
+      });
 
       try {
         // Preprocess garment
