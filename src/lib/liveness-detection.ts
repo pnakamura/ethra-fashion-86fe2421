@@ -269,7 +269,7 @@ export class LivenessDetector {
     if (this.headTurnDetected && shift < HEAD_SHIFT_PX * 0.5) {
       this.headReturnedAfterTurn = true;
       this.confirmedAlive = true;
-      return this.result('alive', 100, 'Prova de vida confirmada');
+      return this.result('alive', 100, 'Liveness confirmed');
     }
 
     if (this.headTurnDetected) {
