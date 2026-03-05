@@ -62,6 +62,7 @@ i18n
         subscription: subscriptionPtBR,
         canvas: canvasPtBR,
         privacy: privacyPtBR,
+        onboarding: onboardingPtBR,
       },
       'en-US': {
         common: commonEnUS,
