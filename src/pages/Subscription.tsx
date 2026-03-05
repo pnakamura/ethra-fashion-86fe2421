@@ -112,7 +112,7 @@ export default function Subscription() {
 
   return (
     <>
-      <SEOHead title="Assinatura — Ethra Fashion" />
+      <SEOHead title={t('seoTitle')} />
       <Header title={t('title')} />
       <PageContainer className="px-4 py-6">
         <div className="max-w-4xl mx-auto space-y-8">
