@@ -3,7 +3,7 @@ import Webcam from 'react-webcam';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Camera, X, Sun, SunDim, Sparkles, AlertCircle, Check, Loader2,
-  ShieldCheck, ShieldAlert, ShieldOff, Fingerprint, Eye, MoveHorizontal, Settings
+  ShieldCheck, ShieldAlert, ShieldOff, Fingerprint, Eye, MoveHorizontal, Settings, Upload
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -26,11 +26,13 @@ interface CameraAnalysis {
 interface ChromaticCameraCaptureProps {
   onCapture: (imageBase64: string) => void;
   onCancel: () => void;
+  onUploadFallback?: () => void;
 }
 
 export function ChromaticCameraCapture({
   onCapture,
-  onCancel
+  onCancel,
+  onUploadFallback
 }: ChromaticCameraCaptureProps) {
   const { t } = useTranslation('chromatic');
   const webcamRef = useRef<Webcam>(null);
@@ -303,9 +305,16 @@ export function ChromaticCameraCapture({
             <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
             <h3 className="text-white font-medium mb-2">{t('camera.unavailable')}</h3>
             <p className="text-gray-400 text-sm mb-4">{t('camera.checkPermissions')}</p>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => window.location.reload()} className="text-white border-white/30"><Settings className="w-4 h-4 mr-2" />{t('camera.tryAgain')}</Button>
-              <Button variant="ghost" size="sm" onClick={onCancel} className="text-white">{t('camera.cancel')}</Button>
+            <div className="flex flex-col gap-2 w-full max-w-xs">
+              {onUploadFallback && (
+                <Button size="sm" onClick={onUploadFallback} className="gradient-primary text-primary-foreground w-full">
+                  <Upload className="w-4 h-4 mr-2" />{t('camera.uploadFromGallery')}
+                </Button>
+              )}
+              <div className="flex gap-2 justify-center">
+                <Button variant="outline" size="sm" onClick={() => window.location.reload()} className="text-white border-white/30"><Settings className="w-4 h-4 mr-2" />{t('camera.tryAgain')}</Button>
+                <Button variant="ghost" size="sm" onClick={onCancel} className="text-white">{t('camera.cancel')}</Button>
+              </div>
             </div>
           </div>
         )}
@@ -314,7 +323,7 @@ export function ChromaticCameraCapture({
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className={cn("w-48 h-56 border-2 rounded-full transition-colors duration-300", getOvalBorderClass())} />
             {analysis && !analysis.faceDetected && (
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute bottom-1/4 text-xs text-red-300 bg-black/60 px-3 py-1 rounded-full">{t('camera.faceNotDetected')}</motion.p>
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute bottom-1/4 text-xs text-amber-200 bg-black/60 px-3 py-1 rounded-full">{t('camera.faceNotDetected')}</motion.p>
             )}
           </div>
         )}

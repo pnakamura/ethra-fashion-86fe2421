@@ -340,7 +340,7 @@ export function ColorAnalysis({
   }
 
   if (showCamera) {
-    return <ChromaticCameraCapture onCapture={handleCameraCapture} onCancel={() => setShowCamera(false)} />;
+    return <ChromaticCameraCapture onCapture={handleCameraCapture} onCancel={() => setShowCamera(false)} onUploadFallback={() => { setShowCamera(false); requestUploadWithConsent(); }} />;
   }
 
   return (
@@ -369,7 +369,7 @@ export function ColorAnalysis({
           <Camera className="w-5 h-5 mr-2" />
           {t('analysis.takeSelfie')}
         </Button>
-        <Button size="lg" variant="outline" onClick={requestUploadWithConsent} disabled={isLoadingConsent} className="flex-1">
+        <Button size="lg" onClick={requestUploadWithConsent} disabled={isLoadingConsent} className="flex-1 gradient-primary text-primary-foreground shadow-glow">
           <Upload className="w-5 h-5 mr-2" />
           {t('analysis.uploadPhoto')}
         </Button>
