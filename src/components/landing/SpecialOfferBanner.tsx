@@ -3,14 +3,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Gift, Clock, ArrowRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export function SpecialOfferBanner() {
   const navigate = useNavigate();
+  const { t } = useTranslation('landing');
   const [dismissed, setDismissed] = useState(false);
   const [timeLeft, setTimeLeft] = useState({ hours: 23, minutes: 59, seconds: 59 });
 
   useEffect(() => {
-    // Get or set the offer start time in localStorage
     const storageKey = 'ethra_offer_start';
     let start = localStorage.getItem(storageKey);
     if (!start) {
@@ -18,7 +19,7 @@ export function SpecialOfferBanner() {
       localStorage.setItem(storageKey, start);
     }
     const startTime = parseInt(start, 10);
-    const offerDuration = 24 * 60 * 60 * 1000; // 24 hours
+    const offerDuration = 24 * 60 * 60 * 1000;
 
     const interval = setInterval(() => {
       const elapsed = Date.now() - startTime;
@@ -47,7 +48,7 @@ export function SpecialOfferBanner() {
         <button
           onClick={() => setDismissed(true)}
           className="absolute top-3 right-3 z-20 p-1 rounded-full hover:bg-background/50 text-muted-foreground hover:text-foreground transition-colors"
-          aria-label="Fechar oferta"
+          aria-label={t('specialOffer.closeOffer')}
         >
           <X className="w-4 h-4" />
         </button>
@@ -64,34 +65,26 @@ export function SpecialOfferBanner() {
             transition={{ duration: 2, repeat: Infinity }}
           >
             <Gift className="w-4 h-4 text-primary" />
-            <span className="text-sm text-primary font-semibold">Oferta exclusiva para novos membros</span>
+            <span className="text-sm text-primary font-semibold">{t('specialOffer.exclusiveBadge')}</span>
           </motion.div>
 
           <h2 className="font-display text-3xl md:text-4xl font-semibold mb-3">
-            Experimente <span className="text-gradient">7 dias grátis</span> do plano Trendsetter
+            {t('specialOffer.headlinePre')}<span className="text-gradient">{t('specialOffer.headlineHighlight')}</span>{t('specialOffer.headlinePost')}
           </h2>
 
           <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
-            Acesso a 50 peças no closet, 10 provas virtuais por dia e 3 avatares.
-            Sem compromisso, cancele quando quiser.
+            {t('specialOffer.description')}
           </p>
 
-          {/* Countdown */}
           <div className="flex items-center justify-center gap-1.5 mb-6">
             <Clock className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Oferta expira em</span>
+            <span className="text-sm text-muted-foreground">{t('specialOffer.expiresIn')}</span>
             <div className="flex items-center gap-1 font-mono font-bold text-foreground">
-              <span className="bg-foreground/10 px-2 py-0.5 rounded text-sm">
-                {String(timeLeft.hours).padStart(2, '0')}
-              </span>
+              <span className="bg-foreground/10 px-2 py-0.5 rounded text-sm">{String(timeLeft.hours).padStart(2, '0')}</span>
               <span className="text-muted-foreground">:</span>
-              <span className="bg-foreground/10 px-2 py-0.5 rounded text-sm">
-                {String(timeLeft.minutes).padStart(2, '0')}
-              </span>
+              <span className="bg-foreground/10 px-2 py-0.5 rounded text-sm">{String(timeLeft.minutes).padStart(2, '0')}</span>
               <span className="text-muted-foreground">:</span>
-              <span className="bg-foreground/10 px-2 py-0.5 rounded text-sm">
-                {String(timeLeft.seconds).padStart(2, '0')}
-              </span>
+              <span className="bg-foreground/10 px-2 py-0.5 rounded text-sm">{String(timeLeft.seconds).padStart(2, '0')}</span>
             </div>
           </div>
 
@@ -100,12 +93,12 @@ export function SpecialOfferBanner() {
             className="group text-lg px-8 py-6 gradient-primary text-primary-foreground shadow-glow hover:shadow-elevated transition-all duration-300"
             onClick={() => navigate('/auth?mode=signup&trial=true')}
           >
-            Começar meu trial grátis
+            {t('specialOffer.startTrial')}
             <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Button>
 
           <p className="mt-3 text-xs text-muted-foreground">
-            Sem cartão de crédito. Após 7 dias, volta ao plano gratuito automaticamente.
+            {t('specialOffer.noCardNote')}
           </p>
         </motion.div>
       </motion.section>

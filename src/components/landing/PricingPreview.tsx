@@ -3,58 +3,60 @@ import { Check, ArrowRight, Crown, User, TrendingUp, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
-
-const plans = [
-  {
-    id: 'free',
-    name: 'Iniciante',
-    price: 'Grátis',
-    period: '',
-    icon: User,
-    color: '#6B7280',
-    highlights: ['1 avatar virtual', '10 peças no closet', '3 provas por dia'],
-    cta: 'Começar grátis',
-    featured: false,
-  },
-  {
-    id: 'trendsetter',
-    name: 'Trendsetter',
-    price: 'R$29,90',
-    period: '/mês',
-    icon: TrendingUp,
-    color: '#8B5CF6',
-    highlights: ['3 avatares', '50 peças no closet', '10 provas por dia'],
-    cta: '7 dias grátis',
-    featured: true,
-    trialBadge: true,
-  },
-  {
-    id: 'icon',
-    name: 'Icon',
-    price: 'R$59,90',
-    period: '/mês',
-    icon: Star,
-    color: '#F59E0B',
-    highlights: ['Avatares ilimitados', '200 peças no closet', 'Voyager incluído'],
-    cta: 'Escolher plano',
-    featured: false,
-    popular: true,
-  },
-  {
-    id: 'muse',
-    name: 'Muse',
-    price: 'R$99,90',
-    period: '/mês',
-    icon: Crown,
-    color: '#EC4899',
-    highlights: ['Tudo ilimitado', 'VIP Looks exclusivos', 'Suporte prioritário'],
-    cta: 'Escolher plano',
-    featured: false,
-  },
-];
+import { useTranslation } from 'react-i18next';
 
 export function PricingPreview() {
   const navigate = useNavigate();
+  const { t } = useTranslation('landing');
+
+  const plans = [
+    {
+      id: 'free',
+      name: t('pricing.starter'),
+      price: t('pricing.free'),
+      period: '',
+      icon: User,
+      color: '#6B7280',
+      highlights: [t('pricing.avatar1'), t('pricing.pieces10'), t('pricing.tryon3')],
+      cta: t('pricing.startFree'),
+      featured: false,
+    },
+    {
+      id: 'trendsetter',
+      name: 'Trendsetter',
+      price: 'R$29,90',
+      period: t('pricing.perMonth'),
+      icon: TrendingUp,
+      color: '#8B5CF6',
+      highlights: [t('pricing.avatars3'), t('pricing.pieces50'), t('pricing.tryon10')],
+      cta: t('pricing.sevenDaysFree'),
+      featured: true,
+      trialBadge: true,
+    },
+    {
+      id: 'icon',
+      name: 'Icon',
+      price: 'R$59,90',
+      period: t('pricing.perMonth'),
+      icon: Star,
+      color: '#F59E0B',
+      highlights: [t('pricing.unlimitedAvatars'), t('pricing.pieces200'), t('pricing.voyagerIncluded')],
+      cta: t('pricing.choosePlan'),
+      featured: false,
+      popular: true,
+    },
+    {
+      id: 'muse',
+      name: 'Muse',
+      price: 'R$99,90',
+      period: t('pricing.perMonth'),
+      icon: Crown,
+      color: '#EC4899',
+      highlights: [t('pricing.allUnlimited'), t('pricing.vipLooks'), t('pricing.prioritySupport')],
+      cta: t('pricing.choosePlan'),
+      featured: false,
+    },
+  ];
 
   return (
     <section className="py-24 px-6">
@@ -66,12 +68,12 @@ export function PricingPreview() {
           viewport={{ once: true }}
         >
           <h2 className="font-display text-4xl md:text-5xl font-semibold mb-4">
-            Um plano para cada
+            {t('pricing.headlineLine1')}
             <br />
-            <span className="text-gradient">momento seu</span>
+            <span className="text-gradient">{t('pricing.headlineHighlight')}</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Comece grátis e evolua quando quiser. Sem surpresas, sem letras miúdas.
+            {t('pricing.subtitle')}
           </p>
         </motion.div>
 
@@ -91,12 +93,12 @@ export function PricingPreview() {
             >
               {plan.trialBadge && (
                 <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-green-600 text-white text-xs">
-                  7 dias grátis
+                  {t('pricing.trialBadge')}
                 </Badge>
               )}
               {plan.popular && (
                 <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 gradient-primary text-primary-foreground text-xs">
-                  Mais popular
+                  {t('pricing.mostPopular')}
                 </Badge>
               )}
 
@@ -147,7 +149,7 @@ export function PricingPreview() {
             onClick={() => navigate('/subscription')}
             className="text-sm text-primary hover:underline inline-flex items-center gap-1"
           >
-            Ver comparativo completo
+            {t('pricing.compareAll')}
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </motion.div>
