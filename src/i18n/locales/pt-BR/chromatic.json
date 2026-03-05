@@ -281,5 +281,43 @@
     "positionFaceCircle": "Posicione seu rosto dentro do círculo, com luz natural no rosto"
   },
   "tryPaletteToast": "Experimentando {{name}} {{subtype}}",
-  "tryPaletteToastDesc": "Veja o preview na aba \"Minha Paleta\""
+  "tryPaletteToastDesc": "Veja o preview na aba \"Minha Paleta\"",
+  "biometricAlert": {
+    "title": "Verificação biométrica necessária",
+    "consent": "Consentimento biométrico",
+    "faceReference": "Foto de referência facial",
+    "acceptConsent": "Aceite o consentimento biométrico para usar a câmera.",
+    "doAnalysis": "Faça a análise cromática para resolver todas as pendências de uma vez.",
+    "startAnalysis": "Fazer análise cromática"
+  },
+  "admin": {
+    "biometricSecurity": "Segurança Biométrica",
+    "livenessDetection": "Verificação de Segurança",
+    "faceMatching": "Comparação Facial"
+  },
+  "consentModal": {
+    "title": "Consentimento para Dados Biométricos",
+    "description": "Para usar a funcionalidade de {{context}}, precisamos do seu consentimento para processar dados biométricos faciais.",
+    "contexts": {
+      "chromatic_camera": "Câmera Cromática",
+      "tryon_avatar": "Provador Virtual",
+      "onboarding": "Configuração Inicial"
+    },
+    "faceCapture": "Captura Facial",
+    "faceCaptureDesc": "Sua imagem será capturada pela câmera para análise cromática ou criação de avatar.",
+    "securityCheck": "Verificação de Segurança",
+    "securityCheckDesc": "Verificamos movimentos faciais (piscar, girar a cabeça) para garantir que é uma pessoa real, e não uma foto.",
+    "faceComparison": "Comparação Facial",
+    "faceComparisonDesc": "Comparamos sua imagem com sua selfie de referência para verificar identidade e impedir uso indevido.",
+    "dataSecurity": "Segurança dos Dados",
+    "dataSecurityDesc": "O processamento é feito localmente no seu dispositivo. Nenhum dado biométrico é compartilhado com terceiros. Você pode revogar este consentimento a qualquer momento nas configurações.",
+    "agreeLabel": "Li e concordo com o processamento dos meus dados biométricos faciais conforme descrito acima, nos termos da LGPD (Lei 13.709/2018).",
+    "termVersion": "Versão do termo: {{version}}",
+    "decline": "Recusar",
+    "acceptAndContinue": "Aceitar e Continuar"
+  },
+  "faceMatch": {
+    "notRecognized": "Pessoa não reconhecida",
+    "notMatchDescription": "A pessoa na foto não corresponde ao seu perfil. Use uma foto sua para o provador virtual."
+  }
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Bell, Clock, MapPin, Calendar, Cloud, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,7 @@ interface NotificationPreferencesSheetProps {
 export function NotificationPreferencesSheet({ trigger }: NotificationPreferencesSheetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
+  const { t } = useTranslation('settings');
   const queryClient = useQueryClient();
 
   const [prefs, setPrefs] = useState<NotificationPreferences>({
@@ -233,7 +235,7 @@ export function NotificationPreferencesSheet({ trigger }: NotificationPreference
             disabled={saveMutation.isPending}
             className="w-full gradient-primary rounded-xl"
           >
-            {saveMutation.isPending ? 'Salvando...' : 'Salvar Preferências'}
+            {saveMutation.isPending ? t('notifications.savePrefs') + '...' : t('notifications.savePrefs')}
           </Button>
         </SheetFooter>
       </SheetContent>

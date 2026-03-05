@@ -1,5 +1,5 @@
 /**
- * Liveness Detection (Prova de Vida) - Enhanced
+ * Liveness Detection - Enhanced
  *
  * Two-phase verification:
  *  Phase 1 – Passive motion: detects natural micro-movements to rule out
@@ -143,7 +143,7 @@ export class LivenessDetector {
 
     // Once fully confirmed, stay confirmed
     if (this.confirmedAlive) {
-      return this.result('alive', 100, 'Prova de vida confirmada');
+      return this.result('alive', 100, 'Liveness confirmed');
     }
 
     // ── Phase 1: passive motion ──────────────────────────────────────
@@ -226,7 +226,7 @@ export class LivenessDetector {
     // After drop, detect recovery (eyes opening again)
     if (this.blinkDetected && currentDrop < BLINK_DROP_PCT * 0.5) {
       this.confirmedAlive = true;
-      return this.result('alive', 100, 'Prova de vida confirmada');
+      return this.result('alive', 100, 'Liveness confirmed');
     }
 
     if (this.blinkDetected) {
@@ -269,7 +269,7 @@ export class LivenessDetector {
     if (this.headTurnDetected && shift < HEAD_SHIFT_PX * 0.5) {
       this.headReturnedAfterTurn = true;
       this.confirmedAlive = true;
-      return this.result('alive', 100, 'Prova de vida confirmada');
+      return this.result('alive', 100, 'Liveness confirmed');
     }
 
     if (this.headTurnDetected) {

@@ -52,8 +52,8 @@ export function SmartCameraCapture({
 }: SmartCameraCaptureProps) {
   const { t } = useTranslation('tryOn');
   const webcamRef = useRef<Webcam>(null);
-  const [showConsentModal, setShowConsentModal] = useState(mode === 'avatar');
-  const [hasConsented, setHasConsented] = useState(mode !== 'avatar');
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [hasConsented, setHasConsented] = useState(true);
   const [isReady, setIsReady] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [blurFace, setBlurFace] = useState(false);

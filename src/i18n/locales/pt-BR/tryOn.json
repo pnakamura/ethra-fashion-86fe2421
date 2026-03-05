@@ -215,7 +215,8 @@
     "notDetected": "Não detectado",
     "faceBlurActive": "Blur facial ativo",
     "capturePhoto": "Capturar Foto",
-    "waitMinQuality": "Aguarde qualidade mínima"
+    "waitMinQuality": "Aguarde qualidade mínima",
+    "captureAnyway": "Capturar mesmo assim"
   },
   "privacySettings": {
     "title": "Sua Privacidade",
