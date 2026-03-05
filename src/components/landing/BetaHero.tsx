@@ -189,6 +189,12 @@ export function BetaHero() {
             <FlaskConical className="w-4 h-4 mr-2" />
             {t('hero.cta')}
           </Button>
+          <Link
+            to="/auth"
+            className="text-sm text-muted-foreground hover:text-primary transition-colors underline underline-offset-4"
+          >
+            {t('hero.alreadyHaveAccount', 'Já tem conta? Entrar')}
+          </Link>
         </motion.div>
 
         {/* Reciprocity note */}
