@@ -323,7 +323,7 @@ export function ChromaticCameraCapture({
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className={cn("w-48 h-56 border-2 rounded-full transition-colors duration-300", getOvalBorderClass())} />
             {analysis && !analysis.faceDetected && (
-              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute bottom-1/4 text-xs text-red-300 bg-black/60 px-3 py-1 rounded-full">{t('camera.faceNotDetected')}</motion.p>
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute bottom-1/4 text-xs text-amber-200 bg-black/60 px-3 py-1 rounded-full">{t('camera.faceNotDetected')}</motion.p>
             )}
           </div>
         )}
