@@ -156,7 +156,7 @@ export function BiometricConsentModal({
           Versão do termo: {BIOMETRIC_TERM_VERSION}
         </p>
 
-        <DialogFooter className="flex-col sm:flex-row gap-2">
+        <DialogFooter className="flex-col sm:flex-row gap-2 flex-shrink-0">
           <Button
             variant="ghost"
             onClick={handleDecline}
