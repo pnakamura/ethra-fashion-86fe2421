@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, RotateCcw, Check, Loader2, Shield, AlertTriangle, ScanFace } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 import type { LivenessChallenge as ChallengeType } from '@/hooks/useLivenessDetection';
 
 interface LivenessChallengeProps {
@@ -26,6 +27,8 @@ export function LivenessChallenge({
   onSkip,
   onRetry,
 }: LivenessChallengeProps) {
+  const { t } = useTranslation('chromatic');
+
   if (error) {
     return (
       <div className="absolute bottom-4 left-4 right-4 bg-destructive/90 backdrop-blur-sm text-white text-sm p-3 rounded-xl text-center">
@@ -43,7 +46,7 @@ export function LivenessChallenge({
       >
         <div className="flex items-center justify-center gap-2">
           <Shield className="w-5 h-5" />
-          <span className="font-medium">Prova de vida confirmada</span>
+          <span className="font-medium">{t('camera.livenessConfirmed')}</span>
           <Check className="w-5 h-5" />
         </div>
       </motion.div>
@@ -55,7 +58,7 @@ export function LivenessChallenge({
       {isProcessing && (
         <div className="bg-black/70 backdrop-blur-sm text-white text-sm p-3 rounded-xl text-center flex items-center justify-center gap-2">
           <Loader2 className="w-4 h-4 animate-spin" />
-          Iniciando detecção facial...
+          {t('camera.initFaceDetection')}
         </div>
       )}
 
@@ -69,7 +72,7 @@ export function LivenessChallenge({
           <div className="flex items-center gap-2 text-xs">
             <ScanFace className={`w-4 h-4 ${faceDetected ? 'text-green-400' : 'text-amber-400 animate-pulse'}`} />
             <span className={faceDetected ? 'text-green-300' : 'text-amber-300'}>
-              {faceDetected ? 'Rosto detectado' : 'Posicione seu rosto no círculo'}
+              {faceDetected ? t('camera.faceDetectedLabel') : t('camera.positionFaceCircle2')}
             </span>
           </div>
 
@@ -105,7 +108,7 @@ export function LivenessChallenge({
               >
                 <div className="flex items-center gap-2 text-amber-300">
                   <AlertTriangle className="w-4 h-4" />
-                  <span className="text-sm">Não conseguimos detectar. Tente novamente ou pule.</span>
+                  <span className="text-sm">{t('camera.detectionFailed')}</span>
                 </div>
                 <div className="flex gap-2">
                   {onRetry && (
@@ -116,7 +119,7 @@ export function LivenessChallenge({
                       className="text-white hover:bg-white/10 text-xs h-7 px-2"
                     >
                       <RotateCcw className="w-3 h-3 mr-1" />
-                      Tentar novamente
+                      {t('camera.retryLiveness')}
                     </Button>
                   )}
                   {onSkip && (
@@ -126,7 +129,7 @@ export function LivenessChallenge({
                       onClick={onSkip}
                       className="text-white hover:bg-white/10 text-xs h-7 px-2"
                     >
-                      Pular verificação
+                      {t('camera.skipVerification')}
                     </Button>
                   )}
                 </div>
@@ -142,7 +145,7 @@ export function LivenessChallenge({
                 {currentChallenge === 'blink' && (
                   <>
                     <Eye className="w-5 h-5 text-amber-400" />
-                    <span className="text-sm font-medium">Pisque os olhos lentamente</span>
+                    <span className="text-sm font-medium">{t('camera.blinkSlowly')}</span>
                   </>
                 )}
                 {currentChallenge === 'head_turn' && (
@@ -154,7 +157,7 @@ export function LivenessChallenge({
                     >
                       <RotateCcw className="w-5 h-5 text-amber-400" />
                     </motion.div>
-                    <span className="text-sm font-medium">Ótimo! Agora vire a cabeça para o lado</span>
+                    <span className="text-sm font-medium">{t('camera.turnHeadSide')}</span>
                   </>
                 )}
               </motion.div>
@@ -164,7 +167,7 @@ export function LivenessChallenge({
           {/* Help text */}
           {!timeoutReached && (
             <p className="text-[10px] text-white/40 text-center">
-              Após completar, o botão Capturar será liberado
+              {t('camera.captureUnlockedHint')}
             </p>
           )}
         </motion.div>
