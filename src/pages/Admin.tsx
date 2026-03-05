@@ -145,6 +145,7 @@ function AdminDashboard() {
           className="grid grid-cols-2 md:grid-cols-4 gap-4"
         >
           <StatCard icon={Users} label="Usuários" value={stats?.totalUsers || 0} />
+          <StatCard icon={UserPlus} label="Testers" value={stats?.testers || 0} />
           <StatCard icon={Shirt} label="Peças" value={stats?.totalItems || 0} />
           <StatCard icon={Palette} label="Looks Criados" value={stats?.totalOutfits || 0} />
           <StatCard icon={Crown} label="Assinantes" value={stats?.subscribers || 0} />
