@@ -38,6 +38,7 @@ import quizEnUS from './locales/en-US/quiz.json';
 import subscriptionEnUS from './locales/en-US/subscription.json';
 import canvasEnUS from './locales/en-US/canvas.json';
 import privacyEnUS from './locales/en-US/privacy.json';
+import onboardingEnUS from './locales/en-US/onboarding.json';
 
 i18n
   .use(LanguageDetector)
