@@ -14,7 +14,8 @@
     "socialProof": "Já somos {{count}} beta testers",
     "fewInvites": "Poucos convites restantes",
     "cta": "Quero ser BETA tester",
-    "reciprocity": "Sua opinião vai moldar o produto. Beta testers terão acesso vitalício às funcionalidades premium."
+    "reciprocity": "Sua opinião vai moldar o produto. Beta testers terão acesso vitalício às funcionalidades premium.",
+    "alreadyHaveAccount": "Já tem conta? Entrar"
   },
   "demo": {
     "badge": "Simulação interativa",
