@@ -354,15 +354,17 @@ export default function VirtualTryOn() {
                 <Sparkles className="w-4 h-4 mr-2" />
                 {t('tryOn')}
               </Button>
-              <Button
-                variant={viewMode === 'benchmark' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('benchmark')}
-                className={viewMode === 'benchmark' ? 'gradient-primary text-primary-foreground' : ''}
-              >
-                <FlaskConical className="w-4 h-4 mr-2" />
-                {t('benchmark')}
-              </Button>
+              {isAdmin && (
+                <Button
+                  variant={viewMode === 'benchmark' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('benchmark')}
+                  className={viewMode === 'benchmark' ? 'gradient-primary text-primary-foreground' : ''}
+                >
+                  <FlaskConical className="w-4 h-4 mr-2" />
+                  {t('benchmark')}
+                </Button>
+              )}
             </div>
           </div>
 
