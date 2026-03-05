@@ -161,18 +161,15 @@ export function useBatchTryOn() {
         }
 
         // Update success state
-        setState((prev) => ({
-          ...prev,
-          results: prev.results.map((r, idx) =>
+        setState((prev) => {
+          const newResults = prev.results.map((r, idx) =>
             idx === i
-              ? {
-                  ...r,
-                  status: 'completed',
-                  resultImageUrl: response.data.resultImageUrl,
-                }
+              ? { ...r, status: 'completed' as const, resultImageUrl: response.data.resultImageUrl }
               : r
-          ),
-        }));
+          );
+          resultsRef.current = newResults;
+          return { ...prev, results: newResults };
+        });
       } catch (error) {
         console.error(`Error processing piece ${i}:`, error);
         
