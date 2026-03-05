@@ -174,18 +174,15 @@ export function useBatchTryOn() {
         console.error(`Error processing piece ${i}:`, error);
         
         // Update failed state
-        setState((prev) => ({
-          ...prev,
-          results: prev.results.map((r, idx) =>
+        setState((prev) => {
+          const newResults = prev.results.map((r, idx) =>
             idx === i
-              ? {
-                  ...r,
-                  status: 'failed',
-                  errorMessage: error instanceof Error ? error.message : 'Erro desconhecido',
-                }
+              ? { ...r, status: 'failed' as const, errorMessage: error instanceof Error ? error.message : 'Erro desconhecido' }
               : r
-          ),
-        }));
+          );
+          resultsRef.current = newResults;
+          return { ...prev, results: newResults };
+        });
       }
 
       // Delay before next piece (unless cancelled or last piece)
