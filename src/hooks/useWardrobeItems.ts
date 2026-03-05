@@ -45,16 +45,7 @@ export function useWardrobeItems(options: UseWardrobeItemsOptions = {}) {
         return [];
       }
       
-      // Filter out items with corrupted base64 image_url (should be storage URLs)
-      const validItems = (data || []).filter(item => {
-        if (item.image_url?.startsWith('data:')) {
-          console.warn(`Wardrobe item ${item.id} has base64 image_url, skipping`);
-          return false;
-        }
-        return true;
-      });
-      
-      return validItems;
+      return data || [];
     },
     enabled: !!user && enabled,
     staleTime: 1000 * 60 * 3, // 3 minutes
