@@ -91,8 +91,8 @@ export function BiometricConsentModal({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Data processing details */}
-        <div className="space-y-3 my-2">
+        {/* Data processing details - scrollable area */}
+        <div className="space-y-3 my-2 overflow-y-auto flex-1 min-h-0 pr-1">
           <div className="flex items-start gap-3 p-3 rounded-lg bg-secondary/50">
             <ScanFace className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
             <div>
