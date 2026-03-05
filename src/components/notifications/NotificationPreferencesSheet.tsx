@@ -27,6 +27,7 @@ interface NotificationPreferencesSheetProps {
 export function NotificationPreferencesSheet({ trigger }: NotificationPreferencesSheetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
+  const { t } = useTranslation('settings');
   const queryClient = useQueryClient();
 
   const [prefs, setPrefs] = useState<NotificationPreferences>({
