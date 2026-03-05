@@ -6,6 +6,7 @@ import { DemoSection } from '@/components/landing/DemoSection';
 import { TesterSignupForm } from '@/components/landing/TesterSignupForm';
 import { Footer } from '@/components/landing/Footer';
 import { SEOHead } from '@/components/seo/SEOHead';
+import { useTranslation } from 'react-i18next';
 
 export default function Landing() {
   const { user, loading } = useAuth();
