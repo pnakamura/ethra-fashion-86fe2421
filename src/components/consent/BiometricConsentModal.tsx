@@ -106,7 +106,7 @@ export function BiometricConsentModal({
           <div className="flex items-start gap-3 p-3 rounded-lg bg-secondary/50">
             <Eye className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
             <div>
-              <p className="text-sm font-medium">Prova de Vida</p>
+              <p className="text-sm font-medium">Verificação de Segurança</p>
               <p className="text-xs text-muted-foreground">
                 Verificamos movimentos faciais (piscar, girar a cabeça) para garantir
                 que é uma pessoa real, e não uma foto.
