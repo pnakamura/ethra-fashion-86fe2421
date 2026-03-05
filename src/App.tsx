@@ -38,6 +38,7 @@ const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const Quiz = lazy(() => import("./pages/Quiz"));
 const StyleQuiz = lazy(() => import("./pages/StyleQuiz"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -92,6 +93,7 @@ function AppRoutes() {
             <Route path="/welcome" element={<Landing />} />
             <Route path="/quiz" element={<StyleQuiz />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             
             {/* Lazy-loaded routes */}
             <Route path="/onboarding" element={<Onboarding />} />
