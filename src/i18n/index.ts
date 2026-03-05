@@ -50,6 +50,9 @@ const ipGeoDetector = {
       callback(locale || undefined);
     });
   },
+  lookup() {
+    return undefined;
+  },
   cacheUserLanguage() {
     // caching handled by localStorage detector
   },
