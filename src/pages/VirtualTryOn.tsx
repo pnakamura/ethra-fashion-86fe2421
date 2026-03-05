@@ -28,6 +28,7 @@ import { toast } from 'sonner';
 import { getFirstName } from '@/lib/greeting';
 import { useTranslation } from 'react-i18next';
 import { SEOHead } from '@/components/seo/SEOHead';
+import { useAdmin } from '@/hooks/useAdmin';
 
 interface SelectedGarment {
   id?: string;
@@ -59,6 +60,7 @@ export default function VirtualTryOn() {
   const { t } = useTranslation('tryOn');
   const { user } = useAuth();
   const { profile } = useProfile();
+  const { isAdmin } = useAdmin();
   const navigate = useNavigate();
   const [selectedGarment, setSelectedGarment] = useState<SelectedGarment | null>(null);
   
@@ -353,15 +355,17 @@ export default function VirtualTryOn() {
                 <Sparkles className="w-4 h-4 mr-2" />
                 {t('tryOn')}
               </Button>
-              <Button
-                variant={viewMode === 'benchmark' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('benchmark')}
-                className={viewMode === 'benchmark' ? 'gradient-primary text-primary-foreground' : ''}
-              >
-                <FlaskConical className="w-4 h-4 mr-2" />
-                {t('benchmark')}
-              </Button>
+              {isAdmin && (
+                <Button
+                  variant={viewMode === 'benchmark' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('benchmark')}
+                  className={viewMode === 'benchmark' ? 'gradient-primary text-primary-foreground' : ''}
+                >
+                  <FlaskConical className="w-4 h-4 mr-2" />
+                  {t('benchmark')}
+                </Button>
+              )}
             </div>
           </div>
 
@@ -376,7 +380,7 @@ export default function VirtualTryOn() {
             </Alert>
           )}
 
-          {viewMode === 'benchmark' ? (
+          {viewMode === 'benchmark' && isAdmin ? (
             <ModelBenchmark 
               avatarImageUrl={primaryAvatar?.image_url}
               onSelectResult={(imageUrl, model) => {
