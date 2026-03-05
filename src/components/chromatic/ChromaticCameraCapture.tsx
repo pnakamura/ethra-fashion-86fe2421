@@ -31,7 +31,8 @@ interface ChromaticCameraCaptureProps {
 
 export function ChromaticCameraCapture({
   onCapture,
-  onCancel
+  onCancel,
+  onUploadFallback
 }: ChromaticCameraCaptureProps) {
   const { t } = useTranslation('chromatic');
   const webcamRef = useRef<Webcam>(null);
