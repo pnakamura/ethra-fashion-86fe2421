@@ -120,10 +120,10 @@ export function usePrefetchWardrobeItems() {
       queryFn: async () => {
         const { data } = await supabase
           .from('wardrobe_items')
-          .select('*')
+          .select('id, user_id, image_url, name, category, color_code, chromatic_compatibility, dominant_colors, is_favorite, is_capsule, last_worn, occasion, season_tag, created_at')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
-        return data || [];
+        return (data || []).filter(item => !item.image_url?.startsWith('data:'));
       },
       staleTime: 1000 * 60 * 3,
     });
