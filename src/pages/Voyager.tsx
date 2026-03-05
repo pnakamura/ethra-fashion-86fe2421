@@ -66,19 +66,8 @@ export default function Voyager() {
     if (!authLoading && !user) navigate('/welcome');
   }, [authLoading, user, navigate]);
 
-  // Fetch wardrobe items
-  const { data: items = [] } = useQuery({
-    queryKey: ['wardrobe-items', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      const { data } = await supabase
-        .from('wardrobe_items')
-        .select('id, image_url, category, name')
-        .eq('user_id', user.id);
-      return data || [];
-    },
-    enabled: !!user,
-  });
+  // Use centralized wardrobe items hook
+  const { items } = useWardrobeItems();
 
   // Fetch trips
   const { data: trips = [] } = useQuery({

@@ -51,21 +51,11 @@ export default function Canvas() {
   
   const [activeTab, setActiveTab] = useState('create');
   const [preloadItems, setPreloadItems] = useState<{ id: string; image_url: string }[] | null>(null);
-  const [shareOutfit, setShareOutfit] = useState<{ outfit: Outfit; items: WardrobeItem[] } | null>(null);
+  const [shareOutfit, setShareOutfit] = useState<{ outfit: Outfit; items: CanvasWardrobeItem[] } | null>(null);
 
-  // Fetch wardrobe items
-  const { data: items = [] } = useQuery({
-    queryKey: ['wardrobe-items', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      const { data } = await supabase
-        .from('wardrobe_items')
-        .select('id, image_url, category, name')
-        .eq('user_id', user.id);
-      return (data || []) as WardrobeItem[];
-    },
-    enabled: !!user,
-  });
+  // Use centralized wardrobe items hook
+  const { items: wardrobeItems } = useWardrobeItems();
+  const items: CanvasWardrobeItem[] = wardrobeItems;
 
   // Auth guard
   useEffect(() => {
