@@ -105,7 +105,7 @@ export function ChromaticCameraCapture({
 
     const avgBrightness = totalBrightness / totalPixels;
     const skinRatio = skinPixelCount / totalPixels;
-    const faceDetected = mediapipeFaceDetectedRef.current || skinRatio >= 0.15;
+    const faceDetected = mediapipeFaceDetectedRef.current || skinRatio >= 0.05;
 
     let lighting: 'good' | 'low' | 'overexposed';
     let lightingScore: number;

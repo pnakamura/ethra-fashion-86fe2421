@@ -282,9 +282,9 @@ export function useSmartCamera() {
       const position = analyzeBodyPosition(imageData);
 
       const overallScore = Math.round(
-        lighting.score * 0.35 +
-        background.score * 0.30 +
-        position.score * 0.35
+        lighting.score * 0.40 +
+        background.score * 0.15 +
+        position.score * 0.45
       );
 
       const tips = generateTips(lighting, background, position);
