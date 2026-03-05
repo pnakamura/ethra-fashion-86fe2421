@@ -26,6 +26,7 @@ interface CameraAnalysis {
 interface ChromaticCameraCaptureProps {
   onCapture: (imageBase64: string) => void;
   onCancel: () => void;
+  onUploadFallback?: () => void;
 }
 
 export function ChromaticCameraCapture({
