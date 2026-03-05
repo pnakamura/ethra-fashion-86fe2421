@@ -91,8 +91,8 @@ export default function Subscription() {
     },
   });
 
-  const allLimits = dbLimits.length > 0 ? dbLimits : FALLBACK_LIMITS;
-  const displayPlans = allPlans.length > 0 ? allPlans : FALLBACK_PLANS;
+  const allLimits = dbLimits.length > 0 ? dbLimits : getFallbackLimits(t);
+  const displayPlans = allPlans.length > 0 ? allPlans : getFallbackPlans(t);
 
   const getLimitsForPlan = (planId: string) => {
     return allLimits.filter((l) => l.plan_id === planId);
