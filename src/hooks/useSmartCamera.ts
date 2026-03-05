@@ -17,7 +17,7 @@ export interface CameraAnalysis {
   tips: string[];
 }
 
-const QUALITY_THRESHOLD = 65;
+const QUALITY_THRESHOLD = 40;
 
 export function useSmartCamera() {
   const [analysis, setAnalysis] = useState<CameraAnalysis | null>(null);
