@@ -97,7 +97,7 @@ function AdminDashboard() {
   const { data: stats } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
-      const [users, items, outfits, subscribers] = await Promise.all([
+      const [users, items, outfits, subscribers, testers] = await Promise.all([
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
         supabase.from('wardrobe_items').select('*', { count: 'exact', head: true }),
         supabase.from('outfits').select('*', { count: 'exact', head: true }),
@@ -105,6 +105,9 @@ function AdminDashboard() {
           .from('profiles')
           .select('*', { count: 'exact', head: true })
           .neq('subscription_plan_id', 'free'),
+        supabase
+          .from('tester_notifications')
+          .select('*', { count: 'exact', head: true }),
       ]);
 
       return {
@@ -112,6 +115,7 @@ function AdminDashboard() {
         totalItems: items.count || 0,
         totalOutfits: outfits.count || 0,
         subscribers: subscribers.count || 0,
+        testers: testers.count || 0,
       };
     },
   });
