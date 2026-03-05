@@ -281,5 +281,43 @@
     "positionFaceCircle": "Position your face inside the circle, with natural light on your face"
   },
   "tryPaletteToast": "Trying {{name}} {{subtype}}",
-  "tryPaletteToastDesc": "See the preview in the \"My Palette\" tab"
+  "tryPaletteToastDesc": "See the preview in the \"My Palette\" tab",
+  "biometricAlert": {
+    "title": "Biometric verification required",
+    "consent": "Biometric consent",
+    "faceReference": "Face reference photo",
+    "acceptConsent": "Accept biometric consent to use the camera.",
+    "doAnalysis": "Do the color analysis to resolve all pending items at once.",
+    "startAnalysis": "Start color analysis"
+  },
+  "admin": {
+    "biometricSecurity": "Biometric Security",
+    "livenessDetection": "Security Check",
+    "faceMatching": "Face Matching"
+  },
+  "consentModal": {
+    "title": "Biometric Data Consent",
+    "description": "To use the {{context}} feature, we need your consent to process facial biometric data.",
+    "contexts": {
+      "chromatic_camera": "Color Camera",
+      "tryon_avatar": "Virtual Try-On",
+      "onboarding": "Initial Setup"
+    },
+    "faceCapture": "Face Capture",
+    "faceCaptureDesc": "Your image will be captured by the camera for color analysis or avatar creation.",
+    "securityCheck": "Security Check",
+    "securityCheckDesc": "We verify facial movements (blinking, head turning) to ensure it's a real person, not a photo.",
+    "faceComparison": "Face Comparison",
+    "faceComparisonDesc": "We compare your image with your reference selfie to verify identity and prevent misuse.",
+    "dataSecurity": "Data Security",
+    "dataSecurityDesc": "Processing is done locally on your device. No biometric data is shared with third parties. You can revoke this consent at any time in settings.",
+    "agreeLabel": "I have read and agree to the processing of my facial biometric data as described above.",
+    "termVersion": "Term version: {{version}}",
+    "decline": "Decline",
+    "acceptAndContinue": "Accept and Continue"
+  },
+  "faceMatch": {
+    "notRecognized": "Person not recognized",
+    "notMatchDescription": "The person in the photo does not match your profile. Use a photo of yourself for the virtual try-on."
+  }
 }
