@@ -193,7 +193,7 @@ export function TryOnCanvas({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex flex-col items-center justify-center py-20"
+              className="flex flex-col items-center justify-center py-20 px-6"
             >
               <motion.div
                 animate={{
@@ -209,9 +209,18 @@ export function TryOnCanvas({
               >
                 <Sparkles className="w-8 h-8 text-primary-foreground" />
               </motion.div>
-              <p className="text-sm font-medium text-foreground">{t('canvas.processing')}</p>
-              <p className="text-xs text-muted-foreground mt-1">{t('canvas.processingTime')}</p>
-              <p className="text-xs text-muted-foreground mt-3 max-w-[200px] text-center">
+              
+              <div className="w-full max-w-[240px] space-y-3">
+                <Progress value={getProgressInfo(elapsedSeconds).progress} className="h-2" />
+                <p className="text-sm font-medium text-foreground text-center">
+                  {getProgressInfo(elapsedSeconds).text}
+                </p>
+                <p className="text-xs text-muted-foreground text-center">
+                  {elapsedSeconds}s • {t('canvas.processingTime')}
+                </p>
+              </div>
+              
+              <p className="text-xs text-muted-foreground mt-4 max-w-[200px] text-center">
                 {t('canvas.aiAnalyzing')}
               </p>
             </motion.div>
