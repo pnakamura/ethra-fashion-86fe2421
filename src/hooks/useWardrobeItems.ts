@@ -45,16 +45,7 @@ export function useWardrobeItems(options: UseWardrobeItemsOptions = {}) {
         return [];
       }
       
-      // Filter out items with corrupted base64 image_url (should be storage URLs)
-      const validItems = (data || []).filter(item => {
-        if (item.image_url?.startsWith('data:')) {
-          console.warn(`Wardrobe item ${item.id} has base64 image_url, skipping`);
-          return false;
-        }
-        return true;
-      });
-      
-      return validItems;
+      return data || [];
     },
     enabled: !!user && enabled,
     staleTime: 1000 * 60 * 3, // 3 minutes
@@ -123,7 +114,7 @@ export function usePrefetchWardrobeItems() {
           .select('id, user_id, image_url, name, category, color_code, chromatic_compatibility, dominant_colors, is_favorite, is_capsule, last_worn, occasion, season_tag, created_at')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
-        return (data || []).filter(item => !item.image_url?.startsWith('data:'));
+        return data || [];
       },
       staleTime: 1000 * 60 * 3,
     });
