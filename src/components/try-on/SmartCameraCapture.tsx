@@ -393,8 +393,11 @@ export function SmartCameraCapture({
 
         <Button
           onClick={handleCapture}
-          disabled={!isReady || isCapturing || (analysis && !analysis.isReady)}
-          className="w-full gradient-primary text-primary-foreground h-14 text-lg"
+          disabled={!isReady || isCapturing}
+          className={cn(
+            "w-full h-14 text-lg",
+            analysis?.isReady ? "gradient-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
+          )}
         >
           {isCapturing ? (
             <>
@@ -404,7 +407,7 @@ export function SmartCameraCapture({
           ) : (
             <>
               <Camera className="w-5 h-5 mr-2" />
-              {analysis?.isReady ? t('smartCamera.capturePhoto') : t('smartCamera.waitMinQuality')}
+              {analysis?.isReady ? t('smartCamera.capturePhoto') : t('smartCamera.captureAnyway', 'Capturar mesmo assim')}
             </>
           )}
         </Button>

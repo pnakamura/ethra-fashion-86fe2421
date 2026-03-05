@@ -17,7 +17,7 @@ export interface CameraAnalysis {
   tips: string[];
 }
 
-const QUALITY_THRESHOLD = 65;
+const QUALITY_THRESHOLD = 40;
 
 export function useSmartCamera() {
   const [analysis, setAnalysis] = useState<CameraAnalysis | null>(null);
@@ -149,9 +149,9 @@ export function useSmartCamera() {
     const score = Math.max(0, Math.min(100, 100 - variance * 1.5));
     
     let status: 'simple' | 'moderate' | 'complex';
-    if (variance < 25) {
+    if (variance < 35) {
       status = 'simple';
-    } else if (variance < 50) {
+    } else if (variance < 65) {
       status = 'moderate';
     } else {
       status = 'complex';
@@ -282,9 +282,9 @@ export function useSmartCamera() {
       const position = analyzeBodyPosition(imageData);
 
       const overallScore = Math.round(
-        lighting.score * 0.35 +
-        background.score * 0.30 +
-        position.score * 0.35
+        lighting.score * 0.40 +
+        background.score * 0.15 +
+        position.score * 0.45
       );
 
       const tips = generateTips(lighting, background, position);

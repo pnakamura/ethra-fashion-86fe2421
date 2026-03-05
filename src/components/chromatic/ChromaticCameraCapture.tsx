@@ -52,7 +52,7 @@ export function ChromaticCameraCapture({
   const mediapipeFaceDetectedRef = useRef(false);
   mediapipeFaceDetectedRef.current = liveness.faceDetected;
 
-  const QUALITY_THRESHOLD = 60;
+  const QUALITY_THRESHOLD = 40;
   const livenessBlocking = livenessEnabled && !liveness.isLive && !liveness.timeoutReached;
   const canCapture = isReady && !isCapturing && !livenessBlocking;
 
@@ -105,7 +105,7 @@ export function ChromaticCameraCapture({
 
     const avgBrightness = totalBrightness / totalPixels;
     const skinRatio = skinPixelCount / totalPixels;
-    const faceDetected = mediapipeFaceDetectedRef.current || skinRatio >= 0.15;
+    const faceDetected = mediapipeFaceDetectedRef.current || skinRatio >= 0.05;
 
     let lighting: 'good' | 'low' | 'overexposed';
     let lightingScore: number;
