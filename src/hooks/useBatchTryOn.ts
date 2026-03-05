@@ -327,9 +327,8 @@ export function useBatchTryOn() {
         // Individual mode
         await startIndividualTryOn(pieces, avatarImageUrl, avatarId, lookName);
         
-        // Summary toast for individual mode
-        const finalState = state;
-        const completedCount = finalState.results.filter((r) => r.status === 'completed').length + 1;
+        // Summary toast using ref for fresh state
+        const completedCount = resultsRef.current.filter((r) => r.status === 'completed').length;
         const failedCount = pieces.length - completedCount;
 
         if (failedCount === 0) {
