@@ -340,7 +340,7 @@ export function ColorAnalysis({
   }
 
   if (showCamera) {
-    return <ChromaticCameraCapture onCapture={handleCameraCapture} onCancel={() => setShowCamera(false)} />;
+    return <ChromaticCameraCapture onCapture={handleCameraCapture} onCancel={() => setShowCamera(false)} onUploadFallback={() => { setShowCamera(false); requestUploadWithConsent(); }} />;
   }
 
   return (
