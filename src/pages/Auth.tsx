@@ -32,6 +32,7 @@ export default function Auth() {
   const quizData = (location.state as { quizData?: QuizData })?.quizData;
   
   const [isLogin, setIsLogin] = useState(mode !== 'signup');
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -39,7 +40,7 @@ export default function Auth() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [showConsentErrors, setShowConsentErrors] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, resetPassword } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
