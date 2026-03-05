@@ -11,6 +11,10 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
+// Module-level flag to prevent Landing redirect during signup flow
+let signupInProgress = false;
+export const isSignupInProgress = () => signupInProgress;
+
 export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
   const { t } = useTranslation('landing');
   const [name, setName] = useState('');

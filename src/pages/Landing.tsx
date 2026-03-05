@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { BetaHero } from '@/components/landing/BetaHero';
 import { DemoSection } from '@/components/landing/DemoSection';
-import { TesterSignupForm } from '@/components/landing/TesterSignupForm';
+import { TesterSignupForm, isSignupInProgress } from '@/components/landing/TesterSignupForm';
 import { Footer } from '@/components/landing/Footer';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { useTranslation } from 'react-i18next';
