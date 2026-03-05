@@ -41,6 +41,7 @@ export function useBatchTryOn() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const cancelledRef = useRef(false);
+  const resultsRef = useRef<BatchResult[]>([]);
   
   const [state, setState] = useState<BatchTryOnState>({
     isRunning: false,
