@@ -163,7 +163,7 @@ export default function Canvas() {
   };
 
   // Handle sharing a look
-  const handleShareLook = (outfit: Outfit, outfitItems: WardrobeItem[]) => {
+  const handleShareLook = (outfit: Outfit, outfitItems: CanvasWardrobeItem[]) => {
     setShareOutfit({ outfit, items: outfitItems });
   };
 
