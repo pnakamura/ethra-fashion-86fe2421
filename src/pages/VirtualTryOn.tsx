@@ -60,6 +60,7 @@ export default function VirtualTryOn() {
   const { t } = useTranslation('tryOn');
   const { user } = useAuth();
   const { profile } = useProfile();
+  const { isAdmin } = useAdmin();
   const navigate = useNavigate();
   const [selectedGarment, setSelectedGarment] = useState<SelectedGarment | null>(null);
   
