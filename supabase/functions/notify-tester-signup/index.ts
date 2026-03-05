@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
 
     const username = profile?.username ?? 'Não informado';
 
-    // Log the notification
+    // Log the notification in the database
     await supabase.from('tester_notifications').insert({
       user_id,
       email: userEmail,
@@ -56,48 +56,7 @@ Deno.serve(async (req) => {
       notification_status: 'logged',
     });
 
-    // Try to send email via Resend if key is available
-    const resendKey = Deno.env.get('RESEND_API_KEY');
-    if (resendKey) {
-      const htmlBody = `
-        <h2>🎉 Novo Beta Tester no Ethra!</h2>
-        <p><strong>Email:</strong> ${userEmail}</p>
-        <p><strong>Nome:</strong> ${username}</p>
-        <p><strong>Data:</strong> ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</p>
-        <hr />
-        <p style="color: #888; font-size: 12px;">Notificação automática do Ethra</p>
-      `;
-
-      for (const adminEmail of ADMIN_EMAILS) {
-        try {
-          await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${resendKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              from: 'Ethra <noreply@ethra.com.br>',
-              to: [adminEmail],
-              subject: `🆕 Novo Beta Tester: ${userEmail}`,
-              html: htmlBody,
-            }),
-          });
-        } catch (emailErr) {
-          console.error(`Failed to send to ${adminEmail}:`, emailErr);
-        }
-      }
-
-      // Update notification status
-      await supabase
-        .from('tester_notifications')
-        .update({ notification_status: 'sent' })
-        .eq('user_id', user_id)
-        .order('notified_at', { ascending: false })
-        .limit(1);
-    } else {
-      console.log(`[TESTER SIGNUP] No RESEND_API_KEY. Logged notification for ${userEmail} (${username})`);
-    }
+    console.log(`[TESTER SIGNUP] Registered: ${userEmail} (${username})`);
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
