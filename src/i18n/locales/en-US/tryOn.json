@@ -215,7 +215,8 @@
     "notDetected": "Not detected",
     "faceBlurActive": "Face blur active",
     "capturePhoto": "Capture Photo",
-    "waitMinQuality": "Wait for minimum quality"
+    "waitMinQuality": "Wait for minimum quality",
+    "captureAnyway": "Capture anyway"
   },
   "privacySettings": {
     "title": "Your Privacy",
