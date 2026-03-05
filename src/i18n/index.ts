@@ -1,6 +1,7 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
+import { detectLocaleByIP } from '@/lib/detect-locale-by-ip';
 
 // PT-BR translations
 import commonPtBR from './locales/pt-BR/common.json';
@@ -40,8 +41,28 @@ import canvasEnUS from './locales/en-US/canvas.json';
 import privacyEnUS from './locales/en-US/privacy.json';
 import onboardingEnUS from './locales/en-US/onboarding.json';
 
+// Custom IP geolocation detector for i18next
+const ipGeoDetector = {
+  name: 'ipGeo',
+  async: true,
+  detect(callback: (lng: string | readonly string[] | undefined) => void) {
+    detectLocaleByIP().then((locale) => {
+      callback(locale || undefined);
+    });
+  },
+  lookup() {
+    return undefined;
+  },
+  cacheUserLanguage() {
+    // caching handled by localStorage detector
+  },
+};
+
+const languageDetector = new LanguageDetector();
+languageDetector.addDetector(ipGeoDetector);
+
 i18n
-  .use(LanguageDetector)
+  .use(languageDetector)
   .use(initReactI18next)
   .init({
     resources: {
@@ -92,7 +113,7 @@ i18n
       escapeValue: false,
     },
     detection: {
-      order: ['localStorage', 'navigator'],
+      order: ['localStorage', 'ipGeo', 'navigator'],
       lookupLocalStorage: 'ethra-locale',
       caches: ['localStorage'],
     },
