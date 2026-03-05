@@ -2,18 +2,20 @@ import { Shield, Eye, ScanFace, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
+import { useTranslation } from 'react-i18next';
 
 export function FeatureFlagsSettings() {
   const { flags, isLoading, toggleFlag, isToggling } = useFeatureFlags();
+  const { t } = useTranslation('chromatic');
 
   const flagConfig: Record<string, { icon: React.ReactNode; label: string }> = {
     liveness_detection: {
       icon: <Eye className="w-5 h-5 text-primary" />,
-      label: 'Prova de Vida',
+      label: t('admin.livenessDetection'),
     },
     face_matching: {
       icon: <ScanFace className="w-5 h-5 text-primary" />,
-      label: 'Face Matching',
+      label: t('admin.faceMatching'),
     },
   };
 
@@ -31,7 +33,7 @@ export function FeatureFlagsSettings() {
     <Card className="p-6">
       <div className="flex items-center gap-3 mb-6">
         <Shield className="w-5 h-5 text-primary" />
-        <h3 className="font-semibold">Segurança Biométrica</h3>
+        <h3 className="font-semibold">{t('admin.biometricSecurity')}</h3>
       </div>
 
       <div className="space-y-4">

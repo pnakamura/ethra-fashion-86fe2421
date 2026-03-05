@@ -1,9 +1,11 @@
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { useProfile } from '@/hooks/useProfile';
+import { useTranslation } from 'react-i18next';
 
 export function useBiometricStatus() {
   const { isEnabled } = useFeatureFlags();
   const { hasBiometricConsent, hasFaceReference } = useProfile();
+  const { t } = useTranslation('chromatic');
 
   const livenessActive = isEnabled('liveness_detection');
   const faceMatchActive = isEnabled('face_matching');
@@ -13,10 +15,10 @@ export function useBiometricStatus() {
 
   const pendingActions: string[] = [];
   if (needsConsent) {
-    pendingActions.push('Consentir uso de dados biométricos');
+    pendingActions.push(t('biometricAlert.consent'));
   }
   if (needsReference) {
-    pendingActions.push('Registrar foto de referência facial');
+    pendingActions.push(t('biometricAlert.faceReference'));
   }
 
   const isFullyCompliant = !needsConsent && !needsReference;

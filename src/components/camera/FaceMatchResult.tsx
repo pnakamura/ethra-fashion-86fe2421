@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
-import { ShieldAlert, ShieldCheck, RotateCcw } from 'lucide-react';
+import { ShieldAlert, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 
 interface FaceMatchResultProps {
   match: boolean;
@@ -9,6 +10,8 @@ interface FaceMatchResultProps {
 }
 
 export function FaceMatchResult({ match, onRetry, onCancel }: FaceMatchResultProps) {
+  const { t } = useTranslation('chromatic');
+
   if (match) return null;
 
   return (
@@ -22,19 +25,19 @@ export function FaceMatchResult({ match, onRetry, onCancel }: FaceMatchResultPro
       </div>
 
       <h3 className="font-display text-lg font-semibold mb-2">
-        Pessoa não reconhecida
+        {t('faceMatch.notRecognized')}
       </h3>
       <p className="text-sm text-muted-foreground mb-6 max-w-xs mx-auto">
-        A pessoa na foto não corresponde ao seu perfil. Use uma foto sua para o provador virtual.
+        {t('faceMatch.notMatchDescription')}
       </p>
 
       <div className="flex gap-3 justify-center">
         <Button onClick={onRetry} className="gradient-primary text-primary-foreground">
           <RotateCcw className="w-4 h-4 mr-2" />
-          Tentar novamente
+          {t('camera.tryAgain')}
         </Button>
         <Button variant="outline" onClick={onCancel}>
-          Cancelar
+          {t('camera.cancel')}
         </Button>
       </div>
     </motion.div>
