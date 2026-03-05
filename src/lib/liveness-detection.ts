@@ -226,7 +226,7 @@ export class LivenessDetector {
     // After drop, detect recovery (eyes opening again)
     if (this.blinkDetected && currentDrop < BLINK_DROP_PCT * 0.5) {
       this.confirmedAlive = true;
-      return this.result('alive', 100, 'Prova de vida confirmada');
+      return this.result('alive', 100, 'Liveness confirmed');
     }
 
     if (this.blinkDetected) {
