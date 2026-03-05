@@ -87,7 +87,7 @@ i18n
     fallbackLng: 'pt-BR',
     supportedLngs: ['pt-BR', 'en-US'],
     defaultNS: 'common',
-    ns: ['common', 'legal', 'settings', 'dashboard', 'auth', 'wardrobe', 'recommendations', 'chromatic', 'tryOn', 'events', 'voyager', 'landing', 'quiz', 'subscription', 'canvas', 'privacy'],
+    ns: ['common', 'legal', 'settings', 'dashboard', 'auth', 'wardrobe', 'recommendations', 'chromatic', 'tryOn', 'events', 'voyager', 'landing', 'quiz', 'subscription', 'canvas', 'privacy', 'onboarding'],
     interpolation: {
       escapeValue: false,
     },
