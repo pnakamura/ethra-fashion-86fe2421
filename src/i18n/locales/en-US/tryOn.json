@@ -52,6 +52,11 @@
   "canvas": {
     "processing": "Processing virtual try-on...",
     "processingTime": "⏱️ Usually takes 15-30 seconds",
+    "connectingModel": "Connecting to model...",
+    "analyzingImage": "Analyzing image...",
+    "generatingResult": "Generating result...",
+    "almostReady": "Almost ready...",
+    "finalizing": "Finalizing...",
     "aiAnalyzing": "AI is analyzing proportions and fitting the garment to your body.",
     "optimizingImage": "Optimizing image...",
     "selectPiece": "Select a piece to try on",

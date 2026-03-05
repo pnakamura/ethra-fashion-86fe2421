@@ -52,6 +52,11 @@
   "canvas": {
     "processing": "Processando prova virtual...",
     "processingTime": "⏱️ Geralmente leva 15-30 segundos",
+    "connectingModel": "Conectando ao modelo...",
+    "analyzingImage": "Analisando imagem...",
+    "generatingResult": "Gerando resultado...",
+    "almostReady": "Quase pronto...",
+    "finalizing": "Finalizando...",
     "aiAnalyzing": "A IA está analisando proporções e ajustando a peça ao seu corpo.",
     "optimizingImage": "Otimizando imagem...",
     "selectPiece": "Selecione uma peça para provar",
