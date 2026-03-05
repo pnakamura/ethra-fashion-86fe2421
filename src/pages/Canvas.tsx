@@ -16,7 +16,7 @@ import { generateLookThumbnail } from '@/lib/look-image-generator';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { useTranslation } from 'react-i18next';
 
-interface WardrobeItem {
+interface CanvasWardrobeItem {
   id: string;
   image_url: string;
   category: string;
