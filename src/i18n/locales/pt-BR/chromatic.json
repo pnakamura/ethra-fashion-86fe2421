@@ -319,5 +319,14 @@
   "faceMatch": {
     "notRecognized": "Pessoa não reconhecida",
     "notMatchDescription": "A pessoa na foto não corresponde ao seu perfil. Use uma foto sua para o provador virtual."
+  },
+  "errors": {
+    "connectionFailed": "Não foi possível conectar ao servidor. Verifique sua internet e tente novamente.",
+    "serverError": "O servidor está ocupado. Aguarde alguns segundos e tente novamente.",
+    "generic": "Erro ao analisar imagem. Tente com outra foto.",
+    "noImageToRetry": "Nenhuma imagem para tentar novamente",
+    "loginToSave": "Faça login para salvar",
+    "paletteSaved": "Sua paleta foi salva!",
+    "saveError": "Erro ao salvar"
   }
 }
