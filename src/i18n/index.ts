@@ -19,6 +19,7 @@ import quizPtBR from './locales/pt-BR/quiz.json';
 import subscriptionPtBR from './locales/pt-BR/subscription.json';
 import canvasPtBR from './locales/pt-BR/canvas.json';
 import privacyPtBR from './locales/pt-BR/privacy.json';
+import onboardingPtBR from './locales/pt-BR/onboarding.json';
 
 // EN-US translations
 import commonEnUS from './locales/en-US/common.json';
@@ -37,6 +38,7 @@ import quizEnUS from './locales/en-US/quiz.json';
 import subscriptionEnUS from './locales/en-US/subscription.json';
 import canvasEnUS from './locales/en-US/canvas.json';
 import privacyEnUS from './locales/en-US/privacy.json';
+import onboardingEnUS from './locales/en-US/onboarding.json';
 
 i18n
   .use(LanguageDetector)
@@ -60,6 +62,7 @@ i18n
         subscription: subscriptionPtBR,
         canvas: canvasPtBR,
         privacy: privacyPtBR,
+        onboarding: onboardingPtBR,
       },
       'en-US': {
         common: commonEnUS,
@@ -78,12 +81,13 @@ i18n
         subscription: subscriptionEnUS,
         canvas: canvasEnUS,
         privacy: privacyEnUS,
+        onboarding: onboardingEnUS,
       },
     },
     fallbackLng: 'pt-BR',
     supportedLngs: ['pt-BR', 'en-US'],
     defaultNS: 'common',
-    ns: ['common', 'legal', 'settings', 'dashboard', 'auth', 'wardrobe', 'recommendations', 'chromatic', 'tryOn', 'events', 'voyager', 'landing', 'quiz', 'subscription', 'canvas', 'privacy'],
+    ns: ['common', 'legal', 'settings', 'dashboard', 'auth', 'wardrobe', 'recommendations', 'chromatic', 'tryOn', 'events', 'voyager', 'landing', 'quiz', 'subscription', 'canvas', 'privacy', 'onboarding'],
     interpolation: {
       escapeValue: false,
     },

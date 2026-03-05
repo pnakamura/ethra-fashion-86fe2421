@@ -1,0 +1,68 @@
+{
+  "welcome": {
+    "title1": "Bem-vindo(a) ao",
+    "title2": "Ethra",
+    "subtitle": "O estilo perfeito começa com autoconhecimento",
+    "cta": "Vamos começar ✨"
+  },
+  "name": {
+    "title": "Antes de tudo...",
+    "subtitle": "Como podemos te chamar?",
+    "placeholder": "Seu nome",
+    "cta": "Continuar"
+  },
+  "style": {
+    "title1": "Como você descreveria",
+    "title2": "seu estilo?",
+    "subtitle": "Selecione um ou mais estilos que te representam",
+    "cta": "Continuar",
+    "classico": "Clássico",
+    "classicoDesc": "Elegância atemporal",
+    "minimalista": "Minimalista",
+    "minimalistaDesc": "Menos é mais",
+    "romantico": "Romântico",
+    "romanticoDesc": "Delicado e feminino",
+    "ousado": "Ousado",
+    "ousadoDesc": "Impactante e único",
+    "urbano": "Urbano",
+    "urbanoDesc": "Moderno e versátil",
+    "natural": "Natural",
+    "naturalDesc": "Confortável e orgânico",
+    "criativo": "Criativo",
+    "criativoDesc": "Expressivo e artístico"
+  },
+  "painPoints": {
+    "title1": "O que mais te desafia",
+    "title2": "ao se vestir?",
+    "subtitle": "Todos temos desafios. Selecione os seus.",
+    "cta": "Continuar",
+    "cores": "Não sei combinar cores",
+    "organizacao": "Meu closet é bagunçado",
+    "ocasioes": "Não sei o que vestir para eventos",
+    "compras": "Compro mas não uso",
+    "viagens": "Malas de viagem são um caos"
+  },
+  "colorTeaser": {
+    "title1": "Vamos descobrir",
+    "title2": "suas cores!",
+    "subtitle": "Seu tom de pele e olhos têm cores que te valorizam mais.",
+    "aiHint": "Nossa IA analisa sua foto e revela sua paleta perfeita em segundos.",
+    "doLater": "Descobrir depois",
+    "doNow": "Analisar agora ✨",
+    "saveLater": "Salvar depois",
+    "back": "← Voltar"
+  },
+  "complete": {
+    "title": "Tudo pronto,",
+    "profileBonus": "+10 pontos por completar seu perfil!",
+    "missionsIntro": "Complete missões para ganhar pontos e desbloquear conquistas:",
+    "feature1": "Organize seu closet digital",
+    "feature2": "Prove roupas virtualmente",
+    "feature3": "Descubra sua paleta de cores",
+    "feature4": "Monte malas inteligentes",
+    "cta": "Explorar o Ethra",
+    "ctaLoading": "Preparando...",
+    "defaultName": "Querido(a)"
+  },
+  "seoTitle": "Boas-vindas — Ethra Fashion"
+}

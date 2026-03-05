@@ -6,11 +6,13 @@ import { DemoSection } from '@/components/landing/DemoSection';
 import { TesterSignupForm } from '@/components/landing/TesterSignupForm';
 import { Footer } from '@/components/landing/Footer';
 import { SEOHead } from '@/components/seo/SEOHead';
+import { useTranslation } from 'react-i18next';
 
 export default function Landing() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const signupRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation('common');
 
   useEffect(() => {
     if (!loading && user) {
@@ -23,7 +25,7 @@ export default function Landing() {
       <div className="min-h-screen flex items-center justify-center gradient-soft">
         <div className="text-center">
           <div className="w-12 h-12 rounded-full gradient-primary animate-pulse mx-auto mb-4" />
-          <p className="text-muted-foreground">Carregando...</p>
+          <p className="text-muted-foreground">{t('actions.loading')}</p>
         </div>
       </div>
     );

@@ -9,13 +9,14 @@ import { NameInput } from '@/components/onboarding/NameInput';
 import { StyleSelector } from '@/components/onboarding/StyleSelector';
 import { PainPointSelector } from '@/components/onboarding/PainPointSelector';
 import { ColorTeaser } from '@/components/onboarding/ColorTeaser';
-
 import { WelcomeComplete } from '@/components/onboarding/WelcomeComplete';
 import { SEOHead } from '@/components/seo/SEOHead';
+import { useTranslation } from 'react-i18next';
 
 export default function Onboarding() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation(['onboarding', 'common']);
   const {
     currentStep,
     data,
@@ -46,7 +47,7 @@ export default function Onboarding() {
       <div className="min-h-screen flex items-center justify-center gradient-soft">
         <div className="text-center">
           <div className="w-12 h-12 rounded-full gradient-primary animate-pulse mx-auto mb-4" />
-          <p className="text-muted-foreground">Carregando...</p>
+          <p className="text-muted-foreground">{t('common:actions.loading')}</p>
         </div>
       </div>
     );
@@ -119,7 +120,7 @@ export default function Onboarding() {
 
   return (
     <>
-    <SEOHead title="Boas-vindas — Ethra Fashion" />
+    <SEOHead title={t('onboarding:seoTitle')} />
     <OnboardingStep
       progress={progress}
       showBack={showBack}

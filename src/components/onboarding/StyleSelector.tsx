@@ -2,15 +2,16 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Crown, Minimize2, Sparkles, Heart, Zap, Leaf, Palette } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 const archetypes = [
-  { id: 'classico', label: 'Clássico', icon: Crown, description: 'Elegância atemporal' },
-  { id: 'minimalista', label: 'Minimalista', icon: Minimize2, description: 'Menos é mais' },
-  { id: 'romantico', label: 'Romântico', icon: Heart, description: 'Delicado e feminino' },
-  { id: 'ousado', label: 'Ousado', icon: Sparkles, description: 'Impactante e único' },
-  { id: 'urbano', label: 'Urbano', icon: Zap, description: 'Moderno e versátil' },
-  { id: 'natural', label: 'Natural', icon: Leaf, description: 'Confortável e orgânico' },
-  { id: 'criativo', label: 'Criativo', icon: Palette, description: 'Expressivo e artístico' },
+  { id: 'classico', labelKey: 'style.classico', descKey: 'style.classicoDesc', icon: Crown },
+  { id: 'minimalista', labelKey: 'style.minimalista', descKey: 'style.minimalistaDesc', icon: Minimize2 },
+  { id: 'romantico', labelKey: 'style.romantico', descKey: 'style.romanticoDesc', icon: Heart },
+  { id: 'ousado', labelKey: 'style.ousado', descKey: 'style.ousadoDesc', icon: Sparkles },
+  { id: 'urbano', labelKey: 'style.urbano', descKey: 'style.urbanoDesc', icon: Zap },
+  { id: 'natural', labelKey: 'style.natural', descKey: 'style.naturalDesc', icon: Leaf },
+  { id: 'criativo', labelKey: 'style.criativo', descKey: 'style.criativoDesc', icon: Palette },
 ];
 
 interface StyleSelectorProps {
@@ -20,6 +21,8 @@ interface StyleSelectorProps {
 }
 
 export function StyleSelector({ selected, onSubmit, onContinue }: StyleSelectorProps) {
+  const { t } = useTranslation('onboarding');
+
   const toggleStyle = (id: string) => {
     if (selected.includes(id)) {
       onSubmit(selected.filter(s => s !== id));
@@ -35,9 +38,9 @@ export function StyleSelector({ selected, onSubmit, onContinue }: StyleSelectorP
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        Como você descreveria
+        {t('style.title1')}
         <br />
-        <span className="text-gradient">seu estilo?</span>
+        <span className="text-gradient">{t('style.title2')}</span>
       </motion.h2>
 
       <motion.p
@@ -46,7 +49,7 @@ export function StyleSelector({ selected, onSubmit, onContinue }: StyleSelectorP
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        Selecione um ou mais estilos que te representam
+        {t('style.subtitle')}
       </motion.p>
 
       <motion.div
@@ -78,8 +81,8 @@ export function StyleSelector({ selected, onSubmit, onContinue }: StyleSelectorP
                   isSelected ? "text-primary" : "text-muted-foreground"
                 )} 
               />
-              <h3 className="font-display font-semibold mb-1">{archetype.label}</h3>
-              <p className="text-xs text-muted-foreground">{archetype.description}</p>
+              <h3 className="font-display font-semibold mb-1">{t(archetype.labelKey)}</h3>
+              <p className="text-xs text-muted-foreground">{t(archetype.descKey)}</p>
               
               {isSelected && (
                 <motion.div
@@ -107,7 +110,7 @@ export function StyleSelector({ selected, onSubmit, onContinue }: StyleSelectorP
           disabled={selected.length === 0}
           onClick={onContinue}
         >
-          Continuar
+          {t('style.cta')}
         </Button>
       </motion.div>
     </div>

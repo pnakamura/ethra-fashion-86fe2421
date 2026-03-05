@@ -1,4 +1,5 @@
 {
+  "seoTitle": "Assinatura — Ethra Fashion",
   "title": "Assinatura",
   "back": "Voltar",
   "home": "Início",
@@ -30,5 +31,15 @@
   "faq4q": "Qual a diferença entre os planos?",
   "faq4a": "A principal diferença é a quantidade de peças no closet, provas virtuais por dia e acesso a recursos premium como Voyager e VIP Looks. Veja a tabela comparativa acima.",
   "faq5q": "Posso trocar de plano depois?",
-  "faq5a": "Sim! Você pode fazer upgrade ou downgrade a qualquer momento. A mudança é imediata e o valor é ajustado proporcionalmente."
+  "faq5a": "Sim! Você pode fazer upgrade ou downgrade a qualquer momento. A mudança é imediata e o valor é ajustado proporcionalmente.",
+
+  "fallback": {
+    "freeDesc": "Para começar sua jornada",
+    "trendsetterDesc": "Para quem quer mais",
+    "iconDesc": "A experiência completa",
+    "museDesc": "O melhor do Ethra",
+    "avatars": "Avatares",
+    "wardrobeSlots": "Peças no Closet",
+    "tryOnDaily": "Provas por dia"
+  }
 }

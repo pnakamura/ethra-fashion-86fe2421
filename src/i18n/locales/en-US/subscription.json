@@ -1,4 +1,5 @@
 {
+  "seoTitle": "Subscription — Ethra Fashion",
   "title": "Subscription",
   "back": "Back",
   "home": "Home",
@@ -45,5 +46,15 @@
 
   "usage": {
     "unlimited": "Unlimited"
+  },
+
+  "fallback": {
+    "freeDesc": "To start your journey",
+    "trendsetterDesc": "For those who want more",
+    "iconDesc": "The complete experience",
+    "museDesc": "The best of Ethra",
+    "avatars": "Avatars",
+    "wardrobeSlots": "Closet items",
+    "tryOnDaily": "Try-ons per day"
   }
 }

@@ -17,32 +17,32 @@ import { SEOHead } from '@/components/seo/SEOHead';
 import { useTranslation } from 'react-i18next';
 
 // Static fallback data for when DB returns empty
-const FALLBACK_PLANS = [
-  { id: 'free', display_name: 'Iniciante', description: 'Para começar sua jornada', price_monthly: 0, price_yearly: 0, badge_color: '#6B7280', is_active: true, sort_order: 1 },
-  { id: 'trendsetter', display_name: 'Trendsetter', description: 'Para quem quer mais', price_monthly: 29.90, price_yearly: 299, badge_color: '#8B5CF6', is_active: true, sort_order: 2 },
-  { id: 'icon', display_name: 'Icon', description: 'A experiência completa', price_monthly: 59.90, price_yearly: 599, badge_color: '#F59E0B', is_active: true, sort_order: 3 },
-  { id: 'muse', display_name: 'Muse', description: 'O melhor do Ethra', price_monthly: 99.90, price_yearly: 999, badge_color: '#EC4899', is_active: true, sort_order: 4 },
+const getFallbackPlans = (t: (key: string) => string) => [
+  { id: 'free', display_name: 'Iniciante', description: t('fallback.freeDesc'), price_monthly: 0, price_yearly: 0, badge_color: '#6B7280', is_active: true, sort_order: 1 },
+  { id: 'trendsetter', display_name: 'Trendsetter', description: t('fallback.trendsetterDesc'), price_monthly: 29.90, price_yearly: 299, badge_color: '#8B5CF6', is_active: true, sort_order: 2 },
+  { id: 'icon', display_name: 'Icon', description: t('fallback.iconDesc'), price_monthly: 59.90, price_yearly: 599, badge_color: '#F59E0B', is_active: true, sort_order: 3 },
+  { id: 'muse', display_name: 'Muse', description: t('fallback.museDesc'), price_monthly: 99.90, price_yearly: 999, badge_color: '#EC4899', is_active: true, sort_order: 4 },
 ];
 
-const FALLBACK_LIMITS: PlanLimit[] = [
-  { id: 'f1', plan_id: 'free', feature_key: 'avatars', limit_type: 'count', limit_value: 1, feature_display_name: 'Avatares' },
-  { id: 'f2', plan_id: 'free', feature_key: 'wardrobe_slots', limit_type: 'count', limit_value: 10, feature_display_name: 'Peças no Closet' },
-  { id: 'f3', plan_id: 'free', feature_key: 'try_on_daily', limit_type: 'count', limit_value: 3, feature_display_name: 'Provas por dia' },
+const getFallbackLimits = (t: (key: string) => string): PlanLimit[] => [
+  { id: 'f1', plan_id: 'free', feature_key: 'avatars', limit_type: 'count', limit_value: 1, feature_display_name: t('fallback.avatars') },
+  { id: 'f2', plan_id: 'free', feature_key: 'wardrobe_slots', limit_type: 'count', limit_value: 10, feature_display_name: t('fallback.wardrobeSlots') },
+  { id: 'f3', plan_id: 'free', feature_key: 'try_on_daily', limit_type: 'count', limit_value: 3, feature_display_name: t('fallback.tryOnDaily') },
   { id: 'f4', plan_id: 'free', feature_key: 'trips', limit_type: 'boolean', limit_value: 0, feature_display_name: 'Voyager' },
   { id: 'f5', plan_id: 'free', feature_key: 'vip_looks', limit_type: 'boolean', limit_value: 0, feature_display_name: 'VIP Looks' },
-  { id: 't1', plan_id: 'trendsetter', feature_key: 'avatars', limit_type: 'count', limit_value: 3, feature_display_name: 'Avatares' },
-  { id: 't2', plan_id: 'trendsetter', feature_key: 'wardrobe_slots', limit_type: 'count', limit_value: 50, feature_display_name: 'Peças no Closet' },
-  { id: 't3', plan_id: 'trendsetter', feature_key: 'try_on_daily', limit_type: 'count', limit_value: 10, feature_display_name: 'Provas por dia' },
+  { id: 't1', plan_id: 'trendsetter', feature_key: 'avatars', limit_type: 'count', limit_value: 3, feature_display_name: t('fallback.avatars') },
+  { id: 't2', plan_id: 'trendsetter', feature_key: 'wardrobe_slots', limit_type: 'count', limit_value: 50, feature_display_name: t('fallback.wardrobeSlots') },
+  { id: 't3', plan_id: 'trendsetter', feature_key: 'try_on_daily', limit_type: 'count', limit_value: 10, feature_display_name: t('fallback.tryOnDaily') },
   { id: 't4', plan_id: 'trendsetter', feature_key: 'trips', limit_type: 'boolean', limit_value: 0, feature_display_name: 'Voyager' },
   { id: 't5', plan_id: 'trendsetter', feature_key: 'vip_looks', limit_type: 'boolean', limit_value: 0, feature_display_name: 'VIP Looks' },
-  { id: 'i1', plan_id: 'icon', feature_key: 'avatars', limit_type: 'count', limit_value: -1, feature_display_name: 'Avatares' },
-  { id: 'i2', plan_id: 'icon', feature_key: 'wardrobe_slots', limit_type: 'count', limit_value: 200, feature_display_name: 'Peças no Closet' },
-  { id: 'i3', plan_id: 'icon', feature_key: 'try_on_daily', limit_type: 'count', limit_value: 30, feature_display_name: 'Provas por dia' },
+  { id: 'i1', plan_id: 'icon', feature_key: 'avatars', limit_type: 'count', limit_value: -1, feature_display_name: t('fallback.avatars') },
+  { id: 'i2', plan_id: 'icon', feature_key: 'wardrobe_slots', limit_type: 'count', limit_value: 200, feature_display_name: t('fallback.wardrobeSlots') },
+  { id: 'i3', plan_id: 'icon', feature_key: 'try_on_daily', limit_type: 'count', limit_value: 30, feature_display_name: t('fallback.tryOnDaily') },
   { id: 'i4', plan_id: 'icon', feature_key: 'trips', limit_type: 'boolean', limit_value: 1, feature_display_name: 'Voyager' },
   { id: 'i5', plan_id: 'icon', feature_key: 'vip_looks', limit_type: 'boolean', limit_value: 0, feature_display_name: 'VIP Looks' },
-  { id: 'm1', plan_id: 'muse', feature_key: 'avatars', limit_type: 'count', limit_value: -1, feature_display_name: 'Avatares' },
-  { id: 'm2', plan_id: 'muse', feature_key: 'wardrobe_slots', limit_type: 'count', limit_value: -1, feature_display_name: 'Peças no Closet' },
-  { id: 'm3', plan_id: 'muse', feature_key: 'try_on_daily', limit_type: 'count', limit_value: -1, feature_display_name: 'Provas por dia' },
+  { id: 'm1', plan_id: 'muse', feature_key: 'avatars', limit_type: 'count', limit_value: -1, feature_display_name: t('fallback.avatars') },
+  { id: 'm2', plan_id: 'muse', feature_key: 'wardrobe_slots', limit_type: 'count', limit_value: -1, feature_display_name: t('fallback.wardrobeSlots') },
+  { id: 'm3', plan_id: 'muse', feature_key: 'try_on_daily', limit_type: 'count', limit_value: -1, feature_display_name: t('fallback.tryOnDaily') },
   { id: 'm4', plan_id: 'muse', feature_key: 'trips', limit_type: 'boolean', limit_value: 1, feature_display_name: 'Voyager' },
   { id: 'm5', plan_id: 'muse', feature_key: 'vip_looks', limit_type: 'boolean', limit_value: 1, feature_display_name: 'VIP Looks' },
 ];
@@ -91,8 +91,8 @@ export default function Subscription() {
     },
   });
 
-  const allLimits = dbLimits.length > 0 ? dbLimits : FALLBACK_LIMITS;
-  const displayPlans = allPlans.length > 0 ? allPlans : FALLBACK_PLANS;
+  const allLimits = dbLimits.length > 0 ? dbLimits : getFallbackLimits(t);
+  const displayPlans = allPlans.length > 0 ? allPlans : getFallbackPlans(t);
 
   const getLimitsForPlan = (planId: string) => {
     return allLimits.filter((l) => l.plan_id === planId);
@@ -112,7 +112,7 @@ export default function Subscription() {
 
   return (
     <>
-      <SEOHead title="Assinatura — Ethra Fashion" />
+      <SEOHead title={t('seoTitle')} />
       <Header title={t('title')} />
       <PageContainer className="px-4 py-6">
         <div className="max-w-4xl mx-auto space-y-8">

@@ -1,0 +1,68 @@
+{
+  "welcome": {
+    "title1": "Welcome to",
+    "title2": "Ethra",
+    "subtitle": "Great style begins with self-knowledge",
+    "cta": "Let's get started ✨"
+  },
+  "name": {
+    "title": "First things first...",
+    "subtitle": "What should we call you?",
+    "placeholder": "Your name",
+    "cta": "Continue"
+  },
+  "style": {
+    "title1": "How would you describe",
+    "title2": "your style?",
+    "subtitle": "Select one or more styles that represent you",
+    "cta": "Continue",
+    "classico": "Classic",
+    "classicoDesc": "Timeless elegance",
+    "minimalista": "Minimalist",
+    "minimalistaDesc": "Less is more",
+    "romantico": "Romantic",
+    "romanticoDesc": "Delicate and feminine",
+    "ousado": "Bold",
+    "ousadoDesc": "Striking and unique",
+    "urbano": "Urban",
+    "urbanoDesc": "Modern and versatile",
+    "natural": "Natural",
+    "naturalDesc": "Comfortable and organic",
+    "criativo": "Creative",
+    "criativoDesc": "Expressive and artistic"
+  },
+  "painPoints": {
+    "title1": "What challenges you most",
+    "title2": "when getting dressed?",
+    "subtitle": "We all have challenges. Select yours.",
+    "cta": "Continue",
+    "cores": "I can't match colors",
+    "organizacao": "My closet is a mess",
+    "ocasioes": "I don't know what to wear to events",
+    "compras": "I buy but never wear",
+    "viagens": "Packing for trips is chaotic"
+  },
+  "colorTeaser": {
+    "title1": "Let's discover",
+    "title2": "your colors!",
+    "subtitle": "Your skin tone and eyes have colors that flatter you most.",
+    "aiHint": "Our AI analyzes your photo and reveals your perfect palette in seconds.",
+    "doLater": "Discover later",
+    "doNow": "Analyze now ✨",
+    "saveLater": "Save later",
+    "back": "← Back"
+  },
+  "complete": {
+    "title": "All set,",
+    "profileBonus": "+10 points for completing your profile!",
+    "missionsIntro": "Complete missions to earn points and unlock achievements:",
+    "feature1": "Organize your digital closet",
+    "feature2": "Try on clothes virtually",
+    "feature3": "Discover your color palette",
+    "feature4": "Build smart travel bags",
+    "cta": "Explore Ethra",
+    "ctaLoading": "Getting ready...",
+    "defaultName": "Dear"
+  },
+  "seoTitle": "Welcome — Ethra Fashion"
+}

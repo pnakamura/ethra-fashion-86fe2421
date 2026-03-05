@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useTranslation } from 'react-i18next';
 
 interface NameInputProps {
   value: string;
@@ -10,6 +11,7 @@ interface NameInputProps {
 
 export function NameInput({ value, onSubmit }: NameInputProps) {
   const [name, setName] = useState(value);
+  const { t } = useTranslation('onboarding');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +27,7 @@ export function NameInput({ value, onSubmit }: NameInputProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        Antes de tudo...
+        {t('name.title')}
       </motion.h2>
 
       <motion.p
@@ -34,7 +36,7 @@ export function NameInput({ value, onSubmit }: NameInputProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        Como podemos te chamar?
+        {t('name.subtitle')}
       </motion.p>
 
       <motion.form
@@ -46,7 +48,7 @@ export function NameInput({ value, onSubmit }: NameInputProps) {
       >
         <Input
           type="text"
-          placeholder="Seu nome"
+          placeholder={t('name.placeholder')}
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="text-center text-xl h-14 rounded-xl border-border/50 focus:border-primary"
@@ -59,7 +61,7 @@ export function NameInput({ value, onSubmit }: NameInputProps) {
           className="w-full text-lg py-6 gradient-primary text-primary-foreground shadow-glow"
           disabled={!name.trim()}
         >
-          Continuar
+          {t('name.cta')}
         </Button>
       </motion.form>
     </div>
