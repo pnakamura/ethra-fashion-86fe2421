@@ -347,7 +347,7 @@ export function useBatchTryOn() {
     // Finalize
     setState((prev) => ({ ...prev, isRunning: false }));
     queryClient.invalidateQueries({ queryKey: ['try-on-history'] });
-  }, [user, queryClient, state]);
+  }, [user, queryClient]);
 
   const cancelBatch = useCallback(() => {
     cancelledRef.current = true;
