@@ -142,7 +142,7 @@ function AdminDashboard() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4"
+          className="grid grid-cols-2 md:grid-cols-5 gap-4"
         >
           <StatCard icon={Users} label="Usuários" value={stats?.totalUsers || 0} />
           <StatCard icon={UserPlus} label="Testers" value={stats?.testers || 0} />
