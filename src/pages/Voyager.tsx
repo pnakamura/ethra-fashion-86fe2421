@@ -10,6 +10,7 @@ import { TripDetailSheet } from '@/components/voyager/TripDetailSheet';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useWardrobeItems } from '@/hooks/useWardrobeItems';
 import { useToast } from '@/hooks/use-toast';
 import { downloadPackingListPDF } from '@/lib/pdf-generator';
 import { openGoogleCalendar } from '@/lib/google-calendar';
@@ -65,19 +66,8 @@ export default function Voyager() {
     if (!authLoading && !user) navigate('/welcome');
   }, [authLoading, user, navigate]);
 
-  // Fetch wardrobe items
-  const { data: items = [] } = useQuery({
-    queryKey: ['wardrobe-items', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      const { data } = await supabase
-        .from('wardrobe_items')
-        .select('id, image_url, category, name')
-        .eq('user_id', user.id);
-      return data || [];
-    },
-    enabled: !!user,
-  });
+  // Use centralized wardrobe items hook
+  const { items } = useWardrobeItems();
 
   // Fetch trips
   const { data: trips = [] } = useQuery({

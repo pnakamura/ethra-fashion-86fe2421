@@ -7,15 +7,16 @@ import { LookCanvas } from '@/components/canvas/LookCanvas';
 import { SavedLooksGallery } from '@/components/looks/SavedLooksGallery';
 import { ShareLookModal } from '@/components/looks/ShareLookModal';
 import { useAuth } from '@/hooks/useAuth';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useWardrobeItems } from '@/hooks/useWardrobeItems';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { generateLookThumbnail } from '@/lib/look-image-generator';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { useTranslation } from 'react-i18next';
 
-interface WardrobeItem {
+interface CanvasWardrobeItem {
   id: string;
   image_url: string;
   category: string;
@@ -50,21 +51,11 @@ export default function Canvas() {
   
   const [activeTab, setActiveTab] = useState('create');
   const [preloadItems, setPreloadItems] = useState<{ id: string; image_url: string }[] | null>(null);
-  const [shareOutfit, setShareOutfit] = useState<{ outfit: Outfit; items: WardrobeItem[] } | null>(null);
+  const [shareOutfit, setShareOutfit] = useState<{ outfit: Outfit; items: CanvasWardrobeItem[] } | null>(null);
 
-  // Fetch wardrobe items
-  const { data: items = [] } = useQuery({
-    queryKey: ['wardrobe-items', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      const { data } = await supabase
-        .from('wardrobe_items')
-        .select('id, image_url, category, name')
-        .eq('user_id', user.id);
-      return (data || []) as WardrobeItem[];
-    },
-    enabled: !!user,
-  });
+  // Use centralized wardrobe items hook
+  const { items: wardrobeItems } = useWardrobeItems();
+  const items: CanvasWardrobeItem[] = wardrobeItems;
 
   // Auth guard
   useEffect(() => {
@@ -162,7 +153,7 @@ export default function Canvas() {
   };
 
   // Handle opening a saved look in the canvas
-  const handleOpenLook = (outfit: Outfit, outfitItems: WardrobeItem[]) => {
+  const handleOpenLook = (outfit: Outfit, outfitItems: CanvasWardrobeItem[]) => {
     setPreloadItems(outfitItems);
     setActiveTab('create');
     toast({
@@ -172,7 +163,7 @@ export default function Canvas() {
   };
 
   // Handle sharing a look
-  const handleShareLook = (outfit: Outfit, outfitItems: WardrobeItem[]) => {
+  const handleShareLook = (outfit: Outfit, outfitItems: CanvasWardrobeItem[]) => {
     setShareOutfit({ outfit, items: outfitItems });
   };
 

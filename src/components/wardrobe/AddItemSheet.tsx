@@ -11,6 +11,9 @@ import {
 import { useGarmentColorAnalysis } from '@/hooks/useGarmentColorAnalysis';
 import { openCaptureInputWithFallback } from '@/lib/camera-fallback';
 import { CameraFallbackModal } from '@/components/camera/CameraFallbackModal';
+import { useAuth } from '@/hooks/useAuth';
+import { uploadWardrobeImage } from '@/lib/image-upload';
+import { useToast } from '@/hooks/use-toast';
 
 interface DominantColor { hex: string; name: string; percentage: number; }
 
@@ -30,24 +33,41 @@ const categoryItems: Record<string, string[]> = {
 const seasonKeys = ['primavera', 'verao', 'outono', 'inverno', 'todas'] as const;
 const occasionKeys = ['casual', 'trabalho', 'festa', 'esporte', 'formal'] as const;
 
+// Max file size: 10MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
 export function AddItemSheet({ isOpen, onClose, onAdd }: AddItemSheetProps) {
   const { t } = useTranslation('wardrobe');
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
   const [colorCode, setColorCode] = useState('#e5d5c5');
   const [seasonTag, setSeasonTag] = useState('');
   const [occasion, setOccasion] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [analyzedColors, setAnalyzedColors] = useState<DominantColor[] | null>(null);
   const [showCameraFallback, setShowCameraFallback] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { isAnalyzing, analyzeGarment } = useGarmentColorAnalysis();
 
   const processFile = async (file: File) => {
+    if (file.size > MAX_FILE_SIZE) {
+      toast({ title: t('addItem.fileTooLarge', 'Arquivo muito grande'), description: t('addItem.maxSize', 'Máximo 10MB'), variant: 'destructive' });
+      return;
+    }
+    
+    // Store file for later upload, show preview via object URL
+    setSelectedFile(file);
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
+    
+    // Analyze colors using base64 (only for analysis, not stored)
     const reader = new FileReader();
     reader.onloadend = async () => {
       const base64 = reader.result as string;
-      setImageUrl(base64);
       const result = await analyzeGarment(base64);
       if (result) {
         setAnalyzedColors(result.dominant_colors);
@@ -86,15 +106,45 @@ export function AddItemSheet({ isOpen, onClose, onAdd }: AddItemSheetProps) {
     }
   };
 
-  const handleSubmit = () => {
-    if (!category) return;
-    onAdd({ name, category, color_code: colorCode, season_tag: seasonTag, occasion, image_url: imageUrl || `https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=400&h=400&fit=crop`, dominant_colors: analyzedColors || undefined });
-    setName(''); setCategory(''); setColorCode('#e5d5c5'); setSeasonTag(''); setOccasion(''); setImageUrl(''); setAnalyzedColors(null); onClose();
+  const resetForm = () => {
+    if (previewUrl && previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setName(''); setCategory(''); setColorCode('#e5d5c5'); setSeasonTag(''); 
+    setOccasion(''); setPreviewUrl(''); setSelectedFile(null); setAnalyzedColors(null);
+  };
+
+  const handleSubmit = async () => {
+    if (!category || !user) return;
+    
+    setIsUploading(true);
+    try {
+      let imageUrl = '';
+      
+      if (selectedFile) {
+        // Upload to Storage bucket
+        imageUrl = await uploadWardrobeImage(user.id, selectedFile);
+      } else {
+        imageUrl = `https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=400&h=400&fit=crop`;
+      }
+      
+      onAdd({ name, category, color_code: colorCode, season_tag: seasonTag, occasion, image_url: imageUrl, dominant_colors: analyzedColors || undefined });
+      resetForm();
+      onClose();
+    } catch (error) {
+      console.error('Upload failed:', error);
+      toast({ title: t('addItem.uploadError', 'Erro no upload'), description: error instanceof Error ? error.message : t('addItem.tryAgain', 'Tente novamente'), variant: 'destructive' });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleClose = () => {
-    setName(''); setCategory(''); setColorCode('#e5d5c5'); setSeasonTag(''); setOccasion(''); setImageUrl(''); setAnalyzedColors(null); onClose();
+    resetForm();
+    onClose();
   };
+
+  const isBusy = isAnalyzing || isUploading;
 
   return (
     <>
@@ -113,13 +163,15 @@ export function AddItemSheet({ isOpen, onClose, onAdd }: AddItemSheetProps) {
 
                 <div className="mb-6">
                   <div onClick={handleGalleryClick} className="aspect-square max-w-[200px] mx-auto rounded-2xl bg-muted border-2 border-dashed border-border flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-primary/50 transition-colors relative overflow-hidden">
-                    {imageUrl ? (
+                    {previewUrl ? (
                       <>
-                        <img src={imageUrl} alt="Preview" className="absolute inset-0 w-full h-full object-cover" />
-                        {isAnalyzing && (
+                        <img src={previewUrl} alt="Preview" className="absolute inset-0 w-full h-full object-cover" />
+                        {(isAnalyzing || isUploading) && (
                           <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center">
                             <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                            <span className="text-sm mt-2 font-medium">{t('addItem.analyzingColors')}</span>
+                            <span className="text-sm mt-2 font-medium">
+                              {isUploading ? t('addItem.uploading', 'Enviando...') : t('addItem.analyzingColors')}
+                            </span>
                           </div>
                         )}
                       </>
@@ -144,8 +196,8 @@ export function AddItemSheet({ isOpen, onClose, onAdd }: AddItemSheetProps) {
                     </div>
                   )}
                   <div className="flex justify-center gap-4 mt-4">
-                    <Button variant="outline" size="sm" className="rounded-xl" onClick={handleCameraClick} disabled={isAnalyzing}><Camera className="w-4 h-4 mr-2" />{t('addItem.camera')}</Button>
-                    <Button variant="outline" size="sm" className="rounded-xl" onClick={handleGalleryClick} disabled={isAnalyzing}><ImageIcon className="w-4 h-4 mr-2" />{t('addItem.gallery')}</Button>
+                    <Button variant="outline" size="sm" className="rounded-xl" onClick={handleCameraClick} disabled={isBusy}><Camera className="w-4 h-4 mr-2" />{t('addItem.camera')}</Button>
+                    <Button variant="outline" size="sm" className="rounded-xl" onClick={handleGalleryClick} disabled={isBusy}><ImageIcon className="w-4 h-4 mr-2" />{t('addItem.gallery')}</Button>
                   </div>
                 </div>
 
@@ -195,8 +247,10 @@ export function AddItemSheet({ isOpen, onClose, onAdd }: AddItemSheetProps) {
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button onClick={handleSubmit} disabled={!category || isAnalyzing} className="w-full h-12 rounded-xl gradient-primary text-primary-foreground font-medium mt-6">
-                    {isAnalyzing ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('addItem.analyzing')}</>) : t('addItem.submit')}
+                  <Button onClick={handleSubmit} disabled={!category || isBusy} className="w-full h-12 rounded-xl gradient-primary text-primary-foreground font-medium mt-6">
+                    {isUploading ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('addItem.uploading', 'Enviando...')}</>) 
+                    : isAnalyzing ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('addItem.analyzing')}</>) 
+                    : t('addItem.submit')}
                   </Button>
                 </div>
               </div>
