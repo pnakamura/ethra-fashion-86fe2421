@@ -209,7 +209,11 @@
     "successFeature3": "Smart closet with capsule wardrobe",
     "successLoginLink": "Access your account",
     "successCta": "Explore Ethra",
-    "successNote": "Testers have lifetime access to all Ethra premium features."
+    "successNote": "Testers have lifetime access to all Ethra premium features.",
+    "emailVerificationTitle": "Check your email",
+    "emailVerificationDesc": "We sent a confirmation link to your email. Click it to activate your account and start exploring.",
+    "hidePassword": "Hide password",
+    "showPassword": "Show password"
   },
   "socialProof": {
     "activeUsers": "active users",

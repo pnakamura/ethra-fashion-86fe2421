@@ -209,7 +209,11 @@
     "successFeature3": "Closet inteligente com armário cápsula",
     "successLoginLink": "Acesse sua conta",
     "successCta": "Explorar o Ethra",
-    "successNote": "Testers têm acesso vitalício a todas as funcionalidades premium do Ethra."
+    "successNote": "Testers têm acesso vitalício a todas as funcionalidades premium do Ethra.",
+    "emailVerificationTitle": "Verifique seu e-mail",
+    "emailVerificationDesc": "Enviamos um link de confirmação para o seu e-mail. Clique nele para ativar sua conta e começar a explorar.",
+    "hidePassword": "Ocultar senha",
+    "showPassword": "Mostrar senha"
   },
   "socialProof": {
     "activeUsers": "usuárias ativas",
