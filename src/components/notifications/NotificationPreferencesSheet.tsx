@@ -235,7 +235,7 @@ export function NotificationPreferencesSheet({ trigger }: NotificationPreference
             disabled={saveMutation.isPending}
             className="w-full gradient-primary rounded-xl"
           >
-            {saveMutation.isPending ? t('notifications.savePrefs', { ns: 'settings' }) + '...' : t('notifications.savePrefs', { ns: 'settings' })}
+            {saveMutation.isPending ? t('notifications.savePrefs') + '...' : t('notifications.savePrefs')}
           </Button>
         </SheetFooter>
       </SheetContent>
