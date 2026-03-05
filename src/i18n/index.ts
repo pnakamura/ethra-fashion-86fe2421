@@ -19,6 +19,7 @@ import quizPtBR from './locales/pt-BR/quiz.json';
 import subscriptionPtBR from './locales/pt-BR/subscription.json';
 import canvasPtBR from './locales/pt-BR/canvas.json';
 import privacyPtBR from './locales/pt-BR/privacy.json';
+import onboardingPtBR from './locales/pt-BR/onboarding.json';
 
 // EN-US translations
 import commonEnUS from './locales/en-US/common.json';
