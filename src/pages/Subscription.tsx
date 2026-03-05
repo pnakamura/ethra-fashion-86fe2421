@@ -17,11 +17,11 @@ import { SEOHead } from '@/components/seo/SEOHead';
 import { useTranslation } from 'react-i18next';
 
 // Static fallback data for when DB returns empty
-const FALLBACK_PLANS = [
-  { id: 'free', display_name: 'Iniciante', description: 'Para começar sua jornada', price_monthly: 0, price_yearly: 0, badge_color: '#6B7280', is_active: true, sort_order: 1 },
-  { id: 'trendsetter', display_name: 'Trendsetter', description: 'Para quem quer mais', price_monthly: 29.90, price_yearly: 299, badge_color: '#8B5CF6', is_active: true, sort_order: 2 },
-  { id: 'icon', display_name: 'Icon', description: 'A experiência completa', price_monthly: 59.90, price_yearly: 599, badge_color: '#F59E0B', is_active: true, sort_order: 3 },
-  { id: 'muse', display_name: 'Muse', description: 'O melhor do Ethra', price_monthly: 99.90, price_yearly: 999, badge_color: '#EC4899', is_active: true, sort_order: 4 },
+const getFallbackPlans = (t: (key: string) => string) => [
+  { id: 'free', display_name: 'Iniciante', description: t('fallback.freeDesc'), price_monthly: 0, price_yearly: 0, badge_color: '#6B7280', is_active: true, sort_order: 1 },
+  { id: 'trendsetter', display_name: 'Trendsetter', description: t('fallback.trendsetterDesc'), price_monthly: 29.90, price_yearly: 299, badge_color: '#8B5CF6', is_active: true, sort_order: 2 },
+  { id: 'icon', display_name: 'Icon', description: t('fallback.iconDesc'), price_monthly: 59.90, price_yearly: 599, badge_color: '#F59E0B', is_active: true, sort_order: 3 },
+  { id: 'muse', display_name: 'Muse', description: t('fallback.museDesc'), price_monthly: 99.90, price_yearly: 999, badge_color: '#EC4899', is_active: true, sort_order: 4 },
 ];
 
 const FALLBACK_LIMITS: PlanLimit[] = [
