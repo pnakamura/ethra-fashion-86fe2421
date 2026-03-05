@@ -75,8 +75,8 @@ export function BiometricConsentModal({
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) handleDecline(); }}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
+      <DialogContent className="max-w-md max-h-[90dvh] flex flex-col overflow-hidden">
+        <DialogHeader className="flex-shrink-0">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
               <Fingerprint className="w-5 h-5 text-primary" />
@@ -91,8 +91,8 @@ export function BiometricConsentModal({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Data processing details */}
-        <div className="space-y-3 my-2">
+        {/* Data processing details - scrollable area */}
+        <div className="space-y-3 my-2 overflow-y-auto flex-1 min-h-0 pr-1">
           <div className="flex items-start gap-3 p-3 rounded-lg bg-secondary/50">
             <ScanFace className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
             <div>
@@ -156,7 +156,7 @@ export function BiometricConsentModal({
           Versão do termo: {BIOMETRIC_TERM_VERSION}
         </p>
 
-        <DialogFooter className="flex-col sm:flex-row gap-2">
+        <DialogFooter className="flex-col sm:flex-row gap-2 flex-shrink-0">
           <Button
             variant="ghost"
             onClick={handleDecline}
