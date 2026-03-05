@@ -15,7 +15,7 @@ export default function Landing() {
   const { t } = useTranslation('common');
 
   useEffect(() => {
-    if (!loading && user) {
+    if (!loading && user && !isSignupInProgress()) {
       navigate('/');
     }
   }, [user, loading, navigate]);

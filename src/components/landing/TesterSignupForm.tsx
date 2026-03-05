@@ -60,6 +60,7 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
     }
 
     setLoading(true);
+    signupInProgress = true;
 
     try {
       const { error } = await signUp(email, password);
@@ -70,6 +71,7 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
           message = t('signup.errorAlreadyRegistered');
         }
         toast({ title: t('signup.error'), description: message, variant: 'destructive' });
+        signupInProgress = false;
         return;
       }
 
@@ -91,6 +93,7 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
 
       // Sign out so Landing doesn't redirect before showing success
       await supabase.auth.signOut();
+      signupInProgress = false;
       setSuccess(true);
     } finally {
       setLoading(false);
