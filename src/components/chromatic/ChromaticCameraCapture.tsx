@@ -305,9 +305,16 @@ export function ChromaticCameraCapture({
             <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
             <h3 className="text-white font-medium mb-2">{t('camera.unavailable')}</h3>
             <p className="text-gray-400 text-sm mb-4">{t('camera.checkPermissions')}</p>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => window.location.reload()} className="text-white border-white/30"><Settings className="w-4 h-4 mr-2" />{t('camera.tryAgain')}</Button>
-              <Button variant="ghost" size="sm" onClick={onCancel} className="text-white">{t('camera.cancel')}</Button>
+            <div className="flex flex-col gap-2 w-full max-w-xs">
+              {onUploadFallback && (
+                <Button size="sm" onClick={onUploadFallback} className="gradient-primary text-primary-foreground w-full">
+                  <Upload className="w-4 h-4 mr-2" />{t('camera.uploadFromGallery')}
+                </Button>
+              )}
+              <div className="flex gap-2 justify-center">
+                <Button variant="outline" size="sm" onClick={() => window.location.reload()} className="text-white border-white/30"><Settings className="w-4 h-4 mr-2" />{t('camera.tryAgain')}</Button>
+                <Button variant="ghost" size="sm" onClick={onCancel} className="text-white">{t('camera.cancel')}</Button>
+              </div>
             </div>
           </div>
         )}
