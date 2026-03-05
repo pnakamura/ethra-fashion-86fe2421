@@ -9,9 +9,9 @@ import { NameInput } from '@/components/onboarding/NameInput';
 import { StyleSelector } from '@/components/onboarding/StyleSelector';
 import { PainPointSelector } from '@/components/onboarding/PainPointSelector';
 import { ColorTeaser } from '@/components/onboarding/ColorTeaser';
-
 import { WelcomeComplete } from '@/components/onboarding/WelcomeComplete';
 import { SEOHead } from '@/components/seo/SEOHead';
+import { useTranslation } from 'react-i18next';
 
 export default function Onboarding() {
   const { user, loading: authLoading } = useAuth();
