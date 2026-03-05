@@ -85,6 +85,8 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
         }).catch(console.error);
       }
 
+      // Sign out so Landing doesn't redirect before showing success
+      await supabase.auth.signOut();
       setSuccess(true);
     } finally {
       setLoading(false);
