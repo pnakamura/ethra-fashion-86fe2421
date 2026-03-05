@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { ConsentCheckbox, AgeConfirmationCheckbox } from '@/components/legal/ConsentCheckbox';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
@@ -149,6 +149,13 @@ export const TesterSignupForm = forwardRef<HTMLDivElement>((_, ref) => {
                   </motion.div>
                 ))}
               </div>
+
+              <Link
+                to="/auth"
+                className="inline-flex items-center justify-center w-full h-12 md:h-14 rounded-xl gradient-primary text-primary-foreground font-medium shadow-glow hover:opacity-90 transition-opacity text-base md:text-lg"
+              >
+                {t('signup.successLoginLink')}
+              </Link>
 
               <p className="text-sm text-muted-foreground/70">
                 {t('signup.successNote')}
