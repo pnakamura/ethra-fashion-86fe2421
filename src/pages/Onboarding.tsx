@@ -120,7 +120,7 @@ export default function Onboarding() {
 
   return (
     <>
-    <SEOHead title="Boas-vindas — Ethra Fashion" />
+    <SEOHead title={t('onboarding:seoTitle')} />
     <OnboardingStep
       progress={progress}
       showBack={showBack}
