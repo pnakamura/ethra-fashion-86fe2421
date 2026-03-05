@@ -4,11 +4,13 @@ import { Sparkles, ArrowRight, Sun, Moon, Gift } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTranslation } from 'react-i18next';
 
 export function HeroSection() {
   const navigate = useNavigate();
   const { resolvedTheme, setTheme } = useTheme();
   const isMobile = useIsMobile();
+  const { t } = useTranslation('landing');
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
@@ -16,7 +18,6 @@ export function HeroSection() {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden dark:bg-transparent">
-      {/* Animated background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-secondary/20 to-primary/5 dark:from-transparent dark:via-transparent dark:to-transparent" />
 
       {!isMobile && (
@@ -30,21 +31,13 @@ export function HeroSection() {
                 y: Math.random() * window.innerHeight,
                 scale: Math.random() * 0.5 + 0.5,
               }}
-              animate={{
-                y: [null, Math.random() * -200 - 100],
-                opacity: [0.3, 0.8, 0.3],
-              }}
-              transition={{
-                duration: Math.random() * 10 + 10,
-                repeat: Infinity,
-                ease: 'linear',
-              }}
+              animate={{ y: [null, Math.random() * -200 - 100], opacity: [0.3, 0.8, 0.3] }}
+              transition={{ duration: Math.random() * 10 + 10, repeat: Infinity, ease: 'linear' }}
             />
           ))}
         </div>
       )}
 
-      {/* Theme toggle */}
       <div className="absolute top-6 right-6 z-20">
         <Button
           variant="outline"
@@ -52,22 +45,12 @@ export function HeroSection() {
           onClick={toggleTheme}
           className="rounded-full border-primary/30 hover:bg-primary/10 dark:border-primary/40 dark:hover:bg-primary/20"
         >
-          {resolvedTheme === 'dark' ? (
-            <Sun className="w-5 h-5 text-primary" />
-          ) : (
-            <Moon className="w-5 h-5 text-primary" />
-          )}
+          {resolvedTheme === 'dark' ? <Sun className="w-5 h-5 text-primary" /> : <Moon className="w-5 h-5 text-primary" />}
         </Button>
       </div>
 
-      {/* Content */}
       <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          {/* Trial badge */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
           <motion.div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20 mb-4"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -76,7 +59,7 @@ export function HeroSection() {
           >
             <Gift className="w-4 h-4 text-green-600 dark:text-green-400" />
             <span className="text-sm text-green-700 dark:text-green-300 font-medium">
-              7 dias grátis do plano Trendsetter
+              {t('heroMain.trialBadge')}
             </span>
           </motion.div>
 
@@ -87,22 +70,19 @@ export function HeroSection() {
             transition={{ delay: 0.2 }}
           >
             <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm text-primary font-medium">Personal Stylist com IA</span>
+            <span className="text-sm text-primary font-medium">{t('heroMain.aiBadge')}</span>
           </motion.div>
 
           <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-semibold mb-6 leading-tight">
-            Vista-se como
+            {t('heroMain.headlineLine1')}
             <br />
-            <span className="text-gradient">quem você é</span>
+            <span className="text-gradient">{t('heroMain.headlineHighlight')}</span>
           </h1>
 
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-            Seu guarda-roupa digital inteligente.
-            Descubra suas cores, monte looks perfeitos e
-            viaje com estilo.
+            {t('heroMain.subtitle')}
           </p>
 
-          {/* Value proposition bullets */}
           <motion.div
             className="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-10 text-sm text-muted-foreground"
             initial={{ opacity: 0 }}
@@ -111,15 +91,15 @@ export function HeroSection() {
           >
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-              Colorimetria por IA
+              {t('heroMain.bulletColorimetry')}
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-              Provador virtual
+              {t('heroMain.bulletTryOn')}
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-              Malas inteligentes
+              {t('heroMain.bulletLuggage')}
             </span>
           </motion.div>
 
@@ -129,7 +109,7 @@ export function HeroSection() {
               className="group text-lg px-8 py-6 gradient-primary text-primary-foreground shadow-glow hover:shadow-elevated transition-all duration-300"
               onClick={() => navigate('/auth?mode=signup&trial=true')}
             >
-              Começar grátis agora
+              {t('heroMain.startFree')}
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
             <Button
@@ -138,7 +118,7 @@ export function HeroSection() {
               className="text-lg px-8 py-6 border-primary/30 hover:bg-primary/5"
               onClick={() => navigate('/auth?mode=login')}
             >
-              Já tenho conta
+              {t('heroMain.alreadyHaveAccount')}
             </Button>
           </div>
 
@@ -148,11 +128,10 @@ export function HeroSection() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
           >
-            Sem cartão de crédito necessário. Junte-se a 12.000+ pessoas.
+            {t('heroMain.noCardNote')}
           </motion.p>
         </motion.div>
 
-        {/* Scroll indicator */}
         <motion.div
           className="absolute bottom-8 left-1/2 -translate-x-1/2"
           initial={{ opacity: 0 }}
