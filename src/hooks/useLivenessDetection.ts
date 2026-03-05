@@ -18,7 +18,7 @@ const CALIBRATION_FRAMES = 15;
 const EAR_RATIO = 0.75;
 const EAR_CONSECUTIVE_FRAMES = 1;
 const HEAD_YAW_THRESHOLD = 8;
-const TIMEOUT_MS = 30000;
+const TIMEOUT_MS = 6000;
 
 export function useLivenessDetection() {
   const [state, setState] = useState<LivenessState>({
