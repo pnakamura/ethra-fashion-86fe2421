@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Sparkles, ChevronRight, Shirt, Star, AlertTriangle, Wand2, ExternalLink } from 'lucide-react';
+import { Sparkles, Shirt, Star, AlertTriangle, Wand2, ExternalLink, RefreshCw, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -63,13 +63,13 @@ export function ChromaticHero({
       
       <div className="relative z-10 p-5">
         <div className="flex items-start gap-4">
-          <motion.button onClick={onExploreClick} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="relative flex-shrink-0 group">
+          <motion.button onClick={onExploreClick} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="relative flex-shrink-0 group" aria-label={t('hero.viewDetails')}>
             <div className={`w-16 h-16 rounded-full shadow-elevated transition-shadow group-hover:shadow-glow ${isUsingTemporary ? 'ring-2 ring-amber-500/50' : ''}`} style={{ background: `conic-gradient(from 0deg, ${gradientColors.join(', ')})` }} />
             <div className="absolute inset-1.5 rounded-full bg-card flex items-center justify-center">
               <span className="text-xl">{displaySeason?.seasonIcon || '🎨'}</span>
             </div>
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-card border border-border flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <ExternalLink className="w-2.5 h-2.5 text-muted-foreground" />
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-sm">
+              <Eye className="w-2.5 h-2.5" />
             </div>
           </motion.button>
           
@@ -91,10 +91,6 @@ export function ChromaticHero({
               </p>
             </motion.div>
           </div>
-          
-          <Button variant="ghost" size="icon" onClick={onExploreClick} className="flex-shrink-0 hover:bg-primary/10">
-            <ChevronRight className="w-5 h-5" />
-          </Button>
         </div>
         
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-4 flex items-center gap-3">
@@ -111,6 +107,18 @@ export function ChromaticHero({
               : t('hero.colors', { count: analysis?.recommended_colors.length || 0 })
             }
           </span>
+        </motion.div>
+
+        {/* CTA buttons */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="mt-4 flex gap-2">
+          <Button variant="luxury" size="sm" onClick={onExploreClick} className="flex-1">
+            <Eye className="w-4 h-4" />
+            {t('hero.viewPalette')}
+          </Button>
+          <Button variant="outline" size="sm" onClick={onNewAnalysis} className="gap-1.5">
+            <RefreshCw className="w-3.5 h-3.5" />
+            {t('hero.newAnalysis')}
+          </Button>
         </motion.div>
         
         {!isUsingTemporary && wardrobeStats && wardrobeStats.total > 0 && (
