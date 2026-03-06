@@ -27,6 +27,7 @@ export function useStyleDNAQuiz() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t } = useTranslation('quiz');
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
 
@@ -47,7 +48,6 @@ export function useStyleDNAQuiz() {
     value: QuizSelections[K]
   ) => {
     setSelections(prev => ({ ...prev, [key]: value }));
-    // Haptic feedback on mobile
     if (navigator.vibrate) {
       navigator.vibrate(10);
     }
@@ -102,7 +102,6 @@ export function useStyleDNAQuiz() {
 
       if (error) throw error;
 
-      // Invalidate profile cache
       queryClient.invalidateQueries({ queryKey: ['profile', user.id] });
     } catch (err) {
       console.error('Error saving quiz results:', err);
