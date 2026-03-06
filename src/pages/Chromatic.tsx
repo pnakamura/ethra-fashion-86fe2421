@@ -14,7 +14,6 @@ import { TemporarySeasonBanner } from '@/components/chromatic/TemporarySeasonBan
 import { TemporaryPalettePreview } from '@/components/chromatic/TemporaryPalettePreview';
 import { ChromaticOnboarding } from '@/components/chromatic/ChromaticOnboarding';
 import { MakeupHub } from '@/components/chromatic/MakeupHub';
-import { QuickActionsGrid } from '@/components/chromatic/QuickActionsGrid';
 import { ColorJourney } from '@/components/chromatic/ColorJourney';
 import { BiometricAlertBanner } from '@/components/alerts/BiometricAlertBanner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -133,7 +132,7 @@ export default function Chromatic() {
       <SEOHead title="Paleta Cromática — Ethra Fashion" />
       <Header title={t('title')} />
       <PageContainer className="px-4 py-6">
-        <div className="max-w-lg mx-auto space-y-6">
+        <div className="max-w-lg mx-auto space-y-5">
           <TemporarySeasonBanner />
           <BiometricAlertBanner consentOnly />
 
@@ -148,31 +147,23 @@ export default function Chromatic() {
             />
           )}
 
-          {hasAnalysis && !isUsingTemporary && (
-            <QuickActionsGrid
-              onMakeupClick={() => setActiveTab('makeup')}
-              onExploreClick={() => setActiveTab('explore')}
-              onNewAnalysis={handleNewAnalysis}
-            />
-          )}
-
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 rounded-xl bg-muted p-1">
-              <TabsTrigger value="discover" className="rounded-lg text-xs sm:text-sm">
-                <Sparkles className="w-3.5 h-3.5 mr-1.5 hidden sm:block" />
-                {t('tabs.discover')}
+            <TabsList className="grid w-full grid-cols-4 rounded-xl bg-muted/80 p-1.5 h-auto">
+              <TabsTrigger value="discover" className="rounded-lg text-[10px] sm:text-sm py-2.5 px-1 sm:px-3 flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5">
+                <Sparkles className="w-4 h-4" />
+                <span>{t('tabs.discover')}</span>
               </TabsTrigger>
-              <TabsTrigger value="palette" className="rounded-lg text-xs sm:text-sm">
-                <Palette className="w-3.5 h-3.5 mr-1.5 hidden sm:block" />
-                {t('tabs.palette')}
+              <TabsTrigger value="palette" className="rounded-lg text-[10px] sm:text-sm py-2.5 px-1 sm:px-3 flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5">
+                <Palette className="w-4 h-4" />
+                <span>{t('tabs.palette')}</span>
               </TabsTrigger>
-              <TabsTrigger value="makeup" className="rounded-lg text-xs sm:text-sm">
-                <Heart className="w-3.5 h-3.5 mr-1.5 hidden sm:block" />
-                {t('tabs.beauty')}
+              <TabsTrigger value="makeup" className="rounded-lg text-[10px] sm:text-sm py-2.5 px-1 sm:px-3 flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5">
+                <Heart className="w-4 h-4" />
+                <span>{t('tabs.beauty')}</span>
               </TabsTrigger>
-              <TabsTrigger value="explore" className="rounded-lg text-xs sm:text-sm">
-                <Compass className="w-3.5 h-3.5 mr-1.5 hidden sm:block" />
-                {t('tabs.explore')}
+              <TabsTrigger value="explore" className="rounded-lg text-[10px] sm:text-sm py-2.5 px-1 sm:px-3 flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5">
+                <Compass className="w-4 h-4" />
+                <span>{t('tabs.explore')}</span>
               </TabsTrigger>
             </TabsList>
 
@@ -212,7 +203,7 @@ export default function Chromatic() {
                   </motion.div>
                 ) : savedAnalysis ? (
                   <motion.div key="saved" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
-                    <ColorJourney hasAnalysis={true} hasExplored={true} />
+                    <ColorJourney hasAnalysis={true} hasExplored={true} onTabChange={setActiveTab} />
                     <ColorResultDisplay result={savedAnalysis} onRetry={handleNewAnalysis} />
                   </motion.div>
                 ) : (

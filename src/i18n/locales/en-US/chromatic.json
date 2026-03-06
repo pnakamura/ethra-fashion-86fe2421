@@ -13,7 +13,10 @@
     "closetCompatibility": "Closet compatibility",
     "ideal": "ideal",
     "neutral": "neutral",
-    "avoid": "avoid"
+    "avoid": "avoid",
+    "viewPalette": "View My Palette",
+    "newAnalysis": "Redo",
+    "viewDetails": "View season details"
   },
   "onboarding": {
     "discoverYourColors": "Discover your colors",

@@ -10,6 +10,7 @@ interface JourneyStep {
   color: string;
   completed?: boolean;
   active?: boolean;
+  targetTab: string;
 }
 
 interface ColorJourneyProps {
@@ -17,16 +18,17 @@ interface ColorJourneyProps {
   hasExplored?: boolean;
   hasMakeup?: boolean;
   hasLooks?: boolean;
+  onTabChange?: (tab: string) => void;
 }
 
-export function ColorJourney({ hasAnalysis, hasExplored = false, hasMakeup = false, hasLooks = false }: ColorJourneyProps) {
+export function ColorJourney({ hasAnalysis, hasExplored = false, hasMakeup = false, hasLooks = false, onTabChange }: ColorJourneyProps) {
   const { t } = useTranslation('chromatic');
 
   const steps: JourneyStep[] = [
-    { id: 'discover', title: t('journey.discovery'), description: t('journey.discoveryDesc'), icon: Camera, color: 'text-primary bg-primary/10', completed: hasAnalysis, active: !hasAnalysis },
-    { id: 'explore', title: t('journey.exploration'), description: t('journey.explorationDesc'), icon: Palette, color: 'text-purple-500 bg-purple-500/10', completed: hasExplored, active: hasAnalysis && !hasExplored },
-    { id: 'makeup', title: t('journey.beautyStep'), description: t('journey.beautyDesc'), icon: Sparkles, color: 'text-rose-500 bg-rose-500/10', completed: hasMakeup, active: hasExplored && !hasMakeup },
-    { id: 'style', title: t('journey.style'), description: t('journey.styleDesc'), icon: Shirt, color: 'text-amber-500 bg-amber-500/10', completed: hasLooks, active: hasMakeup && !hasLooks },
+    { id: 'discover', title: t('journey.discovery'), description: t('journey.discoveryDesc'), icon: Camera, color: 'text-primary bg-primary/10', completed: hasAnalysis, active: !hasAnalysis, targetTab: 'discover' },
+    { id: 'explore', title: t('journey.exploration'), description: t('journey.explorationDesc'), icon: Palette, color: 'text-purple-500 bg-purple-500/10', completed: hasExplored, active: hasAnalysis && !hasExplored, targetTab: 'explore' },
+    { id: 'makeup', title: t('journey.beautyStep'), description: t('journey.beautyDesc'), icon: Sparkles, color: 'text-rose-500 bg-rose-500/10', completed: hasMakeup, active: hasExplored && !hasMakeup, targetTab: 'makeup' },
+    { id: 'style', title: t('journey.style'), description: t('journey.styleDesc'), icon: Shirt, color: 'text-amber-500 bg-amber-500/10', completed: hasLooks, active: hasMakeup && !hasLooks, targetTab: 'palette' },
   ];
 
   const completedCount = steps.filter(s => s.completed).length;
@@ -52,14 +54,22 @@ export function ColorJourney({ hasAnalysis, hasExplored = false, hasMakeup = fal
         <div className="absolute top-5 left-5 h-0.5 bg-gradient-to-r from-primary to-gold transition-all duration-500" style={{ width: `${Math.max(0, progress - 10)}%` }} />
         <div className="flex justify-between relative">
           {steps.map((step, index) => (
-            <motion.div key={step.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }} className="flex flex-col items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
-                step.completed ? 'bg-primary border-primary text-primary-foreground' : step.active ? `${step.color} border-current animate-pulse` : 'bg-secondary border-border text-muted-foreground'
+            <motion.button
+              key={step.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              onClick={() => onTabChange?.(step.targetTab)}
+              className="flex flex-col items-center cursor-pointer group"
+              aria-label={`${step.title}: ${step.description}`}
+            >
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all group-hover:scale-110 ${
+                step.completed ? 'bg-primary border-primary text-primary-foreground' : step.active ? `${step.color} border-current animate-pulse` : 'bg-secondary border-border text-muted-foreground group-hover:border-primary/50'
               }`}>
                 {step.completed ? <Check className="w-5 h-5" /> : <step.icon className="w-4 h-4" />}
               </div>
-              <p className={`text-[10px] font-medium mt-2 ${step.active ? 'text-foreground' : 'text-muted-foreground'}`}>{step.title}</p>
-            </motion.div>
+              <p className={`text-[10px] font-medium mt-2 transition-colors ${step.active ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'}`}>{step.title}</p>
+            </motion.button>
           ))}
         </div>
       </div>
