@@ -13,7 +13,10 @@
     "closetCompatibility": "Compatibilidade do closet",
     "ideal": "ideais",
     "neutral": "neutras",
-    "avoid": "evitar"
+    "avoid": "evitar",
+    "viewPalette": "Ver Minha Paleta",
+    "newAnalysis": "Refazer",
+    "viewDetails": "Ver detalhes da estação"
   },
   "onboarding": {
     "discoverYourColors": "Descubra suas cores",
