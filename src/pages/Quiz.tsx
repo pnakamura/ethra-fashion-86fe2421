@@ -49,7 +49,7 @@ export default function Quiz() {
 
   return (
     <div className="min-h-screen bg-transparent flex flex-col">
-      <SEOHead title="DNA de Estilo — Ethra Fashion" />
+      <SEOHead title={`${t('dna.label')} — Ethra Fashion`} />
       {/* Progress Bar */}
       {!isResult && (
         <motion.div
