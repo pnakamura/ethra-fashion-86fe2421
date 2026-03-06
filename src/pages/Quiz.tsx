@@ -10,7 +10,7 @@ import { QuizSkinTone } from '@/components/quiz/QuizSkinTone';
 import { QuizSilhouette } from '@/components/quiz/QuizSilhouette';
 import { QuizResult } from '@/components/quiz/QuizResult';
 import { SEOHead } from '@/components/seo/SEOHead';
-
+import { useTranslation } from 'react-i18next';
 const stepVariants = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' as const } },
