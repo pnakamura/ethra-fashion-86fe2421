@@ -22,21 +22,6 @@ export interface StyleDNA {
   label: string;
 }
 
-const AESTHETIC_LABELS: Record<string, string> = {
-  'old-money': 'Clássico Refinado',
-  'streetwear': 'Urbano Contemporâneo',
-  'minimalist': 'Minimalista',
-  'boho-chic': 'Boêmio Chic',
-  'romantic': 'Romântico',
-  'avant-garde': 'Avant-Garde',
-};
-
-const UNDERTONE_LABELS: Record<string, string> = {
-  warm: 'Quente',
-  cool: 'Frio',
-  neutral: 'Neutro',
-};
-
 export function useStyleDNAQuiz() {
   const { user } = useAuth();
   const navigate = useNavigate();
