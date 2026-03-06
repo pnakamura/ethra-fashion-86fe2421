@@ -66,9 +66,9 @@ export function useStyleDNAQuiz() {
     const secondary = selections.aesthetics[1] || 'minimalist';
     const undertone = selections.undertone || 'neutral';
 
-    const primaryLabel = AESTHETIC_LABELS[primary] || primary;
-    const undertoneLabel = UNDERTONE_LABELS[undertone] || undertone;
-    const label = `${primaryLabel} com Subtom ${undertoneLabel}`;
+    const primaryLabel = t(`aesthetics.${primary}.name`, { defaultValue: primary });
+    const undertoneLabel = t(`undertones.${undertone}.name`, { defaultValue: undertone });
+    const label = `${primaryLabel} · ${undertoneLabel}`;
 
     return {
       primaryAesthetic: primary,
@@ -78,7 +78,7 @@ export function useStyleDNAQuiz() {
       painPoint: selections.painPoint || '',
       label,
     };
-  }, [selections]);
+  }, [selections, t]);
 
   const saveResults = useCallback(async () => {
     if (!user) return;
