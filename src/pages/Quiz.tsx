@@ -59,7 +59,7 @@ export default function Quiz() {
         >
           <div className="max-w-lg mx-auto space-y-2">
             <div className="flex items-center justify-between text-xs font-body text-muted-foreground">
-              <span>Passo {step} de {totalSteps}</span>
+              <span>{t('step.stepOf', { step, total: totalSteps })}</span>
               <span>{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="h-1.5" />
