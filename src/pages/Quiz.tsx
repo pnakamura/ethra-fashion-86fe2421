@@ -10,6 +10,7 @@ import { QuizSkinTone } from '@/components/quiz/QuizSkinTone';
 import { QuizSilhouette } from '@/components/quiz/QuizSilhouette';
 import { QuizResult } from '@/components/quiz/QuizResult';
 import { SEOHead } from '@/components/seo/SEOHead';
+import { useTranslation } from 'react-i18next';
 
 const stepVariants = {
   initial: { opacity: 0, y: 20 },
@@ -18,6 +19,7 @@ const stepVariants = {
 };
 
 export default function Quiz() {
+  const { t } = useTranslation('quiz');
   const {
     step,
     selections,
@@ -32,7 +34,6 @@ export default function Quiz() {
     saving,
   } = useStyleDNAQuiz();
 
-  // Save results when reaching the result step
   useEffect(() => {
     if (step === 5) {
       saveResults();
@@ -49,8 +50,7 @@ export default function Quiz() {
 
   return (
     <div className="min-h-screen bg-transparent flex flex-col">
-      <SEOHead title="DNA de Estilo — Ethra Fashion" />
-      {/* Progress Bar */}
+      <SEOHead title={`${t('dna.label')} — Ethra Fashion`} />
       {!isResult && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -59,7 +59,7 @@ export default function Quiz() {
         >
           <div className="max-w-lg mx-auto space-y-2">
             <div className="flex items-center justify-between text-xs font-body text-muted-foreground">
-              <span>Passo {step} de {totalSteps}</span>
+              <span>{t('step.stepOf', { step, total: totalSteps })}</span>
               <span>{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="h-1.5" />
@@ -67,7 +67,6 @@ export default function Quiz() {
         </motion.div>
       )}
 
-      {/* Content */}
       <div className="flex-1 flex flex-col px-4 py-6 md:py-10">
         <div className="max-w-2xl mx-auto w-full flex-1">
           <AnimatePresence mode="wait">
@@ -113,7 +112,6 @@ export default function Quiz() {
           </AnimatePresence>
         </div>
 
-        {/* Navigation Buttons */}
         {!isResult && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -128,14 +126,14 @@ export default function Quiz() {
               className="gap-2"
             >
               <ArrowLeft className="w-4 h-4" />
-              Voltar
+              {t('common:actions.back')}
             </Button>
             <Button
               onClick={handleNext}
               disabled={!canProceed(step)}
               className="gap-2 min-w-[140px]"
             >
-              {step === totalSteps ? 'Ver Resultado' : 'Continuar'}
+              {step === totalSteps ? t('revealDNA') : t('step.continue')}
               <ArrowRight className="w-4 h-4" />
             </Button>
           </motion.div>

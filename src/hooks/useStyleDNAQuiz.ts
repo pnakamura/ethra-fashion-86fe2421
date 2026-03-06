@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 export interface QuizSelections {
   aesthetics: string[];
@@ -22,25 +23,11 @@ export interface StyleDNA {
   label: string;
 }
 
-const AESTHETIC_LABELS: Record<string, string> = {
-  'old-money': 'Clássico Refinado',
-  'streetwear': 'Urbano Contemporâneo',
-  'minimalist': 'Minimalista',
-  'boho-chic': 'Boêmio Chic',
-  'romantic': 'Romântico',
-  'avant-garde': 'Avant-Garde',
-};
-
-const UNDERTONE_LABELS: Record<string, string> = {
-  warm: 'Quente',
-  cool: 'Frio',
-  neutral: 'Neutro',
-};
-
 export function useStyleDNAQuiz() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t } = useTranslation('quiz');
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
 
@@ -61,7 +48,6 @@ export function useStyleDNAQuiz() {
     value: QuizSelections[K]
   ) => {
     setSelections(prev => ({ ...prev, [key]: value }));
-    // Haptic feedback on mobile
     if (navigator.vibrate) {
       navigator.vibrate(10);
     }
@@ -80,9 +66,9 @@ export function useStyleDNAQuiz() {
     const secondary = selections.aesthetics[1] || 'minimalist';
     const undertone = selections.undertone || 'neutral';
 
-    const primaryLabel = AESTHETIC_LABELS[primary] || primary;
-    const undertoneLabel = UNDERTONE_LABELS[undertone] || undertone;
-    const label = `${primaryLabel} com Subtom ${undertoneLabel}`;
+    const primaryLabel = t(`aesthetics.${primary}.name`, { defaultValue: primary });
+    const undertoneLabel = t(`undertones.${undertone}.name`, { defaultValue: undertone });
+    const label = `${primaryLabel} · ${undertoneLabel}`;
 
     return {
       primaryAesthetic: primary,
@@ -92,7 +78,7 @@ export function useStyleDNAQuiz() {
       painPoint: selections.painPoint || '',
       label,
     };
-  }, [selections]);
+  }, [selections, t]);
 
   const saveResults = useCallback(async () => {
     if (!user) return;
@@ -116,7 +102,6 @@ export function useStyleDNAQuiz() {
 
       if (error) throw error;
 
-      // Invalidate profile cache
       queryClient.invalidateQueries({ queryKey: ['profile', user.id] });
     } catch (err) {
       console.error('Error saving quiz results:', err);
