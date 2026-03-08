@@ -59,6 +59,8 @@ export function useVirtualTryOn() {
         return prev - 1;
       });
     }, 1000);
+  }, [clearCountdown]);
+
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
   const isRecoverableInvokeError = (message: string) => {
