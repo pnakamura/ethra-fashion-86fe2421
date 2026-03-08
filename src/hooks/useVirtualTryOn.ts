@@ -389,11 +389,19 @@ export function useVirtualTryOn() {
       };
 
       const invokeHeaders = token ? { Authorization: `Bearer ${token}` } : undefined;
-      const invokeTryOn = () =>
-        supabase.functions.invoke('virtual-try-on', {
+      
+      // Wrap invoke with a client-side timeout to handle gateway timeouts in production
+      const CLIENT_TIMEOUT_MS = 55000; // 55 seconds
+      const invokeTryOn = async () => {
+        const invokePromise = supabase.functions.invoke('virtual-try-on', {
           body: invokePayload,
           headers: invokeHeaders,
         });
+        const timeoutPromise = new Promise<{ data: null; error: { message: string } }>((resolve) =>
+          setTimeout(() => resolve({ data: null, error: { message: 'Client timeout: gateway did not respond in time' } }), CLIENT_TIMEOUT_MS)
+        );
+        return Promise.race([invokePromise, timeoutPromise]);
+      };
 
       const buildCompletedResult = (params: {
         resultImageUrl: string;
