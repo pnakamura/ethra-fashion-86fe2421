@@ -61,6 +61,77 @@ export function useVirtualTryOn() {
     }, 1000);
   }, [clearCountdown]);
 
+  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  const isRecoverableInvokeError = (message: string) => {
+    const normalized = message.toLowerCase();
+    return (
+      normalized.includes('failed to send a request to the edge function') ||
+      normalized.includes('network') ||
+      normalized.includes('fetch') ||
+      normalized.includes('timeout') ||
+      normalized.includes('gateway')
+    );
+  };
+
+  const parseInvokeError = (rawMessage: string) => {
+    let userMessage = rawMessage || 'Falha ao processar prova virtual.';
+    let retryAfterSeconds: number | null = null;
+
+    try {
+      const jsonStart = rawMessage.indexOf('{');
+      if (jsonStart !== -1) {
+        const maybeJson = rawMessage.slice(jsonStart);
+        const parsed = JSON.parse(maybeJson);
+        if (parsed?.error) userMessage = String(parsed.error);
+        if (typeof parsed?.retryAfterSeconds === 'number') {
+          retryAfterSeconds = parsed.retryAfterSeconds;
+        }
+      }
+    } catch {
+      // ignore parse errors
+    }
+
+    return { userMessage, retryAfterSeconds };
+  };
+
+  const pollTryOnStatus = async (
+    tryOnResultId: string,
+    timeoutMs: number = 90000,
+    intervalMs: number = 3000
+  ) => {
+    const startedAt = Date.now();
+
+    while (Date.now() - startedAt < timeoutMs) {
+      const { data, error } = await supabase
+        .from('try_on_results')
+        .select('id, status, result_image_url, processing_time_ms, model_used, retry_count, error_message')
+        .eq('id', tryOnResultId)
+        .maybeSingle();
+
+      if (error) {
+        console.warn('Try-on status polling error:', error);
+      } else if (data) {
+        if (data.status === 'completed' && data.result_image_url) {
+          return {
+            resultImageUrl: data.result_image_url,
+            processingTimeMs: data.processing_time_ms,
+            model: data.model_used,
+            retryCount: data.retry_count,
+          };
+        }
+
+        if (data.status === 'failed') {
+          throw new Error(data.error_message || 'Falha ao processar prova virtual.');
+        }
+      }
+
+      await sleep(intervalMs);
+    }
+
+    return null;
+  };
+
   // Fetch user's primary avatar
   const { data: primaryAvatar, isLoading: isLoadingAvatar } = useQuery({
     queryKey: ['user-avatar', user?.id],
@@ -307,63 +378,95 @@ export function useVirtualTryOn() {
       // Call the edge function with preprocessed images
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
-      
-      console.log(`Starting virtual try-on with strategy: ${strategy}`);
-      
-      const response = await supabase.functions.invoke('virtual-try-on', {
-        body: {
-          avatarImageUrl: processedAvatarUrl,
-          garmentImageUrl: processedGarmentUrl,
-          category: category || 'upper_body',
-          tryOnResultId: tryOnResult.id,
-          retryCount,
-          strategy, // Pass strategy to edge function
-        },
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined
+
+      const invokePayload = {
+        avatarImageUrl: processedAvatarUrl,
+        garmentImageUrl: processedGarmentUrl,
+        category: category || 'upper_body',
+        tryOnResultId: tryOnResult.id,
+        retryCount,
+        strategy,
+      };
+
+      const invokeHeaders = token ? { Authorization: `Bearer ${token}` } : undefined;
+      const invokeTryOn = () =>
+        supabase.functions.invoke('virtual-try-on', {
+          body: invokePayload,
+          headers: invokeHeaders,
+        });
+
+      const buildCompletedResult = (params: {
+        resultImageUrl: string;
+        processingTimeMs?: number | null;
+        model?: string | null;
+        retryCount?: number | null;
+      }) => ({
+        ...tryOnResult,
+        result_image_url: params.resultImageUrl,
+        status: 'completed',
+        processing_time_ms: params.processingTimeMs ?? null,
+        model_used: params.model ?? null,
+        retry_count: params.retryCount ?? retryCount,
       });
 
-       if (response.error) {
-         const rawMessage = response.error.message || 'Falha ao processar prova virtual.';
+      console.log(`Starting virtual try-on with strategy: ${strategy}`);
 
-         // Try to extract {"error":"...","retryAfterSeconds":N} from edge-function message
-         let userMessage = rawMessage;
-         let retryAfterSeconds: number | null = null;
-         try {
-           const jsonStart = rawMessage.indexOf('{');
-           if (jsonStart !== -1) {
-             const maybeJson = rawMessage.slice(jsonStart);
-             const parsed = JSON.parse(maybeJson);
-             if (parsed?.error) userMessage = String(parsed.error);
-             if (typeof parsed?.retryAfterSeconds === 'number') retryAfterSeconds = parsed.retryAfterSeconds;
-           }
-         } catch {
-           // ignore parse errors
-         }
+      let response = await invokeTryOn();
 
-         if (retryAfterSeconds) {
-           userMessage = `${userMessage}`;
-         }
+      // Recovery flow for intermittent gateway/network failures
+      if (response.error && isRecoverableInvokeError(response.error.message || '')) {
+        console.warn('Initial invoke failed, attempting DB polling recovery:', response.error.message);
 
-         // Update status to failed with a clean message
-         await supabase
-           .from('try_on_results')
-           .update({
-             status: 'failed',
-             error_message: userMessage,
-           })
-           .eq('id', tryOnResult.id);
+        const recovered = await pollTryOnStatus(tryOnResult.id, 75000);
+        if (recovered?.resultImageUrl) {
+          console.log('Recovered try-on result via polling after invoke failure');
+          return buildCompletedResult(recovered);
+        }
 
-         throw new Error(userMessage);
-       }
+        await sleep(1500);
+        response = await invokeTryOn();
+      }
 
-      return {
-        ...tryOnResult,
-        result_image_url: response.data.resultImageUrl,
-        status: 'completed',
-        processing_time_ms: response.data.processingTimeMs,
-        model_used: response.data.model,
-        retry_count: response.data.retryCount,
-      };
+      if (response.error) {
+        const rawMessage = response.error.message || 'Falha ao processar prova virtual.';
+
+        // One final recovery poll for timeout/network edge cases
+        if (isRecoverableInvokeError(rawMessage)) {
+          const recovered = await pollTryOnStatus(tryOnResult.id, 90000);
+          if (recovered?.resultImageUrl) {
+            console.log('Recovered try-on result via final polling fallback');
+            return buildCompletedResult(recovered);
+          }
+        }
+
+        const { userMessage } = parseInvokeError(rawMessage);
+
+        await supabase
+          .from('try_on_results')
+          .update({
+            status: 'failed',
+            error_message: userMessage,
+          })
+          .eq('id', tryOnResult.id);
+
+        throw new Error(userMessage);
+      }
+
+      if (!response.data?.resultImageUrl) {
+        const recovered = await pollTryOnStatus(tryOnResult.id, 60000);
+        if (recovered?.resultImageUrl) {
+          return buildCompletedResult(recovered);
+        }
+
+        throw new Error('O try-on não retornou imagem de resultado.');
+      }
+
+      return buildCompletedResult({
+        resultImageUrl: response.data.resultImageUrl,
+        processingTimeMs: response.data.processingTimeMs,
+        model: response.data.model,
+        retryCount: response.data.retryCount,
+      });
     },
     onSuccess: () => {
       setIsProcessing(false);
