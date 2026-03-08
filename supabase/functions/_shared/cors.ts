@@ -17,6 +17,20 @@ const ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^http:\/\/localhost:\d+$/,
 ];
 
+const ALLOW_HEADERS = [
+  'authorization',
+  'x-client-info',
+  'apikey',
+  'content-type',
+  'x-monitoring-key',
+  'x-supabase-client-platform',
+  'x-supabase-client-platform-version',
+  'x-supabase-client-runtime',
+  'x-supabase-client-runtime-version',
+].join(', ');
+
+const ALLOW_METHODS = 'GET, POST, PUT, PATCH, DELETE, OPTIONS';
+
 function isOriginAllowed(origin: string): boolean {
   if (ALLOWED_ORIGINS.includes(origin)) return true;
   return ALLOWED_ORIGIN_PATTERNS.some((p) => p.test(origin));
@@ -32,16 +46,20 @@ function isOriginAllowed(origin: string): boolean {
 export function createCorsHeaders(req: Request): Record<string, string> {
   const origin = req.headers.get('origin') ?? '';
 
+  const baseHeaders = {
+    'Access-Control-Allow-Headers': ALLOW_HEADERS,
+    'Access-Control-Allow-Methods': ALLOW_METHODS,
+  };
+
   if (!isOriginAllowed(origin)) {
     // Return headers without ACAO — browser will reject the response.
-    return {
-      'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-monitoring-key',
-    };
+    return baseHeaders;
   }
 
   return {
+    ...baseHeaders,
     'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-monitoring-key',
     'Vary': 'Origin',
   };
 }
+
