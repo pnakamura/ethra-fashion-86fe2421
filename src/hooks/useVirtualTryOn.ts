@@ -59,7 +59,76 @@ export function useVirtualTryOn() {
         return prev - 1;
       });
     }, 1000);
-  }, [clearCountdown]);
+  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  const isRecoverableInvokeError = (message: string) => {
+    const normalized = message.toLowerCase();
+    return (
+      normalized.includes('failed to send a request to the edge function') ||
+      normalized.includes('network') ||
+      normalized.includes('fetch') ||
+      normalized.includes('timeout') ||
+      normalized.includes('gateway')
+    );
+  };
+
+  const parseInvokeError = (rawMessage: string) => {
+    let userMessage = rawMessage || 'Falha ao processar prova virtual.';
+    let retryAfterSeconds: number | null = null;
+
+    try {
+      const jsonStart = rawMessage.indexOf('{');
+      if (jsonStart !== -1) {
+        const maybeJson = rawMessage.slice(jsonStart);
+        const parsed = JSON.parse(maybeJson);
+        if (parsed?.error) userMessage = String(parsed.error);
+        if (typeof parsed?.retryAfterSeconds === 'number') {
+          retryAfterSeconds = parsed.retryAfterSeconds;
+        }
+      }
+    } catch {
+      // ignore parse errors
+    }
+
+    return { userMessage, retryAfterSeconds };
+  };
+
+  const pollTryOnStatus = async (
+    tryOnResultId: string,
+    timeoutMs: number = 90000,
+    intervalMs: number = 3000
+  ) => {
+    const startedAt = Date.now();
+
+    while (Date.now() - startedAt < timeoutMs) {
+      const { data, error } = await supabase
+        .from('try_on_results')
+        .select('id, status, result_image_url, processing_time_ms, model_used, retry_count, error_message')
+        .eq('id', tryOnResultId)
+        .maybeSingle();
+
+      if (error) {
+        console.warn('Try-on status polling error:', error);
+      } else if (data) {
+        if (data.status === 'completed' && data.result_image_url) {
+          return {
+            resultImageUrl: data.result_image_url,
+            processingTimeMs: data.processing_time_ms,
+            model: data.model_used,
+            retryCount: data.retry_count,
+          };
+        }
+
+        if (data.status === 'failed') {
+          throw new Error(data.error_message || 'Falha ao processar prova virtual.');
+        }
+      }
+
+      await sleep(intervalMs);
+    }
+
+    return null;
+  };
 
   // Fetch user's primary avatar
   const { data: primaryAvatar, isLoading: isLoadingAvatar } = useQuery({
