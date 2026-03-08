@@ -70,7 +70,8 @@ export function useVirtualTryOn() {
       normalized.includes('network') ||
       normalized.includes('fetch') ||
       normalized.includes('timeout') ||
-      normalized.includes('gateway')
+      normalized.includes('gateway') ||
+      normalized.includes('client timeout')
     );
   };
 
